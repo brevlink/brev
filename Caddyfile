@@ -1,0 +1,42 @@
+# ── Brev Caddyfile ─────────────────────────────────────────────────────
+# Self-hosted mode — reverse proxy to backend + auto SSL
+
+brevl.ink, :80 {
+    # Route API requests
+    handle_path /api/* {
+        reverse_proxy backend:8000
+    }
+
+    handle_path /health {
+        reverse_proxy backend:8000
+    }
+
+    handle_path /docs {
+        reverse_proxy backend:8000
+    }
+
+    handle_path /redoc {
+        reverse_proxy backend:8000
+    }
+
+    handle_path /openapi.json {
+        reverse_proxy backend:8000
+    }
+
+    # Root path — landing page or redirect
+    handle {
+        reverse_proxy backend:8000
+    }
+}
+
+# ── On-Demand TLS — Brev Cloud custom domains ──────────────────────
+# Uncomment when deploying Brev Cloud:
+#
+# proxy.brevl.ink {
+#     tls {
+#         on_demand
+#     }
+#     handle {
+#         reverse_proxy backend:8000
+#     }
+# }
