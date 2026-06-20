@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Open-source URL shortener. Self-host or use our cloud. Fast, clean, yours." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://brevl.ink" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+    <link rel="apple-touch-icon" href="/favicon-64.png" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+    <title>Brev — Your domain, your links, your way</title>
+    <style>
+      :root { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+      body { background: #0a0d2e; color: #fff; -webkit-font-smoothing: antialiased;
+        min-height: 100vh; display: flex; flex-direction: column; }
+      .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+      .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.06); }
+      .glow { box-shadow: 0 0 40px -8px rgba(59,130,246,0.15); }
+      .gradient-text { background: linear-gradient(135deg, #c0c3f0, #3b82f6);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; }
+    </style>
+  </head>
+  <body>
+    <!-- Nav -->
+    <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-xl" style="background: rgba(10,13,46,0.7);">
+      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2.5">
+          <img src="/logo-32.png" alt="Brev" class="w-8 h-8" />
+          <span class="text-lg font-semibold tracking-tight">Brev</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8 text-sm">
+          <a href="#features" class="text-white/60 hover:text-white transition-colors">Features</a>
+          <a href="#how-it-works" class="text-white/60 hover:text-white transition-colors">How it works</a>
+          <a href="#pricing" class="text-white/60 hover:text-white transition-colors">Pricing</a>
+          <a href="https://github.com/matteo-genovese/brev" target="_blank" class="text-white/60 hover:text-white transition-colors">GitHub</a>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/api/auth/login" class="text-sm px-4 py-2 rounded-lg bg-[#3b82f6] hover:bg-[#2563eb] text-white font-medium transition-all">Get started</a>
+        </div>
+      </div>
+    </nav>
+    <div class="h-16"></div>
+
+    <!-- Hero -->
+    <section class="relative overflow-hidden py-24 md:py-32">
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#4a50b0]/10 blur-3xl"></div>
+      </div>
+      <div class="relative max-w-5xl mx-auto px-6 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-white/70 mb-8">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          Open source · MIT licensed
+        </div>
+        <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none mb-6">
+          Your domain.<br />
+          <span class="gradient-text">Your links. Your way.</span>
+        </h1>
+        <p class="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
+          Brev is an open-source URL shortener you can self-host in one command,
+          or use our cloud — bring your own domain, keep your links under control.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="/api/auth/login" class="px-8 py-3.5 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold transition-all text-lg glow">Start shortening →</a>
+          <code class="px-6 py-3 rounded-xl glass text-sm text-white/70 font-mono flex items-center gap-2">
+            <span class="text-[#3b82f6]">$</span> docker compose up -d
+          </code>
+        </div>
+        <div class="mt-16 max-w-2xl mx-auto glass rounded-2xl p-4 md:p-6 text-left glow">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 rounded-full bg-red-400/50"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-400/50"></span>
+            <span class="w-3 h-3 rounded-full bg-green-400/50"></span>
+            <span class="text-xs text-white/30 font-mono ml-2">brev-cli</span>
+          </div>
+          <div class="text-sm md:text-base font-mono leading-relaxed text-white/70">
+            <span class="text-green-400">$</span> brev login user@email.com<br/>
+            <span class="text-white/40 ml-4">- Logged in as user@email.com</span><br/>
+            <span class="text-green-400">$</span> brev create https://example.com --slug go<br/>
+            <span class="text-white/40 ml-4">- Created: https://brevl.ink/go</span><br/>
+            <span class="text-green-400">$</span> brev stats go<br/>
+            <span class="text-white/40 ml-4">Clicks: 42</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-24 md:py-32">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-16">
+          <span class="text-sm font-semibold text-[#3b82f6] uppercase tracking-widest">Features</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4">Everything you need, nothing you don't</h2>
+          <p class="text-white/50 max-w-xl mx-auto">Minimal, fast, and built for the way you actually use URL shorteners.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          {[["🔗","Custom domains","Bring your own domain. A simple CNAME record and you're live. Caddy auto-provisions SSL."],
+            ["⚡","Blazing fast API","FastAPI + PostgreSQL async. Auto-generated docs at /docs. Type-safe and validated."],
+            ["🖥️","CLI-first","pip install brev-cli and you're done. Create, list, stats — all from your terminal."],
+            ["🔒","Self-contained auth","bcrypt + JWT. No Supabase, no vendor lock-in. One PostgreSQL instance is all it takes."],
+            ["📊","Click analytics","Every redirect is tracked. See click counts right from the CLI or dashboard."],
+            ["🐳","One-command deploy","docker compose up -d. PostgreSQL, FastAPI, Caddy — three containers, zero hassle."]
+          ].map(([icon, title, desc]) => (
+            <div class="glass rounded-2xl p-8 glow hover:bg-white/[0.05] transition-all duration-300">
+              <div class="w-12 h-12 rounded-xl bg-[#2a2f6a]/50 flex items-center justify-center mb-5 text-2xl">{icon}</div>
+              <h3 class="text-xl font-semibold mb-3">{title}</h3>
+              <p class="text-white/50 leading-relaxed text-sm">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="py-24 md:py-32">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="text-center mb-16">
+          <span class="text-sm font-semibold text-[#3b82f6] uppercase tracking-widest">How it works</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4">Three steps to shorter links</h2>
+          <p class="text-white/50 max-w-xl mx-auto">Whether you self-host or use the cloud, it's the same simple flow.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+          {[[1,"Deploy or sign up","Self-host with docker compose up -d or create an account."],
+            [2,"Create your links","CLI, dashboard, or API. Custom slugs, custom domains — you're in control."],
+            [3,"Share and track","Share short URLs anywhere. Monitor clicks, manage links, iterate."]
+          ].map(([num, title, desc]) => (
+            <div class="text-center">
+              <div class="w-16 h-16 rounded-2xl bg-[#2a2f6a]/40 border border-[#4a50b0]/20 flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-[#3b82f6]">{num}</div>
+              <h3 class="text-lg font-semibold mb-3">{title}</h3>
+              <p class="text-white/50 text-sm leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="py-24 md:py-32">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="text-center mb-16">
+          <span class="text-sm font-semibold text-[#3b82f6] uppercase tracking-widest">Pricing</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-3 mb-4">Open source first</h2>
+          <p class="text-white/50 max-w-xl mx-auto">Self-host for free forever, or use the cloud when you don't want to deal with infra.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div class="glass rounded-2xl p-8 glow">
+            <div class="text-sm font-semibold text-white/60 uppercase tracking-wider mb-2">Self-hosted</div>
+            <div class="text-4xl font-bold mb-1">$0</div>
+            <div class="text-white/40 text-sm mb-8">Forever · MIT license</div>
+            <ul class="space-y-3 mb-8 text-sm">
+              {["Unlimited links","PostgreSQL + FastAPI","CLI & API access","Bring your own domain","Caddy auto SSL"].map(item => (
+                <li class="flex items-center gap-3"><span class="text-green-400">✓</span> {item}</li>
+              ))}
+            </ul>
+            <code class="block text-center px-4 py-3 rounded-xl bg-[#0f1338]/60 text-sm font-mono text-white/60">docker compose up -d</code>
+          </div>
+          <div class="glass rounded-2xl p-8 glow relative border-[#3b82f6]/30">
+            <div class="absolute -top-3 right-6 px-3 py-1 rounded-full bg-[#3b82f6]/20 text-[#3b82f6] text-xs font-semibold border border-[#3b82f6]/30">Coming soon</div>
+            <div class="text-sm font-semibold text-white/60 uppercase tracking-wider mb-2">Brev Cloud</div>
+            <div class="text-4xl font-bold mb-1">$5</div>
+            <div class="text-white/40 text-sm mb-8">One-time per domain</div>
+            <ul class="space-y-3 mb-8 text-sm">
+              {["Everything in self-hosted","No infra to manage","Managed DNS + SSL","Backups & updates","Priority support"].map(item => (
+                <li class="flex items-center gap-3"><span class="text-[#3b82f6]">✓</span> {item}</li>
+              ))}
+            </ul>
+            <a href="#" class="block text-center px-4 py-3 rounded-xl bg-white/[0.05] text-white/40 text-sm font-medium cursor-not-allowed">Notify me when ready</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-24 md:py-32">
+      <div class="max-w-3xl mx-auto px-6 text-center">
+        <div class="glass rounded-3xl p-10 md:p-16 glow">
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to shorten?</h2>
+          <p class="text-white/50 text-lg mb-8 max-w-lg mx-auto">Deploy your own instance in one command, or create a free account. Either way, your links stay yours.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/api/auth/login" class="px-8 py-3.5 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold transition-all text-lg">Get started →</a>
+            <a href="https://github.com/matteo-genovese/brev" target="_blank" class="px-8 py-3.5 rounded-xl glass hover:bg-white/[0.08] text-white font-semibold transition-all text-lg">View on GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-12 md:py-16 mt-auto">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="grid md:grid-cols-4 gap-8 mb-10">
+          <div class="md:col-span-2">
+            <a href="/" class="flex items-center gap-2.5 mb-4">
+              <img src="/logo-32.png" alt="Brev" class="w-7 h-7" />
+              <span class="text-lg font-semibold tracking-tight">Brev</span>
+            </a>
+            <p class="text-white/40 text-sm max-w-xs leading-relaxed">Open-source URL shortener. MIT licensed. Built by <a href="https://matteogenovese.com" target="_blank" class="text-white/60 hover:text-white transition-colors">Matteo Genovese</a>.</p>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-white/80 mb-4 uppercase tracking-wider">Product</h4>
+            <ul class="space-y-2.5 text-sm">
+              <li><a href="#features" class="text-white/40 hover:text-white transition-colors">Features</a></li>
+              <li><a href="#pricing" class="text-white/40 hover:text-white transition-colors">Pricing</a></li>
+              <li><a href="/docs" class="text-white/40 hover:text-white transition-colors">API Docs</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-white/80 mb-4 uppercase tracking-wider">Connect</h4>
+            <ul class="space-y-2.5 text-sm">
+              <li><a href="https://github.com/matteo-genovese/brev" target="_blank" class="text-white/40 hover:text-white transition-colors">GitHub</a></li>
+              <li><a href="https://matteogenovese.com" target="_blank" class="text-white/40 hover:text-white transition-colors">Author</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/30">
+          <span>&copy; 2026 Brev. MIT license.</span>
+          <span>brevl.ink</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
