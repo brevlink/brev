@@ -1,56 +1,41 @@
-# ── Brev Caddyfile ─────────────────────────────────────────────────────
-# Proxy: landing (default), /api/* → backend, /app/* → dashboard
-# {$CADDY_EMAIL} viene passato via docker-compose environment
+# Brev Caddyfile
+# Proxy: landing (default), /api/* -> backend, /app/* -> dashboard, /slug -> backend.
 
-{
-  email {$CADDY_EMAIL}
+:80 {
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+
+	handle /docs {
+		reverse_proxy backend:8000
+	}
+
+	handle /redoc {
+		reverse_proxy backend:8000
+	}
+
+	handle /openapi.json {
+		reverse_proxy backend:8000
+	}
+
+	handle /health {
+		reverse_proxy backend:8000
+	}
+
+	handle_path /app/* {
+		reverse_proxy dashboard:80
+	}
+
+	handle /app {
+		redir /app/ 301
+	}
+
+	@short path_regexp short ^/[A-Za-z0-9_-]{3,64}$
+	handle @short {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy landing:80
+	}
 }
-
-brevl.ink, :80 {
-  # API backend
-  handle /api/* {
-    reverse_proxy backend:8000
-  }
-
-  # Swagger docs
-  handle /docs {
-    reverse_proxy backend:8000
-  }
-
-  handle /redoc {
-    reverse_proxy backend:8000
-  }
-
-  handle /openapi.json {
-    reverse_proxy backend:8000
-  }
-
-  # Backend health
-  handle /health {
-    reverse_proxy backend:8000
-  }
-
-  # Dashboard (sotto /app)
-  handle_path /app/* {
-    reverse_proxy dashboard:80
-  }
-
-  handle /app {
-    redir /app/ 301
-  }
-
-  # Landing (default)
-  handle {
-    reverse_proxy landing:80
-  }
-}
-
-# ── Brev Cloud — custom domain proxy ─────────────────────────────────
-# Quando attivi il tier cloud, scommenta:
-#
-# :443 {
-#   tls {
-#     on_demand
-#   }
-#   reverse_proxy backend:8000
-# }

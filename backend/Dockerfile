@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
+COPY alembic.ini .
+COPY alembic/ ./alembic/
 
 RUN useradd --create-home --shell /usr/sbin/nologin brev \
     && chown -R brev:brev /app
