@@ -39,7 +39,7 @@ export default function Register() {
     <main className="auth-page">
       <section className="auth-card">
         <a href="/" className="brand auth-brand" aria-label="Brev home">
-          <img src="/logo-200.png" alt="" />
+          <img src="/brev_logo.webp" alt="" />
           <span>Brev</span>
         </a>
         <p className="eyebrow">Account</p>

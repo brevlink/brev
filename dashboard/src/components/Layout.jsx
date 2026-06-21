@@ -29,7 +29,7 @@ export default function Layout({ children }) {
     <div className="dashboard-shell">
       <aside className="sidebar">
         <a href="/" className="brand" aria-label="Brev home">
-          <img src="/logo-200.png" alt="" />
+          <img src="/brev_logo.webp" alt="" />
           <span>Brev</span>
         </a>
 
