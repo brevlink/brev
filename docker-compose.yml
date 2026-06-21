@@ -138,3 +138,4 @@ configs:
 networks:
   brev_net:
     name: ${BREV_NETWORK_NAME:-brev_net}
+    external: ${BREV_NETWORK_EXTERNAL:-false}
