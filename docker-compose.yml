@@ -81,7 +81,7 @@ services:
     volumes:
       - ${BREV_DATA:-./data}/caddy_data:/data
       - ${BREV_DATA:-./data}/caddy_config:/config
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${BREV_CADDYFILE:-./Caddyfile}:/etc/caddy/Caddyfile:ro
     environment:
       DEFAULT_DOMAIN: ${DEFAULT_DOMAIN:-brevl.ink}
     depends_on:
