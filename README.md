@@ -140,7 +140,34 @@ To create a PostgreSQL dump:
 docker compose exec db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > brev.sql
 ```
 
-### 9. Custom domains
+### 9. Troubleshooting PostgreSQL passwords
+
+`POSTGRES_PASSWORD` is only used when PostgreSQL initializes an empty data
+directory. If `BREV_DATA/pgdata` already exists and you later change
+`DB_PASSWORD`, PostgreSQL keeps the old password and the backend will fail with:
+
+```text
+password authentication failed for user "postgres"
+```
+
+If this is a fresh install and you do not need the database contents, remove the
+old data directory and start again:
+
+```bash
+docker compose down
+rm -rf ./data/pgdata
+docker compose up -d --build
+```
+
+If you need to keep the database, update the PostgreSQL password to match
+`DB_PASSWORD`:
+
+```bash
+docker compose exec db psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD 'your-db-password';"
+docker compose up -d backend
+```
+
+### 10. Custom domains
 
 In the dashboard, add the domain, create the requested TXT record for
 verification, and then point the domain to the target shown in the app. The
@@ -203,6 +230,8 @@ Production deployments should keep `DOCS_ENABLED=false`.
 | `DB_NAME` | no | PostgreSQL database, default `brev` |
 | `HTTP_PORT` | no | Public HTTP port exposed by Caddy, default `80` |
 | `BREV_DATA` | no | Local data directory, default `./data` |
+| `BREV_NETWORK_NAME` | no | Docker network name, default `brev_net` |
+| `BREV_NETWORK_EXTERNAL` | no | Set to `true` when using an existing Docker network, for example an Nginx Proxy Manager network |
 | `POSTGRES_IMAGE` | no | PostgreSQL image used by Compose |
 | `BACKEND_IMAGE` | no | Backend image tag built or used by Compose |
 | `LANDING_IMAGE` | no | Landing image tag built or used by Compose |

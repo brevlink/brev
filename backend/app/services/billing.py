@@ -95,8 +95,6 @@ def subscription_is_active(subscription: Subscription | None) -> bool:
 async def user_has_cloud_entitlement(db: AsyncSession, user: User) -> bool:
     if not settings.cloud_mode:
         return True
-    if user.is_admin:
-        return True
     subscription = await get_or_create_subscription(db, user)
     return subscription_is_active(subscription)
 

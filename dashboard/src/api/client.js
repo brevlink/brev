@@ -24,7 +24,17 @@ async function request(path, options = {}) {
   }
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      const contentType = res.headers.get('content-type') || 'unknown content type';
+      throw new Error(
+        `API returned ${contentType} instead of JSON. Check that /api is routed to the Brev backend.`,
+      );
+    }
+  }
 
   if (!res.ok) {
     throw new Error(data.detail || data.message || 'Something went wrong');
@@ -59,10 +69,10 @@ export async function getLinks() {
   return request('/links');
 }
 
-export async function createLink({ url, slug, title }) {
+export async function createLink({ url, slug, title, domainId }) {
   return request('/links', {
     method: 'POST',
-    body: JSON.stringify({ url, slug: slug || null, title: title || null }),
+    body: JSON.stringify({ url, slug: slug || null, title: title || null, domain_id: domainId || null }),
   });
 }
 

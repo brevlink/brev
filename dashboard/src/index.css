@@ -37,7 +37,8 @@ a {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -54,8 +55,10 @@ input {
 }
 
 .brand img {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .button {
@@ -163,6 +166,11 @@ input {
   margin-bottom: 34px;
 }
 
+.auth-brand img {
+  width: 44px;
+  height: 44px;
+}
+
 .auth-card h1,
 .page-head h1,
 .modal h2,
@@ -190,7 +198,8 @@ input {
   font-weight: 800;
 }
 
-input {
+input,
+select {
   width: 100%;
   min-height: 48px;
   padding: 0 16px;
@@ -201,7 +210,8 @@ input {
   outline: none;
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--navy);
   box-shadow: 0 0 0 3px rgba(7, 25, 54, 0.1);
 }

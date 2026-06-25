@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createLink } from '../api/client';
 
-const initialForm = { url: '', slug: '', title: '' };
+const initialForm = { url: '', slug: '', title: '', domainId: '' };
 
-export default function CreateLinkModal({ open, onClose, onCreated }) {
+export default function CreateLinkModal({ open, onClose, onCreated, domains = [] }) {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,6 +38,7 @@ export default function CreateLinkModal({ open, onClose, onCreated }) {
         url: form.url,
         slug: form.slug || null,
         title: form.title || null,
+        domainId: form.domainId || null,
       });
       setResult(data);
       onCreated?.(data);
@@ -108,6 +109,24 @@ export default function CreateLinkModal({ open, onClose, onCreated }) {
                 placeholder="launch"
                 maxLength={64}
               />
+            </div>
+
+            <div className="field">
+              <label htmlFor="link-domain">Domain</label>
+              <select
+                id="link-domain"
+                value={form.domainId}
+                onChange={event => updateField('domainId', event.target.value)}
+              >
+                <option value="">brevl.ink</option>
+                {domains
+                  .filter(domain => domain.is_verified)
+                  .map(domain => (
+                    <option key={domain.id} value={domain.id}>
+                      {domain.domain}
+                    </option>
+                  ))}
+              </select>
             </div>
 
             <button type="submit" className="button primary full" disabled={loading}>

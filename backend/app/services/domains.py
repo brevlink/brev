@@ -25,7 +25,7 @@ async def create_domain(db: AsyncSession, user: User, body: DomainCreate) -> Dom
     domain_name = body.domain.lower().strip()
     if domain_name == settings.default_domain:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Cannot add the default domain",
         )
 
@@ -70,7 +70,7 @@ async def verify_domain(db: AsyncSession, domain_id: str, user_id: str) -> Domai
     if not _dns_txt_contains(domain.verification_dns_name, domain.verification_token):
         await db.flush()
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 "Domain verification failed. Add a TXT record at "
                 f"{domain.verification_dns_name} with value {domain.verification_token}."
@@ -150,12 +150,28 @@ def _domain_to_out(domain: Domain) -> DomainOut:
 
 
 def _dns_txt_contains(name: str, expected: str) -> bool:
+    resolvers = [dns.resolver.Resolver(configure=True)]
+    public_resolver = dns.resolver.Resolver(configure=False)
+    public_resolver.nameservers = ["1.1.1.1", "8.8.8.8"]
+    resolvers.append(public_resolver)
+
+    for resolver in resolvers:
+        resolver.lifetime = 5
+        resolver.timeout = 2
+        if _resolver_txt_contains(resolver, name, expected):
+            return True
+    return False
+
+
+def _resolver_txt_contains(resolver: dns.resolver.Resolver, name: str, expected: str) -> bool:
     try:
-        answers = dns.resolver.resolve(name, "TXT")
+        answers = resolver.resolve(name, "TXT")
     except Exception:
         return False
     for answer in answers:
-        for raw in answer.strings:
-            if raw.decode().strip().strip('"') == expected:
-                return True
+        chunks = [raw.decode().strip().strip('"') for raw in answer.strings]
+        if "".join(chunks) == expected:
+            return True
+        if expected in chunks:
+            return True
     return False

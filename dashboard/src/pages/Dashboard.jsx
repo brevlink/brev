@@ -164,6 +164,7 @@ export default function Dashboard() {
         open={showCreate}
         onClose={() => setShowCreate(false)}
         onCreated={handleCreated}
+        domains={domains}
       />
     </Layout>
   );

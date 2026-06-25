@@ -110,6 +110,36 @@ def test_unverified_domain_cannot_be_used(client):
     assert response.status_code == 422
 
 
+def test_cloud_mode_blocks_custom_domain_without_subscription(client, monkeypatch):
+    from app.services import domains
+
+    monkeypatch.setattr(domains.settings, "cloud_mode", True)
+    monkeypatch.setattr(domains.settings, "free_custom_domains", 0)
+    token = _register_and_login(client)
+
+    response = client.post(
+        "/api/v1/domains",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"domain": "paid.example.com"},
+    )
+    assert response.status_code == 402
+
+
+def test_cloud_mode_allows_included_free_custom_domain(client, monkeypatch):
+    from app.services import domains
+
+    monkeypatch.setattr(domains.settings, "cloud_mode", True)
+    monkeypatch.setattr(domains.settings, "free_custom_domains", 1)
+    token = _register_and_login(client)
+
+    response = client.post(
+        "/api/v1/domains",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"domain": "included.example.com"},
+    )
+    assert response.status_code == 201
+
+
 def test_api_key_can_authenticate(client):
     token = _register_and_login(client)
 
@@ -178,6 +208,36 @@ def test_non_admin_is_forbidden_from_admin_routes(client):
     user_token = _register_and_login(client, "member@example.com")
     response = client.get("/api/v1/admin/users", headers={"Authorization": f"Bearer {user_token}"})
     assert response.status_code == 403
+
+
+def test_dns_txt_verification_accepts_single_record():
+    from app.services.domains import _resolver_txt_contains
+
+    class Answer:
+        strings = [b"token-value"]
+
+    class Resolver:
+        def resolve(self, name, record_type):
+            assert name == "_brev.go.example.com"
+            assert record_type == "TXT"
+            return [Answer()]
+
+    assert _resolver_txt_contains(Resolver(), "_brev.go.example.com", "token-value")
+
+
+def test_dns_txt_verification_accepts_chunked_record():
+    from app.services.domains import _resolver_txt_contains
+
+    class Answer:
+        strings = [b"token-", b"value"]
+
+    class Resolver:
+        def resolve(self, name, record_type):
+            assert name == "_brev.go.example.com"
+            assert record_type == "TXT"
+            return [Answer()]
+
+    assert _resolver_txt_contains(Resolver(), "_brev.go.example.com", "token-value")
 
 
 def test_billing_status_defaults_to_free(client):
