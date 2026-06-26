@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../api/client';
+import { alert, brand, button, eyebrow, field, fieldLabel, formStack, input, muted, serif } from '../styles/ui';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -36,25 +37,28 @@ export default function Register() {
   }
 
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <a href="/" className="brand auth-brand" aria-label="Brev home">
-          <img src="/brev_logo.webp" alt="" />
+    <main className="grid min-h-screen place-items-center p-6">
+      <section className="w-[min(100%,440px)] rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.58)] p-[34px] shadow-[0_28px_90px_rgba(7,25,54,0.16)]">
+        <a href="/" className={`${brand} mb-[34px]`} aria-label="Brev home">
+          <img className="size-11 shrink-0 object-contain" src="/brev_logo.webp" alt="" />
           <span>Brev</span>
         </a>
-        <p className="eyebrow">Account</p>
-        <h1 className="serif">{success ? 'Created.' : 'Create account.'}</h1>
-        <p className="muted">
+        <p className={eyebrow}>Account</p>
+        <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}>
+          {success ? 'Created.' : 'Create account.'}
+        </h1>
+        <p className={muted}>
           {success ? 'Redirecting to sign in.' : 'Start with the OSS dashboard or Brev Cloud.'}
         </p>
 
         {!success && (
-          <form onSubmit={handleSubmit} className="form-stack">
-            {error && <div className="alert">{error}</div>}
+          <form onSubmit={handleSubmit} className={formStack}>
+            {error && <div className={alert}>{error}</div>}
 
-            <div className="field">
-              <label htmlFor="register-email">Email</label>
+            <div className={field}>
+              <label className={fieldLabel} htmlFor="register-email">Email</label>
               <input
+                className={input}
                 id="register-email"
                 type="email"
                 value={email}
@@ -64,9 +68,10 @@ export default function Register() {
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="register-password">Password</label>
+            <div className={field}>
+              <label className={fieldLabel} htmlFor="register-password">Password</label>
               <input
+                className={input}
                 id="register-password"
                 type="password"
                 value={password}
@@ -76,9 +81,10 @@ export default function Register() {
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="confirm-password">Confirm password</label>
+            <div className={field}>
+              <label className={fieldLabel} htmlFor="confirm-password">Confirm password</label>
               <input
+                className={input}
                 id="confirm-password"
                 type="password"
                 value={confirm}
@@ -88,13 +94,13 @@ export default function Register() {
               />
             </div>
 
-            <button type="submit" className="button primary full" disabled={loading}>
+            <button type="submit" className={button.fullPrimary} disabled={loading}>
               {loading ? 'Creating account' : 'Create account'}
             </button>
           </form>
         )}
 
-        <p className="auth-switch">
+        <p className="mt-[22px] text-center text-[#38516f] [&_a]:font-extrabold [&_a]:text-[#071936]">
           Already registered? <Link to="/login">Sign in</Link>
         </p>
       </section>

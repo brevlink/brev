@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children }) {
   }, []);
 
   if (state.loading) {
-    return <div className="app-loading">Loading</div>;
+    return <div className="grid min-h-screen place-items-center p-6">Loading</div>;
   }
 
   if (!state.authenticated) {

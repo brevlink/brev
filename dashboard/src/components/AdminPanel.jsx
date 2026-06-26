@@ -1,4 +1,5 @@
 import { activateAdminUser, clearAdminLink, flagAdminLink, suspendAdminUser } from '../api/client';
+import { button, compactRow, dataList, dataText, dataTitle, eyebrow, panel, panelTitle } from '../styles/ui';
 
 export default function AdminPanel({ users, links, onUsersChange, onLinksChange }) {
   async function toggleUser(user) {
@@ -12,39 +13,39 @@ export default function AdminPanel({ users, links, onUsersChange, onLinksChange 
   }
 
   return (
-    <section className="panel-block admin-panel">
-      <div className="panel-head">
+    <section className={`${panel} mt-[18px]`}>
+      <div>
         <div>
-          <p className="eyebrow">Admin</p>
-          <h2 className="serif">Moderation.</h2>
+          <p className={eyebrow}>Admin</p>
+          <h2 className={panelTitle}>Moderation.</h2>
         </div>
       </div>
 
-      <div className="admin-columns">
-        <div className="data-list">
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))] max-[840px]:grid-cols-1">
+        <div className={dataList}>
           <strong>Users</strong>
           {users.map(user => (
-            <article key={user.id} className="data-row compact-row">
+            <article key={user.id} className={compactRow}>
               <div>
-                <strong>{user.email}</strong>
-                <p>{user.is_admin ? 'Admin' : 'Member'} · {user.is_verified ? 'Verified' : 'Unverified'}</p>
+                <strong className={dataTitle}>{user.email}</strong>
+                <p className={dataText}>{user.is_admin ? 'Admin' : 'Member'} · {user.is_verified ? 'Verified' : 'Unverified'}</p>
               </div>
-              <button type="button" className="button compact secondary" onClick={() => toggleUser(user)}>
+              <button type="button" className={button.compactSecondary} onClick={() => toggleUser(user)}>
                 {user.is_active ? 'Suspend' : 'Activate'}
               </button>
             </article>
           ))}
         </div>
 
-        <div className="data-list">
+        <div className={dataList}>
           <strong>Links</strong>
           {links.map(link => (
-            <article key={link.id} className="data-row compact-row">
+            <article key={link.id} className={compactRow}>
               <div>
-                <strong>{link.slug}</strong>
-                <p>{link.url}</p>
+                <strong className={dataTitle}>{link.slug}</strong>
+                <p className={dataText}>{link.url}</p>
               </div>
-              <button type="button" className="button compact danger" onClick={() => toggleLink(link)}>
+              <button type="button" className={button.compactDanger} onClick={() => toggleLink(link)}>
                 {link.is_flagged ? 'Clear' : 'Flag'}
               </button>
             </article>

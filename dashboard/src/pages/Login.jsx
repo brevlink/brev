@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/client';
+import { alert, brand, button, eyebrow, field, fieldLabel, formStack, input, muted, serif } from '../styles/ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -24,22 +25,23 @@ export default function Login() {
   }
 
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <a href="/" className="brand auth-brand" aria-label="Brev home">
-          <img src="/brev_logo.webp" alt="" />
+    <main className="grid min-h-screen place-items-center p-6">
+      <section className="w-[min(100%,440px)] rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.58)] p-[34px] shadow-[0_28px_90px_rgba(7,25,54,0.16)]">
+        <a href="/" className={`${brand} mb-[34px]`} aria-label="Brev home">
+          <img className="size-11 shrink-0 object-contain" src="/brev_logo.webp" alt="" />
           <span>Brev</span>
         </a>
-        <p className="eyebrow">Dashboard</p>
-        <h1 className="serif">Welcome back.</h1>
-        <p className="muted">Sign in to manage short links, clicks, and domains.</p>
+        <p className={eyebrow}>Dashboard</p>
+        <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}>Welcome back.</h1>
+        <p className={muted}>Sign in to manage short links, clicks, and domains.</p>
 
-        <form onSubmit={handleSubmit} className="form-stack">
-          {error && <div className="alert">{error}</div>}
+        <form onSubmit={handleSubmit} className={formStack}>
+          {error && <div className={alert}>{error}</div>}
 
-          <div className="field">
-            <label htmlFor="email">Email</label>
+          <div className={field}>
+            <label className={fieldLabel} htmlFor="email">Email</label>
             <input
+              className={input}
               id="email"
               type="email"
               value={email}
@@ -49,9 +51,10 @@ export default function Login() {
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="password">Password</label>
+          <div className={field}>
+            <label className={fieldLabel} htmlFor="password">Password</label>
             <input
+              className={input}
               id="password"
               type="password"
               value={password}
@@ -61,12 +64,12 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className="button primary full" disabled={loading}>
+          <button type="submit" className={button.fullPrimary} disabled={loading}>
             {loading ? 'Signing in' : 'Sign in'}
           </button>
         </form>
 
-        <p className="auth-switch">
+        <p className="mt-[22px] text-center text-[#38516f] [&_a]:font-extrabold [&_a]:text-[#071936]">
           No account yet? <Link to="/register">Create one</Link>
         </p>
       </section>
