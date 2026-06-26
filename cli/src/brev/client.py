@@ -21,7 +21,11 @@ def _request(
     token: str | None = None,
     body: dict | None = None,
 ) -> Any:
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": "brev-cli/0.1.0",
+    }
     if token:
         headers["Authorization"] = f"Bearer {token}"
 

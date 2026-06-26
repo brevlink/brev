@@ -18,3 +18,9 @@ brev logout
 `brev login` prompts for the password securely instead of reading it from shell
 history. `brev token create` creates a revocable API key and stores it in
 `~/.brev/config` with `0600` permissions.
+
+For local development from this repository, install it with:
+
+```bash
+python3 -m pip install --user -e ./cli
+```

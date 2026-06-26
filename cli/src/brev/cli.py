@@ -207,8 +207,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_login.add_argument("email", nargs="?", help="Your email address")
     p_login.add_argument("--password", help="Password (omit to use a hidden prompt)")
     p_login.add_argument("--token", help="Use an existing Brev API key instead of a password")
-    p_login.add_argument("--server", default="http://localhost:8000",
-                         help="Brev server URL (default: http://localhost:8000)")
+    p_login.add_argument("--server", default=config.DEFAULT_SERVER,
+                         help=f"Brev server URL (default: {config.DEFAULT_SERVER})")
     p_login.add_argument("--no-register", dest="register_if_unregistered",
                          action="store_false", default=True,
                          help="Don't auto-register if account doesn't exist")

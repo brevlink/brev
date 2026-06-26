@@ -207,6 +207,12 @@ brev logout
 `brev login` prompts for the password securely. `brev token create` creates and
 stores a revocable API key for future CLI calls.
 
+For local development from this repository:
+
+```bash
+python3 -m pip install --user -e ./cli
+```
+
 ## API
 
 API routes are under `/api/v1`.

@@ -8,7 +8,7 @@ from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".brev"
 CONFIG_FILE = CONFIG_DIR / "config"
-DEFAULT_SERVER = "http://localhost:8000"
+DEFAULT_SERVER = "https://brevl.ink"
 
 
 def _ensure_dir() -> None:
