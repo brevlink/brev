@@ -1,11 +1,15 @@
-# Brev Docker Compose
+# Brev self-hosted web stack
 #
 # Copy .env.example to .env, set JWT_SECRET and DB_PASSWORD, then run:
 #   docker compose up -d
 
+x-brev-labels: &brev-labels
+  org.opencontainers.image.source: https://github.com/brevlink/brev
+
 services:
   db:
     image: ${POSTGRES_IMAGE:-postgres:16-alpine}
+    labels: *brev-labels
     restart: unless-stopped
     volumes:
       - ${BREV_DATA:-./data}/pgdata:/var/lib/postgresql/data
@@ -23,6 +27,7 @@ services:
 
   backend:
     image: ${BACKEND_IMAGE:-brev-backend:local}
+    labels: *brev-labels
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -57,6 +62,7 @@ services:
 
   landing:
     image: ${LANDING_IMAGE:-brev-landing:local}
+    labels: *brev-labels
     build:
       context: ./landing
       dockerfile: Dockerfile
@@ -66,6 +72,7 @@ services:
 
   dashboard:
     image: ${DASHBOARD_IMAGE:-brev-dashboard:local}
+    labels: *brev-labels
     build:
       context: ./dashboard
       dockerfile: Dockerfile
@@ -75,6 +82,7 @@ services:
 
   caddy:
     image: ${CADDY_IMAGE:-brev-caddy:local}
+    labels: *brev-labels
     pull_policy: build
     build:
       context: .

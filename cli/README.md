@@ -1,6 +1,6 @@
 # brev-cli
 
-CLI client for [Brev](https://github.com/matteo-genovese/brev).
+CLI client for [Brev](https://github.com/brevlink/brev).
 
 ```bash
 pip install brev-cli

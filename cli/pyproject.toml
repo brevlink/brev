@@ -22,6 +22,11 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
 ]
 
+[project.urls]
+Homepage = "https://github.com/brevlink/brev"
+Source = "https://github.com/brevlink/brev"
+Issues = "https://github.com/brevlink/brev/issues"
+
 [project.scripts]
 brev = "brev.cli:main"
 

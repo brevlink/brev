@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: matteo-genovese/brev-dashboard
+  IMAGE_NAME: brevlink/brev-dashboard
 
 permissions:
   contents: read

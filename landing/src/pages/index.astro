@@ -6,7 +6,7 @@ const features = [
   },
   {
     title: 'Ship anywhere',
-    description: 'Self-host with Docker or let Brev Cloud handle infra, SSL, backups, and scaling.',
+    description: 'Self-host the backend and dashboard with Docker, then point the CLI at your server.',
   },
   {
     title: 'Work from CLI',
@@ -21,13 +21,13 @@ const features = [
 const steps = [
   {
     code: '01',
-    title: 'Deploy',
-    description: 'Run the open-source stack with PostgreSQL, FastAPI, Caddy, and the React dashboard.',
+    title: 'Self-host',
+    description: 'Run PostgreSQL, the FastAPI backend, Caddy, and the React dashboard on your infrastructure.',
   },
   {
     code: '02',
-    title: 'Connect',
-    description: 'Bring a custom domain, choose a slug, and keep every link under your control.',
+    title: 'Connect clients',
+    description: 'Point the CLI at your Brev server. Browser and mobile clients can follow the same model later.',
   },
   {
     code: '03',
@@ -44,12 +44,12 @@ const steps = [
     <meta name="viewport" content="width=device-width" />
     <meta
       name="description"
-      content="Brev is a minimal open-source URL shortener for custom domains, self-hosting, CLI workflows, and Brev Cloud."
+      content="Brev is an open-source URL shortener built for self-hosted backend, dashboard, and CLI workflows."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://brevl.ink" />
-    <meta property="og:title" content="Brev — Your domain, your links, your way" />
-    <meta property="og:description" content="A minimal URL shortener for self-hosted and cloud custom domains." />
+    <meta property="og:title" content="Brev — Open-source link infrastructure" />
+    <meta property="og:description" content="Self-host the backend and dashboard, then connect the CLI to your server." />
     <link rel="icon" type="image/webp" sizes="64x64" href="/brev_icona.webp" />
     <link rel="apple-touch-icon" href="/brev_icona.webp" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -58,7 +58,7 @@ const steps = [
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500&display=swap"
       rel="stylesheet"
     />
-    <title>Brev — Your domain, your links, your way</title>
+    <title>Brev — Open-source link infrastructure</title>
     <style>
       :root {
         color-scheme: light;
@@ -657,7 +657,7 @@ const steps = [
           <a href="#features">Features</a>
           <a href="#workflow">Workflow</a>
           <a href="#pricing">Pricing</a>
-          <a href="https://github.com/matteo-genovese/brev" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/brevlink/brev" target="_blank" rel="noreferrer">GitHub</a>
         </div>
 
         <div class="nav-actions">
@@ -672,13 +672,13 @@ const steps = [
           <div class="eyebrow">Open-source URL shortener</div>
           <h1 class="serif">Short links,<br />long control.</h1>
           <p class="hero-copy">
-            Brev gives every team a quieter way to manage links: custom domains, click tracking, a clean API,
-            and a CLI that feels native to your workflow.
+            Brev gives you a self-hosted backend and dashboard for links, custom domains, click tracking,
+            and a CLI that connects to your own server.
           </p>
 
           <div class="hero-actions">
-            <a class="button primary" href="/app/login">Start shortening</a>
-            <a class="button secondary" href="https://github.com/matteo-genovese/brev" target="_blank" rel="noreferrer">
+            <a class="button primary" href="/app/login">Open dashboard</a>
+            <a class="button secondary" href="https://github.com/brevlink/brev" target="_blank" rel="noreferrer">
               View source
             </a>
           </div>
@@ -686,7 +686,7 @@ const steps = [
           <div class="mini-proof" aria-label="Brev highlights">
             <span>MIT licensed</span>
             <span>Self-hosted first</span>
-            <span>Brev Cloud soon</span>
+            <span>CLI connects to your server</span>
           </div>
         </div>
 
@@ -708,7 +708,7 @@ const steps = [
             <span class="number">02</span>
             <div>
               <strong>Your stack</strong>
-              <p>PostgreSQL auth, FastAPI, Caddy auto SSL, and no vendor lock-in.</p>
+              <p>PostgreSQL auth, FastAPI, Caddy routing, and no vendor lock-in.</p>
             </div>
           </div>
 
@@ -726,8 +726,8 @@ const steps = [
             <h2 class="serif">Minimal by design.</h2>
           </div>
           <p>
-            Everything from the README is focused into one product promise: own the link layer, whether you run
-            it yourself or use hosted infrastructure.
+            Everything is focused on one product promise: own the link layer, run the web stack yourself,
+            and connect lightweight clients to it.
           </p>
         </div>
 
@@ -753,8 +753,8 @@ const steps = [
             <h2 class="serif">Three clear moves.</h2>
           </div>
           <p>
-            From local deploys to managed cloud domains, Brev keeps the path from long URL to trackable short
-            link intentionally simple.
+            From local deploys to CLI workflows, Brev keeps the path from long URL to trackable short link
+            intentionally simple.
           </p>
         </div>
 
@@ -778,8 +778,8 @@ const steps = [
             <h2 class="serif">Open source first.</h2>
           </div>
           <p>
-            Use the MIT-licensed stack forever, or choose Brev Cloud when you want the domain setup and
-            infrastructure handled for you.
+            Use the MIT-licensed stack forever. Brev Cloud can come later for people who want managed
+            infrastructure instead of operating their own server.
           </p>
         </div>
 
@@ -790,7 +790,7 @@ const steps = [
             <p class="price-note">Forever. Docker compose, PostgreSQL, FastAPI, dashboard, and CLI.</p>
             <ul>
               <li>Unlimited links on your own infrastructure</li>
-              <li>Custom domains with Caddy auto SSL</li>
+              <li>Custom domains behind your reverse proxy</li>
               <li>OpenAPI docs and CLI access</li>
             </ul>
           </article>
@@ -822,7 +822,7 @@ const steps = [
         <span>© 2026 Brev. MIT licensed.</span>
         <div class="footer-links">
           <a href="/docs">API docs</a>
-          <a href="https://github.com/matteo-genovese/brev" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/brevlink/brev" target="_blank" rel="noreferrer">GitHub</a>
           <a href="https://matteogenovese.com" target="_blank" rel="noreferrer">Author</a>
         </div>
       </div>

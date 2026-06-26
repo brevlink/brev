@@ -1,18 +1,63 @@
 # Brev
 
-> URL shortener. Your domain, your links, your way.
+> Open-source link infrastructure. Your domain, your dashboard, your CLI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi)](https://fastapi.tiangolo.com/)
 
-Brev is an MIT-licensed URL shortener for self-hosting and hosted Cloud use.
-The code is open source; the official hosted service, brand, and domains are
-operated as Brev Cloud.
+Brev is an MIT-licensed URL shortener built to be self-hosted first.
 
-The name comes from the Italian word `breve`, meaning short. The product is
-built around that idea: short links, short paths, and the wordplay of
-`brev link`.
+The core product is the web stack: a FastAPI backend, PostgreSQL database, React
+dashboard, and Caddy entry point. The CLI connects to whichever Brev server you
+run, so the same command-line workflow works against your own instance or a
+hosted Brev Cloud instance later.
+
+Brev Cloud may become the official managed service for people who do not want to
+run infrastructure. The code stays open source, and self-hosting the backend and
+dashboard is the primary path.
+
+## Repository
+
+This repository lives at:
+
+```text
+https://github.com/brevlink/brev
+```
+
+Current layout:
+
+```text
+backend/        FastAPI API, auth, links, redirects, domains, billing hooks
+dashboard/      React dashboard served at /app
+landing/        Astro marketing site served at /
+cli/            Python CLI that connects to a Brev server
+docs/           Self-hosting and project notes
+```
+
+Planned areas:
+
+```text
+chrome-extension/   Browser extension, once the product shape is clearer
+android/            Android app, once the API and workflows settle
+```
+
+The planned clients should stay thin: they should authenticate against a Brev
+server and reuse the same backend/dashboard concepts instead of becoming
+separate products.
+
+## What You Self-Host
+
+For most people, self-hosting means running:
+
+- `backend`: API, auth, link creation, redirects, custom domains, API keys.
+- `dashboard`: private web UI for managing links, domains, account state, and keys.
+- `db`: PostgreSQL data store.
+- `caddy`: single HTTP entry point that routes API, dashboard, docs, health checks, and short links.
+
+The landing site is included in the default compose stack because it is useful
+for the public Brev instance, but the operational value is in the backend and
+dashboard.
 
 ## Features
 
@@ -22,50 +67,32 @@ built around that idea: short links, short paths, and the wordplay of
 - Host-aware redirects for default and custom domains.
 - Browser sessions with `HttpOnly` cookies.
 - Revocable API keys for CLI and programmatic access.
+- CLI workflow that can point at any self-hosted Brev server.
 - Email verification hooks, Cloud billing entitlements, and admin moderation.
 - Rate limiting on auth and link creation.
-- FastAPI backend, Alembic migrations, React dashboard, Astro landing page, PostgreSQL, Caddy.
+- Docker Compose stack with FastAPI, PostgreSQL, Caddy, React, and Astro.
 
-## How It Works
+## Quick Start
 
-With `docker compose`, Brev starts four services:
-
-- `caddy`: public entry point. It serves the landing page at `/`, the dashboard at `/app`, the API at `/api/v1`, and routes short links like `/launch` to the backend.
-- `backend`: FastAPI API for login, sessions, links, redirects, custom domains, and Cloud billing.
-- `dashboard`: React interface for accounts, links, domains, API keys, and billing.
-- `db`: PostgreSQL.
-
-Configuration is controlled through `.env`. You do not need to edit
-`docker-compose.yml` to change the domain, port, passwords, image tags, or data
-path.
-
-## Self-Hosted: Step By Step
-
-### 1. Requirements
-
-Install Docker and Docker Compose on your server or computer.
-
-### 2. Clone the project
+Requirements: Docker and Docker Compose.
 
 ```bash
-git clone https://github.com/matteo-genovese/brev.git
+git clone https://github.com/brevlink/brev.git
 cd brev
 cp .env.example .env
 ```
 
-### 3. Generate secrets
+Generate secrets:
 
 ```bash
 openssl rand -hex 32
 openssl rand -hex 24
 ```
 
-Open `.env` and paste the first value into `JWT_SECRET`, and the second value
-into `DB_PASSWORD`.
+Put the first value in `JWT_SECRET` and the second value in `DB_PASSWORD` inside
+`.env`.
 
-### 4. Configure domain and URLs
-
-For local testing, you can use:
+For local testing:
 
 ```env
 DEFAULT_DOMAIN=localhost
@@ -75,126 +102,35 @@ DOCS_ENABLED=true
 CORS_ORIGINS=["http://localhost"]
 ```
 
-For a public server behind HTTPS:
-
-```env
-DEFAULT_DOMAIN=yourdomain.com
-SECURE_COOKIES=true
-DOCS_ENABLED=false
-CORS_ORIGINS=["https://yourdomain.com"]
-```
-
-Compose exposes HTTP on `HTTP_PORT`. For production, put Brev behind a reverse
-proxy with TLS, for example Cloudflare, Nginx Proxy Manager, Traefik, or an
-external Caddy instance. Set `SECURE_COOKIES=true` only when the site is served
-over HTTPS.
-
-### 5. Start
+Start Brev:
 
 ```bash
 docker compose up -d --build
-```
-
-On first startup, the backend automatically runs database migrations. Alembic is
-the tool that updates the PostgreSQL schema to the version required by the code.
-
-### 6. Verify
-
-```bash
-docker compose ps
-curl http://localhost/health
 ```
 
 Then open:
 
-- Landing: `http://localhost/`
 - Dashboard: `http://localhost/app/login`
+- API health: `http://localhost/health`
 - API docs, only when `DOCS_ENABLED=true`: `http://localhost/docs`
+- Landing: `http://localhost/`
 
 The first registered user becomes the admin.
 
-### 7. Update
-
-```bash
-git pull
-docker compose up -d --build
-```
-
-Migrations are applied when the backend starts.
-
-### 8. Logs and backups
-
-```bash
-docker compose logs -f backend
-docker compose logs -f caddy
-```
-
-Data is stored in `BREV_DATA`, which defaults to `./data`. Back up at least:
-
-- `./data/pgdata`
-- `.env`
-
-To create a PostgreSQL dump:
-
-```bash
-docker compose exec db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > brev.sql
-```
-
-### 9. Troubleshooting PostgreSQL passwords
-
-`POSTGRES_PASSWORD` is only used when PostgreSQL initializes an empty data
-directory. If `BREV_DATA/pgdata` already exists and you later change
-`DB_PASSWORD`, PostgreSQL keeps the old password and the backend will fail with:
-
-```text
-password authentication failed for user "postgres"
-```
-
-If this is a fresh install and you do not need the database contents, remove the
-old data directory and start again:
-
-```bash
-docker compose down
-rm -rf ./data/pgdata
-docker compose up -d --build
-```
-
-If you need to keep the database, update the PostgreSQL password to match
-`DB_PASSWORD`:
-
-```bash
-docker compose exec db psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD 'your-db-password';"
-docker compose up -d backend
-```
-
-### 10. Custom domains
-
-In the dashboard, add the domain, create the requested TXT record for
-verification, and then point the domain to the target shown in the app. The
-default value is:
-
-```env
-CNAME_TARGET=proxy.brevl.ink.
-```
-
-For self-hosting, change it to your public proxy domain, for example:
-
-```env
-CNAME_TARGET=links.yourdomain.com.
-```
-
-## Brev Cloud
-
-Brev Cloud is the official hosted service for users who want managed SSL,
-custom-domain verification, backups, abuse controls, billing, and support.
-Self-hosted Brev remains MIT licensed.
+For a fuller production checklist, see [docs/self-hosting.md](docs/self-hosting.md).
 
 ## CLI
 
+Install:
+
 ```bash
 pip install brev-cli
+```
 
-brev login user@example.com --server https://brevl.ink
+Point it at your own Brev server:
+
+```bash
+brev login user@example.com --server https://links.example.com
 brev token create --name laptop
 brev create https://example.com --slug launch --title "Launch notes"
 brev list
@@ -204,13 +140,11 @@ brev whoami
 brev logout
 ```
 
-`brev login` prompts for the password securely. `brev token create` creates and
-stores a revocable API key for future CLI calls.
-
 For local development from this repository:
 
 ```bash
 python3 -m pip install --user -e ./cli
+brev login user@example.com --server http://localhost
 ```
 
 ## API
@@ -237,12 +171,12 @@ Production deployments should keep `DOCS_ENABLED=false`.
 | `HTTP_PORT` | no | Public HTTP port exposed by Caddy, default `80` |
 | `BREV_DATA` | no | Local data directory, default `./data` |
 | `BREV_NETWORK_NAME` | no | Docker network name, default `brev_net` |
-| `BREV_NETWORK_EXTERNAL` | no | Set to `true` when using an existing Docker network, for example an Nginx Proxy Manager network |
+| `BREV_NETWORK_EXTERNAL` | no | Set to `true` when using an existing Docker network |
 | `POSTGRES_IMAGE` | no | PostgreSQL image used by Compose |
 | `BACKEND_IMAGE` | no | Backend image tag built or used by Compose |
 | `LANDING_IMAGE` | no | Landing image tag built or used by Compose |
 | `DASHBOARD_IMAGE` | no | Dashboard image tag built or used by Compose |
-| `CADDY_IMAGE` | no | Caddy image used by Compose |
+| `CADDY_IMAGE` | no | Caddy image tag built by Compose |
 | `DATABASE_URL` | no | PostgreSQL URI for non-compose deployments |
 | `DEFAULT_DOMAIN` | no | Default short-link domain |
 | `CORS_ORIGINS` | no | JSON list of allowed browser origins |
@@ -289,13 +223,16 @@ npm install
 npm run dev
 ```
 
-CI runs backend tests, Python dependency audit, Bandit, npm audit, and frontend
-builds.
+CLI:
+
+```bash
+python3 -m pip install --user -e ./cli
+```
 
 ## Security
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting. The CI pipeline runs
-backend tests, Python dependency audit, Bandit, npm audit, and frontend builds.
+See [SECURITY.md](SECURITY.md) for vulnerability reporting. CI runs backend
+tests, Python dependency audit, Bandit, npm audit, and frontend builds.
 
 ## License and Brand
 
