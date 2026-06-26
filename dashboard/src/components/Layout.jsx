@@ -64,7 +64,7 @@ export default function Layout({ children }) {
             </a>
             <a
               className="nav-item"
-              href="https://github.com/matteo-genovese/brev"
+              href="https://github.com/brevlink/brev"
               target="_blank"
               rel="noreferrer"
               onClick={closeMenu}

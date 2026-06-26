@@ -1,0 +1,161 @@
+# Self-Hosting Brev
+
+Brev is designed so the useful self-hosted unit is the backend and dashboard.
+The CLI, browser extension, and future mobile app should connect to this same
+server instead of requiring separate infrastructure.
+
+## Services
+
+`docker compose up -d --build` starts:
+
+- `caddy`: public entry point on `HTTP_PORT`.
+- `backend`: FastAPI app for API routes, redirects, sessions, API keys, domains, and admin flows.
+- `dashboard`: React app served at `/app`.
+- `landing`: public landing page served at `/`.
+- `db`: PostgreSQL.
+
+Caddy routes:
+
+- `/api/*`, `/docs`, `/redoc`, `/openapi.json`, `/health` to the backend.
+- `/app/*` to the dashboard.
+- short-link paths such as `/launch` to the backend.
+- everything else to the landing site.
+
+## Install
+
+```bash
+git clone https://github.com/brevlink/brev.git
+cd brev
+cp .env.example .env
+```
+
+Generate secrets:
+
+```bash
+openssl rand -hex 32
+openssl rand -hex 24
+```
+
+Set:
+
+```env
+JWT_SECRET=first-generated-value
+DB_PASSWORD=second-generated-value
+```
+
+For local testing:
+
+```env
+DEFAULT_DOMAIN=localhost
+HTTP_PORT=80
+SECURE_COOKIES=false
+DOCS_ENABLED=true
+CORS_ORIGINS=["http://localhost"]
+```
+
+For a public HTTPS deployment:
+
+```env
+DEFAULT_DOMAIN=links.example.com
+SECURE_COOKIES=true
+DOCS_ENABLED=false
+CORS_ORIGINS=["https://links.example.com"]
+CNAME_TARGET=links.example.com.
+```
+
+Start:
+
+```bash
+docker compose up -d --build
+```
+
+Check:
+
+```bash
+docker compose ps
+curl http://localhost/health
+```
+
+## Reverse Proxy and TLS
+
+Compose exposes plain HTTP on `HTTP_PORT`. For production, put Brev behind TLS
+with Cloudflare, Nginx Proxy Manager, Traefik, an external Caddy instance, or
+another reverse proxy.
+
+Set `SECURE_COOKIES=true` only when users access Brev over HTTPS.
+
+## CLI Against a Self-Hosted Server
+
+```bash
+pip install brev-cli
+brev login user@example.com --server https://links.example.com
+brev token create --name laptop
+brev create https://example.com --slug launch
+```
+
+For local compose:
+
+```bash
+brev login user@example.com --server http://localhost
+```
+
+## Custom Domains
+
+In the dashboard, add the domain and create the requested TXT record for
+verification. Then point the domain to the target shown by the app.
+
+For self-hosting, set `CNAME_TARGET` to the public proxy domain you control:
+
+```env
+CNAME_TARGET=links.example.com.
+```
+
+## Updates
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+The backend runs Alembic migrations on startup.
+
+## Logs
+
+```bash
+docker compose logs -f backend
+docker compose logs -f caddy
+```
+
+## Backups
+
+Data is stored in `BREV_DATA`, which defaults to `./data`. Back up:
+
+- `./data/pgdata`
+- `.env`
+
+PostgreSQL dump:
+
+```bash
+docker compose exec db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > brev.sql
+```
+
+## PostgreSQL Password Changes
+
+`POSTGRES_PASSWORD` is only used when PostgreSQL initializes an empty data
+directory. If `BREV_DATA/pgdata` already exists and you later change
+`DB_PASSWORD`, PostgreSQL keeps the old password.
+
+For a fresh install where you do not need existing data:
+
+```bash
+docker compose down
+rm -rf ./data/pgdata
+docker compose up -d --build
+```
+
+To keep the database, update the PostgreSQL password to match `DB_PASSWORD`:
+
+```bash
+docker compose exec db psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD 'your-db-password';"
+docker compose up -d backend
+```
