@@ -144,6 +144,15 @@ brev whoami
 brev logout
 ```
 
+`brev login` asks for your password once and proves your identity to the Brev
+server. `brev token create --name laptop` then creates a revocable API key for
+that device and stores it locally in `~/.brev/config`, so future CLI commands can
+use the API without asking for your password again.
+
+Use one token per device or automation target, for example `laptop`, `server`,
+or `github-actions`. If a device is lost or a script should stop working, revoke
+only that token from the dashboard instead of changing your account password.
+
 For local development from this repository:
 
 ```bash

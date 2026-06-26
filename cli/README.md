@@ -19,6 +19,21 @@ brev logout
 history. `brev token create` creates a revocable API key and stores it in
 `~/.brev/config` with `0600` permissions.
 
+The login step proves who you are. The token step creates a long-lived key for
+this device, so commands like `brev create`, `brev list`, and `brev stats` can
+call your Brev server without asking for your password every time.
+
+Use a different token name for each device or automation target:
+
+```bash
+brev token create --name laptop
+brev token create --name github-actions
+brev token create --name home-server
+```
+
+If one token is no longer needed, revoke that token without rotating your account
+password or breaking your other devices.
+
 For local development from this repository, install it with:
 
 ```bash
