@@ -643,6 +643,7 @@ select:focus {
 
 .domain-row {
   align-items: start;
+  grid-template-columns: 1fr;
 }
 
 .domain-content {
@@ -670,8 +671,10 @@ select:focus {
 .dns-instructions {
   display: grid;
   gap: 12px;
+  max-width: 100%;
   margin-top: 14px;
   padding: 14px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: rgba(255, 250, 241, 0.5);
@@ -715,8 +718,7 @@ select:focus {
 
 .dns-record dl div {
   display: grid;
-  grid-template-columns: minmax(92px, 0.36fr) minmax(0, 1fr);
-  gap: 10px;
+  gap: 5px;
   align-items: start;
 }
 
@@ -729,10 +731,21 @@ select:focus {
 .dns-instructions dd {
   min-width: 0;
   margin: 0;
-  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 8px 10px;
+  border: 1px solid rgba(7, 25, 54, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 250, 241, 0.62);
   color: var(--navy);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.82rem;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+.domain-row .row-actions {
+  justify-content: flex-start;
 }
 
 .sr-only {
