@@ -17,6 +17,10 @@ Brev Cloud may become the official managed service for people who do not want to
 run infrastructure. The code stays open source, and self-hosting the backend and
 dashboard is the primary path.
 
+The name comes from the Italian word `breve`, meaning short. The product is
+built around that idea: short links, short paths, and the wordplay of
+`brev link`.
+
 ## Repository
 
 This repository lives at:
