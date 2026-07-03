@@ -10,4 +10,4 @@ bcrypt>=4.2,<5
 pyjwt>=2.13.0,<3
 dnspython>=2.8.0,<3
 stripe>=11,<13
-alembic>=1.14,<2
+alembic>=1.18.5,<2
