@@ -9,5 +9,5 @@ pydantic[email]>=2.10,<3
 bcrypt>=4.2,<5
 pyjwt>=2.13.0,<3
 dnspython>=2.8.0,<3
-stripe>=11,<13
+stripe>=15.3.0,<16
 alembic>=1.18.5,<2
