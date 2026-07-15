@@ -21,7 +21,7 @@ export default function AdminPanel({ users, links, onUsersChange, onLinksChange 
         </div>
       </div>
 
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))] max-[840px]:grid-cols-1">
+      <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))] max-[840px]:grid-cols-1">
         <div className={dataList}>
           <strong>Users</strong>
           {users.map(user => (
