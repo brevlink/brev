@@ -89,19 +89,34 @@ export default function DomainPanel({ domains, onChange }) {
 
       <div className={dataList}>
         {domains.map(item => (
-          <article key={item.id} className={`${dataRow} grid-cols-1 items-start`}>
-            <div className="min-w-0">
-              <button
-                type="button"
-                className="block w-full max-w-full cursor-pointer border-0 bg-transparent p-0 text-left [font:inherit] font-extrabold text-[#071936] underline decoration-[rgba(7,25,54,0.28)] decoration-1 underline-offset-4 [overflow-wrap:anywhere]"
-                aria-expanded={openDomainId === item.id}
-                onClick={() => setOpenDomainId(current => (current === item.id ? null : item.id))}
-              >
-                {item.domain}
-              </button>
-              <p className={dataText}>Click the domain to view the DNS records to create.</p>
+          <article key={item.id} className={`${dataRow} [grid-template-columns:minmax(0,1fr)] items-start`}>
+            <div className="grid min-w-0 gap-3.5">
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3.5 max-[520px]:grid-cols-1">
+                <div className="min-w-0">
+                  <button
+                    type="button"
+                    className="block w-full max-w-full cursor-pointer border-0 bg-transparent p-0 text-left [font:inherit] font-extrabold text-[#071936] underline decoration-[rgba(7,25,54,0.28)] decoration-1 underline-offset-4 [overflow-wrap:anywhere]"
+                    aria-expanded={openDomainId === item.id}
+                    onClick={() => setOpenDomainId(current => (current === item.id ? null : item.id))}
+                  >
+                    {item.domain}
+                  </button>
+                  <p className={dataText}>Click the domain to view the DNS records to create.</p>
+                </div>
+                <div className={`${rowActionsLeft} max-[520px]:w-full`}>
+                  <span className={item.is_verified ? status.good : status.base}>{item.is_verified ? 'Verified' : 'Pending'}</span>
+                  {!item.is_verified && (
+                    <button type="button" className={button.compactSecondary} onClick={() => handleVerify(item)}>
+                      Verify
+                    </button>
+                  )}
+                  <button type="button" className={button.compactDanger} onClick={() => handleDelete(item)}>
+                    Remove
+                  </button>
+                </div>
+              </div>
               {openDomainId === item.id && (
-                <div className="mt-3.5 grid max-w-full gap-3 overflow-hidden rounded-[14px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.5)] p-3.5">
+                <div className="grid max-w-full gap-3 overflow-hidden rounded-[14px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.5)] p-3.5">
                   <p className={`${dataText} m-0`}>In your DNS provider, create these records for {item.domain}.</p>
                   <div className="grid gap-2.5">
                     <section className={dnsRecord}>
@@ -141,17 +156,6 @@ export default function DomainPanel({ domains, onChange }) {
                   </div>
                 </div>
               )}
-            </div>
-            <div className={rowActionsLeft}>
-              <span className={item.is_verified ? status.good : status.base}>{item.is_verified ? 'Verified' : 'Pending'}</span>
-              {!item.is_verified && (
-                <button type="button" className={button.compactSecondary} onClick={() => handleVerify(item)}>
-                  Verify
-                </button>
-              )}
-              <button type="button" className={button.compactDanger} onClick={() => handleDelete(item)}>
-                Remove
-              </button>
             </div>
           </article>
         ))}
