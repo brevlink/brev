@@ -26,7 +26,7 @@ export default function AdminPanel({ users, links, onUsersChange, onLinksChange 
           <strong>Users</strong>
           {users.map(user => (
             <article key={user.id} className={compactRow}>
-              <div>
+              <div className="min-w-0">
                 <strong className={dataTitle}>{user.email}</strong>
                 <p className={dataText}>{user.is_admin ? 'Admin' : 'Member'} · {user.is_verified ? 'Verified' : 'Unverified'}</p>
               </div>
@@ -41,7 +41,7 @@ export default function AdminPanel({ users, links, onUsersChange, onLinksChange 
           <strong>Links</strong>
           {links.map(link => (
             <article key={link.id} className={compactRow}>
-              <div>
+              <div className="min-w-0">
                 <strong className={dataTitle}>{link.slug}</strong>
                 <p className={dataText}>{link.url}</p>
               </div>

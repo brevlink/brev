@@ -11,7 +11,7 @@ export const serif = "font-['Instrument_Serif',Georgia,serif]";
 export const brand = 'inline-flex items-center gap-3 font-extrabold tracking-[0.02em]';
 
 export const buttonBase =
-  'inline-flex min-h-11 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-[#071936] px-5 font-extrabold text-[#071936] transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 max-[520px]:w-full';
+  'inline-flex h-fit min-h-11 self-start cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-[#071936] px-5 font-extrabold text-[#071936] transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 max-[520px]:w-full';
 
 export const button = {
   primary: `${buttonBase} bg-[#071936] text-[#f8f1e6] shadow-[0_18px_36px_rgba(7,25,54,0.2)]`,

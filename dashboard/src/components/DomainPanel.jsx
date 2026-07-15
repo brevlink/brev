@@ -93,7 +93,7 @@ export default function DomainPanel({ domains, onChange }) {
             <div className="min-w-0">
               <button
                 type="button"
-                className="inline max-w-full cursor-pointer border-0 bg-transparent p-0 text-left [font:inherit] font-extrabold text-[#071936] underline decoration-[rgba(7,25,54,0.28)] decoration-1 underline-offset-4 [overflow-wrap:anywhere]"
+                className="block w-full max-w-full cursor-pointer border-0 bg-transparent p-0 text-left [font:inherit] font-extrabold text-[#071936] underline decoration-[rgba(7,25,54,0.28)] decoration-1 underline-offset-4 [overflow-wrap:anywhere]"
                 aria-expanded={openDomainId === item.id}
                 onClick={() => setOpenDomainId(current => (current === item.id ? null : item.id))}
               >
