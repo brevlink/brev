@@ -117,6 +117,8 @@ async def delete_domain(db: AsyncSession, domain_id: str, user_id: str) -> None:
 
 
 async def _ensure_domain_entitlement(db: AsyncSession, user: User) -> None:
+    if user.is_admin:
+        return
     if settings.require_verified_email and not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

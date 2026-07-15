@@ -37,24 +37,29 @@ export default function Dashboard() {
   useEffect(() => {
     let cancelled = false;
     async function loadInitialData() {
-      const [userData, linksData, domainsData, apiKeysData, billingData] = await Promise.allSettled([
+      const [userData, linksData, domainsData, apiKeysData] = await Promise.allSettled([
         me(),
         getLinks(),
         getDomains(),
         getApiKeys(),
-        getBillingStatus(),
       ]);
       if (cancelled) return;
-      if (userData.status === 'fulfilled') setUser(userData.value);
+      const currentUser = userData.status === 'fulfilled' ? userData.value : null;
+      if (currentUser) setUser(currentUser);
       if (linksData.status === 'fulfilled') setLinks(linksData.value.items || []);
       if (domainsData.status === 'fulfilled') setDomains(domainsData.value.items || []);
       if (apiKeysData.status === 'fulfilled') setApiKeys(apiKeysData.value.items || []);
-      if (billingData.status === 'fulfilled') setBilling(billingData.value);
-      if (userData.status === 'fulfilled' && userData.value.is_admin) {
+      if (currentUser?.is_admin) {
         const [usersResult, linksResult] = await Promise.allSettled([getAdminUsers(), getAdminLinks()]);
         if (cancelled) return;
         if (usersResult.status === 'fulfilled') setAdminUsers(usersResult.value.items || []);
         if (linksResult.status === 'fulfilled') setAdminLinks(linksResult.value || []);
+      } else if (currentUser) {
+        const billingResult = await getBillingStatus().then(
+          value => ({ status: 'fulfilled', value }),
+          reason => ({ status: 'rejected', reason }),
+        );
+        if (!cancelled && billingResult.status === 'fulfilled') setBilling(billingResult.value);
       }
       setLoading(false);
     }
@@ -154,10 +159,12 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="mt-[34px] grid items-start gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))] max-[840px]:grid-cols-1">
-        <BillingPanel billing={billing} onRefresh={refreshBilling} />
+      <div className="mt-[34px] grid min-w-0 gap-[18px]">
         <DomainPanel domains={domains} onChange={setDomains} />
-        <ApiKeyPanel apiKeys={apiKeys} onChange={setApiKeys} />
+        <div className="grid min-w-0 items-start gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))]">
+          {!user?.is_admin && <BillingPanel billing={billing} onRefresh={refreshBilling} />}
+          <ApiKeyPanel apiKeys={apiKeys} onChange={setApiKeys} />
+        </div>
       </div>
 
       {user?.is_admin && (

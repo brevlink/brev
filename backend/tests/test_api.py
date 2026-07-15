@@ -115,7 +115,8 @@ def test_cloud_mode_blocks_custom_domain_without_subscription(client, monkeypatc
 
     monkeypatch.setattr(domains.settings, "cloud_mode", True)
     monkeypatch.setattr(domains.settings, "free_custom_domains", 0)
-    token = _register_and_login(client)
+    _register_and_login(client, "admin@example.com")
+    token = _register_and_login(client, "member@example.com")
 
     response = client.post(
         "/api/v1/domains",
@@ -136,6 +137,22 @@ def test_cloud_mode_allows_included_free_custom_domain(client, monkeypatch):
         "/api/v1/domains",
         headers={"Authorization": f"Bearer {token}"},
         json={"domain": "included.example.com"},
+    )
+    assert response.status_code == 201
+
+
+def test_admin_can_create_custom_domain_without_billing_entitlement(client, monkeypatch):
+    from app.services import domains
+
+    monkeypatch.setattr(domains.settings, "cloud_mode", True)
+    monkeypatch.setattr(domains.settings, "free_custom_domains", 0)
+    monkeypatch.setattr(domains.settings, "require_verified_email", True)
+    token = _register_and_login(client, "admin@example.com")
+
+    response = client.post(
+        "/api/v1/domains",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"domain": "admin.example.com"},
     )
     assert response.status_code == 201
 
