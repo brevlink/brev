@@ -4,7 +4,8 @@
 #   docker compose up -d
 
 x-brev-labels: &brev-labels
-  org.opencontainers.image.source: https://github.com/brevlink/brev
+  org.opencontainers.image.source: "https://github.com/brevlink/brev"
+  com.centurylinklabs.watchtower.enable: "false"
 
 services:
   db:
@@ -24,8 +25,6 @@ services:
       retries: 5
     networks:
       - brev_net
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   backend:
     image: ${BACKEND_IMAGE:-brev-backend:local}
@@ -61,8 +60,6 @@ services:
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-https://brevl.ink/app/dashboard?billing=cancelled}
     networks:
       - brev_net
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   landing:
     image: ${LANDING_IMAGE:-brev-landing:local}
@@ -73,8 +70,6 @@ services:
     restart: unless-stopped
     networks:
       - brev_net
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   dashboard:
     image: ${DASHBOARD_IMAGE:-brev-dashboard:local}
@@ -85,8 +80,6 @@ services:
     restart: unless-stopped
     networks:
       - brev_net
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   caddy:
     image: ${CADDY_IMAGE:-brev-caddy:local}
@@ -109,8 +102,6 @@ services:
       - dashboard
     networks:
       - brev_net
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
 networks:
   brev_net:
