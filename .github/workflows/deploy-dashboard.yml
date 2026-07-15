@@ -40,7 +40,7 @@ jobs:
       - name: Trigger Portainer redeploy
         if: github.ref == 'refs/heads/main'
         run: |
-          curl -L -X POST \
+          curl --fail-with-body --show-error --silent --location --request POST \
             -H "Authorization: Bearer ${{ secrets.PORTAINER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID_DASHBOARD }}/git/redeploy?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" || echo "Portainer redeploy skipped (not configured)"
+            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID_DASHBOARD }}/git/redeploy?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}"
