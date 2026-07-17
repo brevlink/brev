@@ -83,6 +83,10 @@ async def csrf_and_security_headers(request: Request, call_next):
         "/api/v1/auth/verify-email",
         "/api/v1/auth/password-reset/request",
         "/api/v1/auth/password-reset/confirm",
+        # Stripe authenticates this endpoint with the raw request body and
+        # Stripe-Signature header in the handler. A TestClient/browser may
+        # still send its session cookie, but a webhook has no browser Origin.
+        "/api/v1/billing/webhook",
     }
     if unsafe and has_cookie and not has_bearer and not public_cookie_free:
         origin = request.headers.get("origin")

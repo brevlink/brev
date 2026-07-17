@@ -15,6 +15,8 @@ def client(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
     monkeypatch.setenv("JWT_SECRET", "test-secret-that-is-long-enough-for-dev")
     monkeypatch.setenv("CORS_ORIGINS", '["http://testserver"]')
+    monkeypatch.setenv("FRONTEND_VERIFICATION_URL", "http://testserver/verify-email")
+    monkeypatch.setenv("FRONTEND_PASSWORD_RESET_URL", "http://testserver/reset-password")
     monkeypatch.setenv("DEBUG", "false")
     for name in list(sys.modules):
         if name == "app" or name.startswith("app."):

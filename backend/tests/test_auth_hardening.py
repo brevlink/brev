@@ -163,22 +163,26 @@ def test_reset_password_is_non_enumerating_and_single_use(client):
 
 
 def test_require_verified_email_keeps_resend_and_login_available(client, monkeypatch):
-    _register(client)
-    login = _login(client)
+    _register(client, "admin@example.com")
+    _register(client, "hardening@example.com")
 
     from app.core.config import settings
 
     monkeypatch.setattr(settings, "require_verified_email", True)
+    login = _login(client)
     me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {login['access_token']}"})
     assert me.status_code == 200
+    assert me.json()["is_verified"] is False
     resend = client.post(
         "/api/v1/auth/resend-verification",
         headers={"Origin": "http://testserver"},
     )
     assert resend.status_code == 200
+    login_while_unverified = _login(client)
+    assert login_while_unverified["access_token"]
     blocked = client.post(
         "/api/v1/links",
-        headers={"Authorization": f"Bearer {login['access_token']}"},
+        headers={"Authorization": f"Bearer {login_while_unverified['access_token']}"},
         json={"url": "https://example.com/unverified", "slug": "unverified"},
     )
     assert blocked.status_code == 403

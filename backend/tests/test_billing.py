@@ -128,6 +128,31 @@ def test_webhook_signature_is_checked_against_raw_body(client, monkeypatch):
     }
 
 
+def test_webhook_with_session_cookie_reaches_signature_verifier(client, monkeypatch):
+    billing = _configure_stripe(monkeypatch)
+    _register_and_login(client)
+    raw = b'{"type":"checkout.session.completed"}'
+    seen = {}
+
+    def construct(payload, signature, secret):
+        seen.update(payload=payload, signature=signature, secret=secret)
+        raise ValueError("bad signature")
+
+    monkeypatch.setattr(billing.stripe.Webhook, "construct_event", construct)
+    response = client.post(
+        "/api/v1/billing/webhook",
+        content=raw,
+        headers={"Stripe-Signature": "sig_test"},
+    )
+
+    assert response.status_code == 400
+    assert seen == {
+        "payload": raw,
+        "signature": "sig_test",
+        "secret": "whsec_test_placeholder",
+    }
+
+
 def test_paid_checkout_grants_persistent_one_time_entitlement(client, monkeypatch):
     billing = _configure_stripe(monkeypatch)
     token = _register_and_login(client)
