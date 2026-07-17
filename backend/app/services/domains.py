@@ -132,7 +132,7 @@ async def _ensure_domain_entitlement(db: AsyncSession, user: User) -> None:
     if not await user_has_cloud_entitlement(db, user):
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="A Brev Cloud subscription is required for additional custom domains",
+            detail="A Brev Cloud entitlement is required for additional custom domains",
         )
 
 

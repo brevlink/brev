@@ -53,6 +53,19 @@ services:
       FREE_CUSTOM_DOMAINS: ${FREE_CUSTOM_DOMAINS:-0}
       DEBUG: ${BREV_DEBUG:-false}
       CORS_ORIGINS: '${CORS_ORIGINS:-["https://brevl.ink","https://app.brevl.ink"]}'
+      APP_BASE_URL: ${APP_BASE_URL:-https://brevl.ink}
+      FRONTEND_VERIFICATION_URL: ${FRONTEND_VERIFICATION_URL:-}
+      FRONTEND_PASSWORD_RESET_URL: ${FRONTEND_PASSWORD_RESET_URL:-}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-none}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      EMAIL_API_URL: ${EMAIL_API_URL:-}
+      EMAIL_API_TOKEN: ${EMAIL_API_TOKEN:-}
+      # One-time Stripe checkout; leave empty for self-hosted deployments.
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PRICE_ID: ${STRIPE_PRICE_ID:-}

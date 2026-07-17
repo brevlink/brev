@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from urllib.parse import parse_qs, urlsplit
 from pathlib import Path
 
 import pytest
@@ -19,20 +20,26 @@ def client(monkeypatch):
         if name == "app" or name.startswith("app."):
             sys.modules.pop(name)
     from app.main import app
+    from app.services import auth as auth_service
+    from app.services.mailer import InMemoryMailer
+
+    test_mailer = InMemoryMailer()
+    monkeypatch.setattr(auth_service, "mailer", test_mailer)
 
     with TestClient(app) as client:
+        client.test_mailer = test_mailer
         yield client
 
 
 def _register_and_login(client: TestClient, email: str = "user@example.com") -> str:
     response = client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": "password123"},
+        json={"email": email, "password": "Correct-Horse-Battery-1"},
     )
     assert response.status_code == 201
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": email, "password": "password123"},
+        json={"email": email, "password": "Correct-Horse-Battery-1"},
     )
     assert response.status_code == 200
     return response.json()["access_token"]
@@ -176,19 +183,25 @@ def test_api_key_can_authenticate(client):
 def test_email_verification_flow(client):
     response = client.post(
         "/api/v1/auth/register",
-        json={"email": "verify@example.com", "password": "password123"},
+        json={"email": "verify@example.com", "password": "Correct-Horse-Battery-1"},
     )
     assert response.status_code == 201
-    token = response.json()["verification_token"]
-    assert token
+    assert "verification_token" not in response.json()
+    assert client.test_mailer.messages
+    link = next(line.strip() for line in client.test_mailer.messages[-1].text.splitlines() if line.startswith("http"))
+    token = parse_qs(urlsplit(link).fragment)["token"][0]
 
-    response = client.post(f"/api/v1/auth/verify-email?token={token}")
+    bootstrap = client.get("/api/v1/auth/verify-email", params={"token": token})
+    assert bootstrap.status_code == 200
+    assert bootstrap.json()["valid"] is True
+    assert token not in bootstrap.text
+    response = client.post("/api/v1/auth/verify-email", json={"token": token})
     assert response.status_code == 200
     assert response.json() == {"email": "verify@example.com", "is_verified": True}
 
     login = client.post(
         "/api/v1/auth/login",
-        json={"email": "verify@example.com", "password": "password123"},
+        json={"email": "verify@example.com", "password": "Correct-Horse-Battery-1"},
     )
     token = login.json()["access_token"]
     response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})

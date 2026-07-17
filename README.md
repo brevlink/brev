@@ -173,6 +173,41 @@ http://localhost/redoc
 
 Production deployments should keep `DOCS_ENABLED=false`.
 
+### Authentication hardening
+
+Registration, verification resend, and password reset require a configured
+transactional email adapter. `EMAIL_PROVIDER=none` is a deliberate fail-closed
+configuration: it never returns or logs verification/reset tokens. Tests inject
+the in-memory mailer; there is no fake-mailer production bypass.
+
+Verification and reset tokens are random, stored only as hashes, expire, and
+are single-use. Browser state-changing requests authenticated by the session
+cookie must include an allowed `Origin` (or matching `Referer`). CLI/API clients
+should use `Authorization: Bearer <JWT>` or a revocable `brev_...` API key; API
+key bearer authentication is not a browser session and is not subject to the
+cookie CSRF check.
+
+Email links are an explicit frontend contract: configure
+`FRONTEND_VERIFICATION_URL` and `FRONTEND_PASSWORD_RESET_URL` to routes that
+actually exist in the deployed frontend. The token is placed in the URL
+fragment (`#token=...`), not returned by registration/reset APIs and not sent
+in the subsequent HTTP request for the frontend page. The frontend must POST
+the token as JSON to `/api/v1/auth/verify-email` or to
+`/api/v1/auth/password-reset/confirm` respectively. The backend also exposes
+read-only GET bootstrap checks at those API paths; they validate a query token
+without consuming it or changing state.
+
+`REQUIRE_VERIFIED_EMAIL` defaults to `false`. When `true`, login, `/auth/me`,
+verification resend, and password reset remain available; unverified
+non-admin users receive `403` for links, domains, API-key, and billing
+features. Admins remain available for recovery/moderation. Resend is rate
+limited and never returns the verification token.
+
+Sessions are persisted and revoked on logout and password change/reset. The
+in-memory rate limiter is bounded and keyed by IP plus email for auth flows; it
+is not a distributed limiter. Multi-instance deployments need a shared
+rate-limit implementation behind the same abstraction.
+
 ## Environment
 
 | Variable | Required | Note |
@@ -193,19 +228,43 @@ Production deployments should keep `DOCS_ENABLED=false`.
 | `DATABASE_URL` | no | PostgreSQL URI for non-compose deployments |
 | `DEFAULT_DOMAIN` | no | Default short-link domain |
 | `CORS_ORIGINS` | no | JSON list of allowed browser origins |
+| `APP_BASE_URL` | no | Public backend base URL |
+| `FRONTEND_VERIFICATION_URL` | when email enabled | Existing frontend route that reads `token` from the URL fragment and POSTs verification |
+| `FRONTEND_PASSWORD_RESET_URL` | when email enabled | Existing frontend route that reads `token` from the URL fragment and POSTs password reset |
 | `ENVIRONMENT` | no | `development` or `production` |
 | `SECURE_COOKIES` | no | Must be `true` when served over HTTPS |
+| `EMAIL_PROVIDER` | no | `smtp`, `api`, or `none` (none fails email auth flows safely) |
+| `EMAIL_FROM` | when email enabled | Sender address; no default is provided |
+| `SMTP_HOST` / `SMTP_PORT` | when SMTP | SMTP endpoint and port |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | no | Optional SMTP authentication |
+| `SMTP_STARTTLS` | no | Use STARTTLS for SMTP, default `true` |
+| `EMAIL_API_URL` / `EMAIL_API_TOKEN` | when API | Generic JSON email endpoint and bearer credential |
 | `DOCS_ENABLED` | no | Disable in production |
 | `BREV_DEBUG` | no | Enables backend debug mode when `true` |
-| `CLOUD_MODE` | no | Enables subscription checks for Cloud-only limits |
-| `REQUIRE_VERIFIED_EMAIL` | no | Requires verified email for custom domains |
-| `FREE_CUSTOM_DOMAINS` | no | Included custom domains before subscription is required |
+| `CLOUD_MODE` | no | Enables Brev Cloud entitlement checks for Cloud-only limits |
+| `REQUIRE_VERIFIED_EMAIL` | no | Default `false`; when `true`, requires verification for non-admin product features while keeping login/resend/recovery available |
+| `FREE_CUSTOM_DOMAINS` | no | Included custom domains before a Cloud entitlement is required |
 | `CNAME_TARGET` | no | DNS target shown for custom domains |
 | `STRIPE_SECRET_KEY` | no | Cloud only |
 | `STRIPE_WEBHOOK_SECRET` | no | Cloud only |
-| `STRIPE_PRICE_ID` | no | Stripe recurring price for Brev Cloud |
+| `STRIPE_PRICE_ID` | no | Stripe one-time Price for Brev Cloud; create it as a one-time Price in the Stripe Dashboard |
 | `STRIPE_SUCCESS_URL` | no | Checkout success redirect |
 | `STRIPE_CANCEL_URL` | no | Checkout cancel redirect |
+
+Stripe Cloud is deliberately prepared as a one-time payment only. The backend
+uses `mode=payment` and grants persistent Cloud access only after a signed
+`checkout.session.completed` event reports `payment_status=paid`. The legacy
+`subscriptions` table remains for compatibility with existing data and status
+responses, but new purchases do not create subscriptions or use subscription
+renewals, a billing portal, or subscription webhooks as their primary flow.
+
+Before enabling it, create a one-time (not recurring) Stripe Price in the
+Stripe Dashboard and set `STRIPE_PRICE_ID` to that Price ID. Configure a
+test-mode secret and webhook signing secret only in the deployment environment;
+do not put credentials in this repository. Live/test webhook endpoints and
+their Stripe Dashboard configuration are future deployment steps and are not
+enabled by these changes alone. The webhook endpoint will be
+`POST /api/v1/billing/webhook`.
 
 ## Local Development
 

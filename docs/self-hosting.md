@@ -61,7 +61,27 @@ SECURE_COOKIES=true
 DOCS_ENABLED=false
 CORS_ORIGINS=["https://links.example.com"]
 CNAME_TARGET=links.example.com.
+APP_BASE_URL=https://links.example.com
+FRONTEND_VERIFICATION_URL=https://links.example.com/REPLACE_WITH_EXISTING_VERIFICATION_ROUTE
+FRONTEND_PASSWORD_RESET_URL=https://links.example.com/REPLACE_WITH_EXISTING_RESET_ROUTE
+EMAIL_PROVIDER=smtp
+EMAIL_FROM=noreply@links.example.com
+SMTP_HOST=mail.example.net
+SMTP_PORT=587
+SMTP_STARTTLS=true
 ```
+
+The SMTP host, sender, username, and password above are placeholders, not
+credentials. Configure either SMTP or the provider-neutral `EMAIL_API_URL` and
+`EMAIL_API_TOKEN`. In production, `EMAIL_PROVIDER=none` makes registration and
+recovery fail closed with an explicit server error; it never simulates delivery
+or returns an auth token. Test-only in-memory delivery is injected by the
+backend test suite and cannot be enabled through an environment variable.
+The two `FRONTEND_*_URL` values must be real routes implemented by the
+deployed frontend; the backend does not assume or create dashboard routes.
+Links carry the single-use token in a URL fragment. The frontend must POST it
+to the documented API endpoints. `GET` on either API endpoint is a read-only
+bootstrap validation and does not consume the token.
 
 Start:
 
@@ -118,6 +138,23 @@ docker compose up -d --build
 ```
 
 The backend runs Alembic migrations on startup.
+
+The auth hardening migration adds persistent sessions and hashed, expiring
+single-use verification/reset tokens. Existing bcrypt password hashes remain
+valid. Any old pending plaintext email-verification tokens are invalidated by
+the migration; users can request a new verification email.
+
+### Brev Cloud Stripe (future configuration)
+
+Self-hosted deployments do not need Stripe: leave `CLOUD_MODE` and the Stripe
+variables empty/disabled. Brev Cloud is prepared for a one-time Checkout only.
+If it is enabled in a future Cloud deployment, create a **one-time, non-recurring**
+Price in the Stripe Dashboard and set `STRIPE_PRICE_ID` to that Price ID. Use
+test-mode credentials while validating the integration; never place keys in
+this repository. The future test/live webhook endpoint is
+`POST /api/v1/billing/webhook`, with its signing secret configured separately.
+The endpoint grants persistent Cloud access only after a signed paid checkout
+event; no billing portal, renewal, or subscription webhook flow is configured.
 
 ## Logs
 

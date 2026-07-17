@@ -21,9 +21,11 @@ export default function BillingPanel({ billing, onRefresh }) {
       <p className={muted}>
         Plan: {billing?.plan || 'free'} · Custom domains included before billing: {billing?.included_custom_domains ?? 0}
       </p>
-      {billing?.current_period_end && (
+      {billing?.billing_type === 'one_time' ? (
+        <p className={muted}>One-time Cloud access</p>
+      ) : billing?.current_period_end ? (
         <p className={muted}>Renews {new Date(billing.current_period_end).toLocaleDateString()}</p>
-      )}
+      ) : null}
       <div className={rowActionsLeft}>
         <button type="button" className={button.primary} onClick={startCheckout}>
           Upgrade

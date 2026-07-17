@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_feature_user
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.domain import DomainCreate, DomainList, DomainOut, DomainVerifyResponse
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 async def create_domain(
     body: DomainCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_feature_user),
 ):
     return await domain_service.create_domain(db, user, body)
 
@@ -26,7 +26,7 @@ async def create_domain(
 @router.get("", response_model=DomainList)
 async def list_domains(
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_feature_user),
 ):
     items, total = await domain_service.get_user_domains(db, str(user.id))
     return DomainList(items=items, total=total)
@@ -36,7 +36,7 @@ async def list_domains(
 async def delete_domain(
     domain_id: str,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_feature_user),
 ):
     await domain_service.delete_domain(db, domain_id, str(user.id))
 
@@ -45,6 +45,6 @@ async def delete_domain(
 async def verify_domain(
     domain_id: str,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_feature_user),
 ):
     return await domain_service.verify_domain(db, domain_id, str(user.id))

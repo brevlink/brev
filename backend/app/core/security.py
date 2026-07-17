@@ -6,6 +6,7 @@ import hashlib
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
+from unicodedata import normalize
 
 import bcrypt
 import jwt
@@ -14,15 +15,57 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 
+PASSWORD_MAX_BYTES = 72  # bcrypt truncates input after 72 bytes.
+PASSWORD_MAX_LENGTH = 128
+COMMON_PASSWORDS = frozenset(
+    {
+        "123456789012",
+        "1234567890",
+        "password",
+        "password1",
+        "password123",
+        "qwertyuiop",
+        "qwerty123456",
+        "asd12345",
+        "letmein1234",
+        "welcome1234",
+        "admin123456",
+    }
+)
+
 # ── Password hashing ──────────────────────────────────────────────────
 
 
+def normalize_password(password: str) -> str:
+    """Normalize Unicode without trimming meaningful password whitespace."""
+    return normalize("NFKC", password)
+
+
+def validate_password(password: str) -> str:
+    normalized = normalize_password(password)
+    if len(normalized) < 12:
+        raise ValueError("Password must be at least 12 characters long")
+    if len(normalized) > PASSWORD_MAX_LENGTH:
+        raise ValueError("Password is too long")
+    if len(normalized.encode("utf-8")) > PASSWORD_MAX_BYTES:
+        raise ValueError("Password is too long for the configured password hashing policy")
+    if normalized.casefold() in COMMON_PASSWORDS:
+        raise ValueError("Password is too common")
+    return normalized
+
+
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    # Existing bcrypt hashes remain valid; the policy is enforced only when
+    # accepting a new password or password change.
+    normalized = validate_password(password)
+    return bcrypt.hashpw(normalized.encode("utf-8"), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+    try:
+        return bcrypt.checkpw(normalize_password(plain).encode("utf-8"), hashed.encode())
+    except (ValueError, TypeError):
+        return False
 
 
 # ── JWT ───────────────────────────────────────────────────────────────
@@ -51,6 +94,16 @@ def create_access_token(user_id: str) -> str:
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )
+
+
+def hash_session_jti(jti: str) -> str:
+    peppered = f"{settings.jwt_secret}:{jti}".encode("utf-8")
+    return hashlib.sha256(peppered).hexdigest()
+
+
+def hash_opaque_token(token: str) -> str:
+    peppered = f"{settings.jwt_secret}:{token}".encode("utf-8")
+    return hashlib.sha256(peppered).hexdigest()
 
 
 def decode_access_token(token: str) -> TokenPayload:
