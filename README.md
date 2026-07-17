@@ -21,6 +21,32 @@ The name comes from the Italian word `breve`, meaning short. The product is
 built around that idea: short links, short paths, and the wordplay of
 `brev link`.
 
+## Legal readiness
+
+The public landing site contains draft legal pages for the future Brev Cloud:
+
+- [Privacy Notice](https://brevl.ink/privacy)
+- [Terms of Service](https://brevl.ink/terms)
+- [Cookie Policy](https://brevl.ink/cookies)
+- [Legal Notice / Imprint](https://brevl.ink/legal)
+- [Subprocessors & Data Retention](https://brevl.ink/subprocessors)
+
+These are working drafts, not legal advice and not a claim that Brev is GDPR
+compliant. They must be completed and reviewed by a qualified legal
+professional before Brev Cloud launches. In particular, the legal entity and
+address, tax identifiers, contacts, hosting and email providers, privacy
+contact, supervisory authority, lawful bases, international-transfer
+mechanisms, retention schedule, consumer/payment/refund terms, and applicable
+law/jurisdiction are still `[DA COMPLETARE]`.
+
+Brev self-hosted and Brev Cloud are separate contexts. A self-hosted operator
+normally determines the purposes and means for data in its own installation and
+must configure its own privacy notice, providers, cookies, logs, retention and
+security process. Stripe is not configured in the current repository
+configuration, and transactional email is disabled by default (`EMAIL_PROVIDER=none`).
+See [docs/legal-readiness.md](docs/legal-readiness.md) and
+[docs/self-hosting.md](docs/self-hosting.md).
+
 ## Repository
 
 This repository lives at:

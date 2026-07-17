@@ -7,9 +7,10 @@ versioned releases exist.
 
 ## Reporting a Vulnerability
 
-Please report security issues privately by opening a GitHub security advisory or
-emailing the maintainer listed in the package metadata. Do not publish exploit
-details before a fix is available.
+Please report security issues privately through a
+[GitHub security advisory](https://github.com/brevlink/brev/security/advisories/new)
+or the maintainer contact listed in the package metadata. Do not publish
+exploit details before a fix is available.
 
 Useful reports include:
 

@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  eyebrow?: string;
+}
+
+const { title, description, eyebrow = 'Documenti legali' } = Astro.props;
+const legalLinks = [
+  { href: '/privacy', label: 'Privacy Notice' },
+  { href: '/terms', label: 'Terms of Service' },
+  { href: '/cookies', label: 'Cookie Policy' },
+  { href: '/legal', label: 'Legal Notice / Imprint' },
+  { href: '/subprocessors', label: 'Subprocessors & retention' },
+];
+const shell = 'mx-auto w-[min(1120px,calc(100%_-_40px))] max-[620px]:w-[min(calc(100%_-_28px),1120px)]';
+const serif = "font-['Instrument_Serif',Georgia,serif]";
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/webp" sizes="64x64" href="/brev_icona.webp" />
+    <link rel="apple-touch-icon" href="/brev_icona.webp" />
+    <title>{title} · Brev</title>
+  </head>
+  <body class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(217,197,165,0.72),transparent_34rem),linear-gradient(135deg,#f8f1e6_0%,#efe6d4_54%,#e3d2b7_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-[#071936] antialiased">
+    <nav class="sticky top-0 z-20 border-b border-[rgba(7,25,54,0.14)] bg-[rgba(248,241,230,0.86)] backdrop-blur-[18px]">
+      <div class={`${shell} flex min-h-[72px] items-center justify-between gap-6 py-3`}>
+        <a href="/" class="flex items-center gap-3 font-extrabold tracking-[0.02em]" aria-label="Brev home">
+          <img class="size-[34px]" src="/brev_icona.webp" alt="Brev" />
+          <span>Brev</span>
+        </a>
+        <div class="flex flex-wrap justify-end gap-x-5 gap-y-2 text-[0.84rem] text-[#38516f] max-[900px]:hidden" aria-label="Legal navigation">
+          {legalLinks.map((link) => <a href={link.href} class="hover:text-[#071936]">{link.label}</a>)}
+        </div>
+        <a href="/" class="text-[0.9rem] font-bold text-[#38516f] hover:text-[#071936]">Home</a>
+      </div>
+    </nav>
+
+    <main class={`${shell} py-[72px] max-[620px]:py-[44px]`}>
+      <header class="mb-10 max-w-[800px]">
+        <span class="mb-[22px] inline-flex items-center gap-2.5 text-[0.82rem] font-extrabold uppercase tracking-[0.18em] text-[#38516f] before:h-px before:w-[42px] before:bg-[#071936] before:content-['']">{eyebrow}</span>
+        <h1 class={`${serif} m-0 text-[clamp(3.5rem,8vw,7.5rem)] leading-[0.86] tracking-[-0.02em]`}>{title}</h1>
+        <p class="mt-7 max-w-[700px] text-[1.08rem] leading-[1.75] text-[#38516f]">{description}</p>
+        <div class="mt-7 rounded-[20px] border border-[#9b6b22] bg-[rgba(255,247,219,0.72)] p-5 text-[0.95rem] leading-[1.6] text-[#5b421d]" role="note">
+          <strong>BOZZA DA COMPLETARE.</strong> Questo documento è una base di lavoro e deve essere completato con i dati tra parentesi quadre e sottoposto a revisione professionale prima del lancio di Brev Cloud. Non è consulenza legale e non costituisce una dichiarazione di conformità normativa.
+        </div>
+      </header>
+
+      <div class="grid grid-cols-[220px_minmax(0,1fr)] items-start gap-10 max-[900px]:grid-cols-1">
+        <nav class="sticky top-[96px] rounded-[22px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.44)] p-5 max-[900px]:static" aria-label="Legal documents">
+          <p class="m-0 text-[0.76rem] font-extrabold uppercase tracking-[0.16em] text-[#38516f]">In questa sezione</p>
+          <ul class="mt-4 mb-0 grid gap-2.5 p-0 text-[0.92rem] list-none">
+            {legalLinks.map((link) => <li><a href={link.href} class="text-[#38516f] underline decoration-[rgba(56,81,111,0.28)] underline-offset-4 hover:text-[#071936]">{link.label}</a></li>)}
+          </ul>
+          <a class="mt-6 block text-[0.88rem] font-bold text-[#38516f] underline underline-offset-4 hover:text-[#071936]" href="https://github.com/brevlink/brev/security/advisories/new" target="_blank" rel="noreferrer">Security / report</a>
+        </nav>
+        <article class="min-w-0 rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.58)] p-[clamp(24px,5vw,52px)] leading-[1.7] [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-[1.65rem] [&_h2]:leading-tight [&_h2]:tracking-[-0.03em] [&_h2:first-child]:mt-0 [&_h3]:mt-7 [&_h3]:mb-2 [&_h3]:text-[1.1rem] [&_p]:my-4 [&_ul]:my-4 [&_ul]:pl-6 [&_li]:my-1.5 [&_a]:text-[#38516f] [&_a]:underline [&_a]:decoration-[rgba(56,81,111,0.32)] [&_a]:underline-offset-4 [&_strong]:text-[#071936] [&_table]:my-5 [&_table]:w-full [&_table]:border-collapse [&_th]:border-b [&_th]:border-[rgba(7,25,54,0.18)] [&_th]:p-3 [&_th]:text-left [&_th]:text-[0.82rem] [&_th]:uppercase [&_th]:tracking-[0.06em] [&_td]:border-b [&_td]:border-[rgba(7,25,54,0.12)] [&_td]:p-3 [&_td]:align-top [&_td]:text-[0.94rem] max-[620px]:overflow-x-auto">
+          <slot />
+        </article>
+      </div>
+    </main>
+
+    <footer class="border-t border-[rgba(7,25,54,0.14)] py-[34px] text-[#38516f]">
+      <div class={`${shell} grid gap-5 text-[0.92rem]`}>
+        <div class="flex flex-wrap gap-x-5 gap-y-2">
+          {legalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
+          <a href="https://github.com/brevlink/brev/security/advisories/new" target="_blank" rel="noreferrer">Security / report</a>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <span>© 2026 Brev. MIT licensed.</span>
+          <span class="flex gap-5"><a href="https://github.com/brevlink/brev" target="_blank" rel="noreferrer">GitHub</a><a href="https://matteogenovese.com" target="_blank" rel="noreferrer">Matteo Genovese</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

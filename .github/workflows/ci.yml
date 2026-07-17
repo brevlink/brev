@@ -50,6 +50,10 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=moderate
         working-directory: ${{ matrix.app }}
+      - name: Check legal pages and privacy-sensitive assets
+        if: matrix.app == 'landing'
+        run: npm run check:legal
+        working-directory: ${{ matrix.app }}
       - name: Build
         run: npm run build
         working-directory: ${{ matrix.app }}

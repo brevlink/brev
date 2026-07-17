@@ -4,6 +4,12 @@ Brev is designed so the useful self-hosted unit is the backend and dashboard.
 The CLI, browser extension, and future mobile app should connect to this same
 server instead of requiring separate infrastructure.
 
+Each self-hosted operator is responsible for its own legal and operational
+configuration: privacy/cookie notice, user-facing contacts, hosting and email
+providers, logs, backups, retention, security response and any applicable
+requirements. The public legal pages are drafts for the future Brev Cloud and
+are not a self-hosted operator's completed notice or a claim of GDPR compliance.
+
 ## Services
 
 `docker compose up -d --build` starts:
@@ -155,6 +161,10 @@ this repository. The future test/live webhook endpoint is
 `POST /api/v1/billing/webhook`, with its signing secret configured separately.
 The endpoint grants persistent Cloud access only after a signed paid checkout
 event; no billing portal, renewal, or subscription webhook flow is configured.
+Stripe is not configured by the repository's default setup. Transactional email
+is also not configured by default (`EMAIL_PROVIDER=none`); an operator that
+enables SMTP or an API adapter must add the provider to its own data map and
+notice.
 
 ## Logs
 

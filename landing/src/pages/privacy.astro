@@ -1,0 +1,51 @@
+---
+import LegalLayout from '../components/LegalLayout.astro';
+---
+
+<LegalLayout title="Privacy Notice" description="Bozza di informativa sul trattamento dei dati per il sito pubblico, Brev self-hosted e il futuro Brev Cloud.">
+  <p><strong>Stato del documento:</strong> bozza. Titolare, contatti, basi giuridiche, destinatari, trasferimenti, tempi di conservazione e autorità competente sono ancora da confermare.</p>
+
+  <h2>1. Ambito</h2>
+  <p>Questa bozza distingue tre contesti diversi. Prima del lancio di Brev Cloud, chi gestisce il sito deve verificare il testo, completare i placeholder e farlo revisionare da un professionista legale.</p>
+  <ul>
+    <li><strong>Sito pubblico:</strong> landing page statica e documenti pubblici di Brev. Nella configurazione corrente non sono presenti analytics, advertising tracker o moduli pubblici di raccolta dati.</li>
+    <li><strong>Brev self-hosted:</strong> il gestore della singola installazione controlla infrastruttura, configurazione, database, log e servizi collegati. Di norma è il soggetto che determina finalità e mezzi del trattamento dei dati della propria installazione e deve pubblicare una propria informativa, configurare i servizi e rispondere alle richieste degli interessati.</li>
+    <li><strong>Futuro Brev Cloud:</strong> servizio gestito separato, non da descrivere come già operativo. Le categorie e i dettagli sotto riportati sono da confermare prima dell’attivazione.</li>
+  </ul>
+
+  <h2>2. Titolare e contatto privacy</h2>
+  <p>Titolare del futuro Brev Cloud: <strong>[DA COMPLETARE — persona giuridica o persona fisica titolare]</strong>.</p>
+  <p>Indirizzo: <strong>[DA COMPLETARE]</strong>. Contatto generale: <strong>[DA COMPLETARE]</strong>. Contatto privacy/DPO, se applicabile: <strong>[DA COMPLETARE]</strong>. Matt deve confermare questi dati e un professionista legale deve verificare l’identificazione del titolare e l’eventuale necessità di un DPO o di un rappresentante.</p>
+
+  <h2>3. Dati del sito pubblico</h2>
+  <p>Il codice della landing non implementa account, form, newsletter, analytics o advertising. Il provider di hosting/deployment potrebbe produrre log tecnici necessari al funzionamento e alla sicurezza del sito: provider, categorie precise, finalità, base giuridica e conservazione sono <strong>[DA COMPLETARE]</strong>. Non vengono qui dichiarati indirizzi IP o altri dati come raccolti direttamente da Brev senza verifica del provider.</p>
+
+  <h2>4. Futuro Brev Cloud: categorie e finalità</h2>
+  <p>La tabella seguente riflette le entità e i flussi presenti nel codice Cloud/self-hosted, ma non sostituisce una verifica del servizio effettivamente messo online:</p>
+  <table>
+    <thead><tr><th>Categoria</th><th>Possibili finalità</th><th>Base giuridica</th></tr></thead>
+    <tbody>
+      <tr><td>Account: email, password hash, display name, stato/verifica e date tecniche</td><td>Registrazione, autenticazione, recupero account, gestione dell’accesso</td><td>[DA COMPLETARE — confermare contratto, obbligo, legittimo interesse o altra base]</td></tr>
+      <tr><td>Link e domini: URL di destinazione, slug, titolo facoltativo, dominio e dati di verifica</td><td>Creazione, gestione, risoluzione e sicurezza dei link</td><td>[DA COMPLETARE]</td></tr>
+      <tr><td>Click e sicurezza: contatori di click e, se attivati, telemetria operativa/rate limiting e log di sicurezza</td><td>Fornire statistiche richieste, prevenire abuso e proteggere il servizio</td><td>[DA COMPLETARE — il codice attuale persiste un contatore di click; log dettagliati/IP e relativa conservazione non sono definiti]</td></tr>
+      <tr><td>Supporto: contenuti e dati inviati dall’utente quando contatta il supporto</td><td>Rispondere, gestire richieste e abuso</td><td>[DA COMPLETARE — canale e base da confermare]</td></tr>
+      <tr><td>Billing: dati necessari al pagamento e identificativi della transazione gestiti tramite Stripe, se il Checkout sarà attivato</td><td>Verificare il pagamento one-time e attribuire l’eventuale entitlement Cloud</td><td>[DA COMPLETARE — contratto, obbligo contabile e/o altra base da confermare]</td></tr>
+    </tbody>
+  </table>
+  <p>Il prodotto non dovrebbe richiedere categorie particolari di dati per le funzioni descritte; gli utenti non devono inserire dati sensibili nei link o nelle richieste di supporto. Questa frase e le istruzioni operative sono da verificare legalmente.</p>
+
+  <h2>5. Destinatari, responsabili e trasferimenti</h2>
+  <p>Per il futuro Cloud potranno essere coinvolti provider tecnici e responsabili del trattamento elencati nella pagina <a href="/subprocessors">Subprocessors &amp; Data Retention</a>. Stripe non è configurato nella configurazione corrente del repository; il provider email non è configurato di default. I nomi, i ruoli, i contratti, le garanzie e gli eventuali trasferimenti fuori dallo SEE sono <strong>[DA COMPLETARE]</strong>.</p>
+  <p>Prima del lancio devono essere verificati paesi di trattamento, sub-responsabili, SCC/altre garanzie quando necessarie, meccanismo informativo per le modifiche e procedura di notifica.</p>
+
+  <h2>6. Conservazione</h2>
+  <p>Non sono indicati termini definitivi in questa bozza. Tempi per account, link, domini, contatori di click, sessioni/token, log di sicurezza, supporto e billing: <strong>[DA COMPLETARE — Matt e professionista legale devono definire tempi, criteri di cancellazione e possibili obblighi contabili/difensivi]</strong>.</p>
+
+  <h2>7. Diritti degli interessati</h2>
+  <p>Secondo il contesto e la normativa applicabile, gli interessati possono avere diritti di accesso, rettifica, cancellazione, limitazione, opposizione, portabilità e revoca del consenso quando il trattamento si basa sul consenso. Modalità di verifica dell’identità, tempi di risposta e limiti devono essere <strong>[DA COMPLETARE]</strong>.</p>
+  <p>Richieste privacy: <strong>[DA COMPLETARE — email o altro canale]</strong>. Reclamo all’autorità di controllo: <strong>[DA COMPLETARE — autorità competente, sito e contatti da confermare in base allo stabilimento e al contesto]</strong>.</p>
+
+  <h2>8. Sicurezza e modifiche</h2>
+  <p>Brev implementa misure tecniche nel codice, tra cui password hash, sessioni revocabili, cookie HttpOnly e protezioni CSRF per richieste basate su cookie; l’assetto effettivo dipende dalla configurazione e dall’operatore. Misure organizzative, gestione incidenti, contatti e tempi di notifica: <strong>[DA COMPLETARE]</strong>.</p>
+  <p>Versione/data di entrata in vigore: <strong>[DA COMPLETARE]</strong>. Il testo dovrà essere aggiornato prima di ogni trattamento Cloud e quando cambiano servizi o provider.</p>
+</LegalLayout>

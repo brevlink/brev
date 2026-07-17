@@ -1,0 +1,36 @@
+---
+import LegalLayout from '../components/LegalLayout.astro';
+---
+
+<LegalLayout title="Subprocessors & Data Retention" description="Bozza di registro delle categorie di fornitori e dei tempi di conservazione per il futuro Brev Cloud.">
+  <p><strong>Registro preliminare:</strong> la tabella non conferma che i provider siano attivi. I nomi, i paesi, i ruoli contrattuali, le garanzie di trasferimento e le date di entrata in vigore sono da completare e verificare prima del lancio.</p>
+
+  <h2>1. Categorie di subprocessors</h2>
+  <div class="overflow-x-auto">
+    <table>
+      <thead><tr><th>Categoria / servizio</th><th>Stato nel repository</th><th>Dati/finalità possibili</th><th>Provider, paese, garanzie</th></tr></thead>
+      <tbody>
+        <tr><td>Stripe</td><td>Non configurato ora; predisposizione per Checkout one-time Cloud</td><td>Billing, identificativi Checkout e stato pagamento</td><td>[DA COMPLETARE — entità Stripe, paesi, DPA, trasferimenti e contatto]</td></tr>
+        <tr><td>Provider email futuro</td><td>Non configurato ora; adapter SMTP/API generico, configurazione predefinita <code>none</code></td><td>Email di verifica e reset password, se attivati</td><td>[DA COMPLETARE — provider, paese, DPA e garanzie]</td></tr>
+        <tr><td>Hosting / deployment</td><td>Categoria da confermare; self-hosted può essere gestito dall’operatore</td><td>Calcolo, database, backup, rete e log tecnici</td><td>[DA COMPLETARE — provider, regioni, subprocessor e contatto]</td></tr>
+        <tr><td>Logging / monitoring</td><td>Categoria da confermare; nessun provider attivo dichiarato</td><td>Disponibilità, errori, sicurezza e abuso, solo se attivati</td><td>[DA COMPLETARE — provider, dati, configurazione e retention]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Per Brev self-hosted, l’operatore deve compilare il proprio elenco in base a infrastruttura, proxy, database, email, backup e monitoring che sceglie. Questa pagina non trasferisce tali responsabilità a Brev Cloud.</p>
+
+  <h2>2. Conservazione preliminare</h2>
+  <table>
+    <thead><tr><th>Categoria dati</th><th>Periodo/criterio</th><th>Decisione richiesta</th></tr></thead>
+    <tbody>
+      <tr><td>Account e dati profilo</td><td>[DA COMPLETARE]</td><td>Matt + professionista legale: cancellazione account, obblighi e difesa diritti</td></tr>
+      <tr><td>Link, domini e contatori di click</td><td>[DA COMPLETARE]</td><td>Definire durata del servizio, cancellazione e abuso</td></tr>
+      <tr><td>Sessioni e token di verifica/reset</td><td>Scadenze tecniche nel codice; periodo post-scadenza e cancellazione: [DA COMPLETARE]</td><td>Confermare policy operativa e documentazione</td></tr>
+      <tr><td>Log di sicurezza/supporto</td><td>[DA COMPLETARE]</td><td>Definire dati, accessi, durata e legal hold</td></tr>
+      <tr><td>Billing e record di pagamento</td><td>[DA COMPLETARE]</td><td>Confermare obblighi contabili/fiscali e ruolo di Stripe</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. Modifiche al registro</h2>
+  <p>Meccanismo di notifica, preavviso per nuovi subprocessors, diritto di opposizione e versione del registro: <strong>[DA COMPLETARE]</strong>. Data dell’ultima verifica: <strong>[DA COMPLETARE]</strong>.</p>
+</LegalLayout>
