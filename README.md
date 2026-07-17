@@ -202,9 +202,12 @@ Production deployments should keep `DOCS_ENABLED=false`.
 ### Authentication hardening
 
 Registration, verification resend, and password reset require a configured
-transactional email adapter. `EMAIL_PROVIDER=none` is a deliberate fail-closed
-configuration: it never returns or logs verification/reset tokens. Tests inject
-the in-memory mailer; there is no fake-mailer production bypass.
+transactional email adapter. `EMAIL_PROVIDER=none` is valid for self-hosted or
+other deployments that do not have a mail server yet: the app can start, run
+migrations, and let existing accounts log in, while those email-dependent
+operations fail closed with HTTP 503. It never returns or logs
+verification/reset tokens. Tests inject the in-memory mailer; there is no
+fake-mailer production bypass.
 
 Verification and reset tokens are random, stored only as hashes, expire, and
 are single-use. Browser state-changing requests authenticated by the session
@@ -259,7 +262,7 @@ rate-limit implementation behind the same abstraction.
 | `FRONTEND_PASSWORD_RESET_URL` | when email enabled | Existing frontend route that reads `token` from the URL fragment and POSTs password reset |
 | `ENVIRONMENT` | no | `development` or `production` |
 | `SECURE_COOKIES` | no | Must be `true` when served over HTTPS |
-| `EMAIL_PROVIDER` | no | `smtp`, `api`, or `none` (none fails email auth flows safely) |
+| `EMAIL_PROVIDER` | no | `smtp`, `api`, or `none`; `none` keeps self-hosted startup/login available but fails email-dependent auth flows safely |
 | `EMAIL_FROM` | when email enabled | Sender address; no default is provided |
 | `SMTP_HOST` / `SMTP_PORT` | when SMTP | SMTP endpoint and port |
 | `SMTP_USERNAME` / `SMTP_PASSWORD` | no | Optional SMTP authentication |

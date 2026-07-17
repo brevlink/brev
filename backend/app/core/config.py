@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     free_custom_domains: int = 0
 
     # ── Transactional email ──────────────────────────────────────────
-    # "none" is deliberately a failing configuration, never a fake sender.
+    # "none" is valid for self-hosted deployments without email. It keeps
+    # startup, migrations, and existing-account login available while email-
+    # dependent operations fail closed through UnconfiguredMailer.
     email_provider: str = "none"  # smtp | api | none
     email_from: str | None = None
     app_base_url: str = "http://localhost"
@@ -72,6 +74,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
+        if self.email_provider not in {"none", "smtp", "api"}:
+            raise ValueError("EMAIL_PROVIDER must be none, smtp, or api")
         if self.is_production:
             if len(self.jwt_secret) < 32:
                 raise ValueError("JWT_SECRET must be a strong secret in production")
@@ -79,12 +83,6 @@ class Settings(BaseSettings):
                 raise ValueError("CORS_ORIGINS cannot contain '*' in production")
             if not self.secure_cookies:
                 raise ValueError("SECURE_COOKIES must be true in production")
-            if self.email_provider not in {"smtp", "api"}:
-                raise ValueError("EMAIL_PROVIDER must be smtp or api in production")
-            if not self.email_from:
-                raise ValueError("EMAIL_FROM is required when email is enabled")
-        if self.email_provider not in {"none", "smtp", "api"}:
-            raise ValueError("EMAIL_PROVIDER must be none, smtp, or api")
         if self.email_provider in {"smtp", "api"} and not self.email_from:
             raise ValueError("EMAIL_FROM is required when email is enabled")
         if self.email_provider in {"smtp", "api"}:

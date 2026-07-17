@@ -79,10 +79,13 @@ SMTP_STARTTLS=true
 
 The SMTP host, sender, username, and password above are placeholders, not
 credentials. Configure either SMTP or the provider-neutral `EMAIL_API_URL` and
-`EMAIL_API_TOKEN`. In production, `EMAIL_PROVIDER=none` makes registration and
-recovery fail closed with an explicit server error; it never simulates delivery
-or returns an auth token. Test-only in-memory delivery is injected by the
-backend test suite and cannot be enabled through an environment variable.
+`EMAIL_API_TOKEN`. `EMAIL_PROVIDER=none` is valid for self-hosted deployments
+or any deployment without a mail server yet: the app still starts, runs
+migrations, and allows existing accounts to log in. Registration, verification
+resend, and password recovery remain disabled and fail closed with HTTP 503; the
+app never simulates delivery or returns an auth token. Test-only in-memory
+delivery is injected by the backend test suite and cannot be enabled through an
+environment variable.
 The two `FRONTEND_*_URL` values must be real routes implemented by the
 deployed frontend; the backend does not assume or create dashboard routes.
 Links carry the single-use token in a URL fragment. The frontend must POST it

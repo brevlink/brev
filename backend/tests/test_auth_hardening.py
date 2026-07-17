@@ -8,6 +8,20 @@ from fastapi.testclient import TestClient
 PASSWORD = "Correct-Horse-Battery-1"
 
 
+def test_production_accepts_unconfigured_email_provider():
+    from app.core.config import Settings
+
+    configured = Settings(
+        jwt_secret="production-secret-that-is-at-least-32-characters-long",
+        environment="production",
+        secure_cookies=True,
+        cors_origins=["https://links.example.com"],
+        email_provider="none",
+    )
+
+    assert configured.email_provider == "none"
+
+
 def _register(client: TestClient, email: str = "hardening@example.com") -> None:
     response = client.post("/api/v1/auth/register", json={"email": email, "password": PASSWORD})
     assert response.status_code == 201, response.text
