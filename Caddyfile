@@ -30,6 +30,12 @@
 		redir /app/ 301
 	}
 
+	# Keep legal pages on the landing service, including their trailing-slash forms.
+	@legal path /privacy /privacy/ /terms /terms/ /cookies /cookies/ /legal /legal/ /subprocessors /subprocessors/
+	handle @legal {
+		reverse_proxy landing:80
+	}
+
 	@short path_regexp short ^/[A-Za-z0-9_-]{3,64}$
 	handle @short {
 		reverse_proxy backend:8000

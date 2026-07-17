@@ -20,6 +20,14 @@ for (const route of pages.map((page) => `/${page}`)) {
 }
 assert(landing.includes('github.com/brevlink/brev/security/advisories/new'), 'Landing footer is missing security reporting');
 
+const caddyfile = fs.readFileSync(path.join(root, '..', 'Caddyfile'), 'utf8');
+const legalMatcher = caddyfile.match(/@legal path ([^\n]+)/)?.[1] ?? '';
+for (const page of pages) {
+  assert(legalMatcher.includes(`/${page}`), `Caddy legal routing is missing /${page}`);
+  assert(legalMatcher.includes(`/${page}/`), `Caddy legal routing is missing /${page}/`);
+}
+assert(caddyfile.indexOf('@legal path') < caddyfile.indexOf('@short path_regexp'), 'Caddy legal routes must precede short-link routing');
+
 const sourcesToCheck = [
   path.join(root, 'src'),
   path.join(root, '..', 'dashboard', 'index.html'),

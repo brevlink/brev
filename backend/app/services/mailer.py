@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from email.message import EmailMessage
 from typing import Protocol
 from urllib import request as urllib_request
+from urllib.parse import urlsplit
 
 from app.core.config import Settings, settings
 
@@ -94,8 +95,9 @@ class APIFieldMailer:
         await asyncio.to_thread(self._send_sync, payload)
 
     def _send_sync(self, payload: bytes) -> None:
+        api_url = self._validated_api_url()
         req = urllib_request.Request(
-            self.config.email_api_url,
+            api_url,
             data=payload,
             headers={
                 "Authorization": f"Bearer {self.config.email_api_token}",
@@ -104,13 +106,33 @@ class APIFieldMailer:
             method="POST",
         )
         try:
-            with urllib_request.urlopen(req, timeout=15) as response:
+            # The URL is validated before it is opened.
+            with urllib_request.urlopen(req, timeout=15) as response:  # nosec B310
                 if response.status >= 300:
                     raise MailDeliveryError("Email provider rejected the message")
         except MailDeliveryError:
             raise
         except Exception as exc:
             raise MailDeliveryError("Email provider is unavailable") from exc
+
+    def _validated_api_url(self) -> str:
+        raw_url = self.config.email_api_url or ""
+        try:
+            parsed = urlsplit(raw_url)
+            # Accessing port validates malformed bracketed hosts as well.
+            parsed.port
+        except ValueError as exc:
+            raise MailDeliveryError("Email provider URL is invalid") from exc
+
+        allowed_schemes = {"https"} if self.config.is_production else {"http", "https"}
+        if (
+            parsed.scheme.lower() not in allowed_schemes
+            or not parsed.netloc
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            raise MailDeliveryError("Email provider URL is invalid")
+        return raw_url
 
 
 class UnconfiguredMailer:

@@ -33,7 +33,8 @@ from app.schemas.auth import (
 from app.services.mailer import MailDeliveryError, mailer
 
 EMAIL_VERIFICATION = "email_verification"
-PASSWORD_RESET = "password_reset"
+# This is a persisted database purpose identifier, not a credential.
+RESET_TOKEN_PURPOSE = "password_reset"  # nosec B105
 
 
 def _email(value: str) -> str:
@@ -300,7 +301,7 @@ async def request_password_reset(db: AsyncSession, email: str) -> MessageRespons
     user = result.scalar_one_or_none()
     if user is not None:
         token = await _issue_token(
-            db, user, purpose=PASSWORD_RESET,
+            db, user, purpose=RESET_TOKEN_PURPOSE,
             ttl_minutes=settings.password_reset_expire_minutes,
         )
         await _send_mail(
@@ -316,12 +317,12 @@ async def request_password_reset(db: AsyncSession, email: str) -> MessageRespons
 
 
 async def inspect_password_reset(db: AsyncSession, token: str) -> datetime:
-    auth_token = await _inspect_token(db, token, PASSWORD_RESET)
+    auth_token = await _inspect_token(db, token, RESET_TOKEN_PURPOSE)
     return auth_token.expires_at
 
 
 async def reset_password(db: AsyncSession, body: PasswordResetConfirm) -> MessageResponse:
-    auth_token = await _consume_token(db, body.token, PASSWORD_RESET)
+    auth_token = await _consume_token(db, body.token, RESET_TOKEN_PURPOSE)
     user = await db.get(User, auth_token.user_id)
     if user is None or not user.is_active:
         raise HTTPException(status_code=404, detail="Invalid or expired token")

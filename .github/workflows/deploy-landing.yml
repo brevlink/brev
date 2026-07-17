@@ -39,8 +39,21 @@ jobs:
 
       - name: Trigger Portainer redeploy
         if: github.ref == 'refs/heads/main'
+        env:
+          PORTAINER_API_TOKEN: ${{ secrets.PORTAINER_API_TOKEN }}
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
+          PORTAINER_STACK_ID_LANDING: ${{ secrets.PORTAINER_STACK_ID_LANDING }}
         run: |
-          curl -L -X POST \
-            -H "Authorization: Bearer ${{ secrets.PORTAINER_API_TOKEN }}" \
+          if [ -z "$PORTAINER_API_TOKEN" ] && [ -z "$PORTAINER_URL" ] && [ -z "$PORTAINER_ENDPOINT_ID" ] && [ -z "$PORTAINER_STACK_ID_LANDING" ]; then
+            echo "Portainer redeploy skipped (not configured)"
+            exit 0
+          fi
+          if [ -z "$PORTAINER_API_TOKEN" ] || [ -z "$PORTAINER_URL" ] || [ -z "$PORTAINER_ENDPOINT_ID" ] || [ -z "$PORTAINER_STACK_ID_LANDING" ]; then
+            echo "Portainer redeploy failed: incomplete configuration"
+            exit 1
+          fi
+          curl --fail-with-body --show-error --silent --location --request POST \
+            -H "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID_LANDING }}/git/redeploy?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" || echo "Portainer redeploy skipped (not configured)"
+            "${PORTAINER_URL}/api/stacks/${PORTAINER_STACK_ID_LANDING}/git/redeploy?endpointId=${PORTAINER_ENDPOINT_ID}"
