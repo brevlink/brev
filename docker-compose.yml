@@ -113,6 +113,10 @@ services:
       - ${BREV_DATA:-./data}/caddy_config:/config
     environment:
       DEFAULT_DOMAIN: ${DEFAULT_DOMAIN:-brevl.ink}
+      # Certificate for the Cloudflare for SaaS site. The default needs no extra
+      # files, so a fresh clone starts. Brev Cloud overrides it with the
+      # Cloudflare Origin CA certificate for the fallback origin.
+      SAAS_TLS: ${SAAS_TLS:-tls internal}
     depends_on:
       - backend
       - landing

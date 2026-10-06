@@ -53,12 +53,15 @@ Two other things ruled out alternatives:
 | Custom hostname | `custom_origin_server: proxy.brevl.ink` |
 | Origin Rule | `http_request_origin` phase: `not http.host in {"brevl.ink" "www.brevl.ink" "proxy.brevl.ink"} -> origin.port 8443` |
 | Published port | `${HTTPS_PORT:-8443}` in `docker-compose.yml` -> `brev-caddy:443` |
-| Origin certificate | Cloudflare Origin CA, `proxy.brevl.ink`, 15 years, in `/data/certs` on the host |
+| Origin certificate | `SAAS_TLS` in the stack environment: `tls /data/certs/proxy.brevl.ink.crt /data/certs/proxy.brevl.ink.key` — Cloudflare Origin CA for `proxy.brevl.ink`, 15 years, no renewal, kept in the Caddy data volume |
 | Caddyfile | `:443` site without a host matcher, `import routing` shared with `:80` |
 
-The Origin CA certificate and its private key are **not in the repository**.
-They are private material: the certificate lives in the Caddy data volume, the
-key was generated locally and never left the machine that issued the request.
+The Origin CA certificate and its private key are **not in the repository**, and
+the Caddyfile never hardcodes their path: a fresh clone has no such file and
+Caddy refuses to start (`loading certificates: no such file or directory`). The
+site takes its certificate from `SAAS_TLS`, whose compose default is
+`tls internal`; Cloud sets it to the Origin CA files. The key was generated
+locally and never left the machine that issued the request.
 
 ## Customer onboarding
 
@@ -78,6 +81,12 @@ Cloudflare API yet (`backend/app/services/domains.py` has no Cloudflare client).
 
 ## Pitfalls
 
+- **The repository must not hardcode the certificate path.** A clone has no
+  `/data/certs`, and a missing file makes Caddy refuse to start, breaking every
+  self-hosted install. Hence `SAAS_TLS`, with `tls internal` as the compose
+  default. Brev Cloud sets it to the Origin CA files; a stack that forgets to
+  falls back to an internal certificate, which Cloudflare accepts in `full` mode
+  and rejects in `strict`.
 - **The zone SSL mode must stay `full`, not `strict`.** With `strict`,
   Cloudflare verifies the origin certificate: for the apex `brevl.ink` the
   request returns `526` because nginx-proxy-manager serves a `*.brevl.ink`

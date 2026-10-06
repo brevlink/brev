@@ -113,6 +113,14 @@ another reverse proxy.
 
 Set `SECURE_COOKIES=true` only when users access Brev over HTTPS.
 
+Caddy also listens on 443 inside the container, published as `HTTPS_PORT`
+(default 8443), for customer domains that arrive on their own hostname. That
+site deliberately has no host matcher, and it takes its certificate from
+`SAAS_TLS` — which defaults to `tls internal`, Caddy's own CA, so a fresh clone
+starts with no extra files. Point customer domains at that port, or set
+`SAAS_TLS` to your own certificate, if your reverse proxy does not terminate TLS
+for those hostnames.
+
 ## CLI Against a Self-Hosted Server
 
 ```bash
@@ -138,6 +146,13 @@ For self-hosting, set `CNAME_TARGET` to the public proxy domain you control:
 ```env
 CNAME_TARGET=links.example.com.
 ```
+
+Verification is Brev's own check and works everywhere. Serving a customer
+hostname also needs TLS for that name: either let your reverse proxy terminate it
+(Cloudflare for SaaS, see `docs/cloudflare-for-saas.md`) or give Caddy a
+certificate through `SAAS_TLS`. With the default `tls internal` the certificate
+is not publicly trusted, which is fine behind a proxy in Full mode and not fine
+for a browser talking to Caddy directly.
 
 ## Updates
 

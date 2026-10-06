@@ -22,7 +22,11 @@ def test_saas_leg_serves_any_host_on_its_own_port():
     domain would fall through."""
     caddyfile = (Path(__file__).resolve().parents[2] / "Caddyfile").read_text(encoding="utf-8")
     assert ":443 {" in caddyfile
-    assert "tls /data/certs/proxy.brevl.ink.crt /data/certs/proxy.brevl.ink.key" in caddyfile
+    assert "{$SAAS_TLS}" in caddyfile
+    # The repository must not hardcode a certificate path: a fresh clone has no
+    # such file and Caddy refuses to start ("loading certificates: no such file
+    # or directory"), which would break every self-hosted deployment.
+    assert "/data/certs/" not in caddyfile
     # The certificate belongs to the fallback origin, so no host-specific site
     # may claim port 443: that would shadow the catch-all for customer hostnames.
     assert "proxy.brevl.ink:443 {" not in caddyfile
