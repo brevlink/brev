@@ -48,7 +48,11 @@ jobs:
         run: npm ci
         working-directory: ${{ matrix.app }}
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=moderate
+        # Le PR non devono bloccarsi sulle advisory della toolchain di build, che
+        # non viene mai spedita (Dockerfile multi-stadio). Qui si ferma a "high".
+        # Il controllo completo, sviluppo incluso, gira a parte una volta a
+        # settimana: vedi .github/workflows/audit-dipendenze.yml
+        run: npm audit --omit=dev --audit-level=high
         working-directory: ${{ matrix.app }}
       - name: Check legal pages and privacy-sensitive assets
         if: matrix.app == 'landing'
