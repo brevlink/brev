@@ -52,7 +52,7 @@ services:
       REQUIRE_VERIFIED_EMAIL: ${REQUIRE_VERIFIED_EMAIL:-false}
       FREE_CUSTOM_DOMAINS: ${FREE_CUSTOM_DOMAINS:-0}
       DEBUG: ${BREV_DEBUG:-false}
-      CORS_ORIGINS: '${CORS_ORIGINS:-["https://brevl.ink","https://app.brevl.ink"]}'
+      CORS_ORIGINS: '${CORS_ORIGINS:-["https://brevl.ink"]}'
       APP_BASE_URL: ${APP_BASE_URL:-https://brevl.ink}
       FRONTEND_VERIFICATION_URL: ${FRONTEND_VERIFICATION_URL:-}
       FRONTEND_PASSWORD_RESET_URL: ${FRONTEND_PASSWORD_RESET_URL:-}
