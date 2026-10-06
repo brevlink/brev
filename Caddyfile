@@ -63,17 +63,18 @@
 #
 # Cloudflare si connette su questa porta (pubblicata come 8443 sulla VPS, così
 # la 443 dell'host resta a nginx-proxy-manager) con SNI = proxy.brevl.ink, il
-# fallback origin, e Host = dominio del cliente. Il certificato lo prende caddy
-# per il nome del fallback; le richieste dei clienti arrivano con un Host
-# diverso e le serve il sito senza host qui sotto, che accetta qualunque nome.
+# fallback origin, e Host = dominio del cliente. I due valori non coincidono, ed
+# è voluto: è dall'Host che il backend risolve il tenant.
 #
-# È per questo che questa gamba non passa da NPM: nginx considera errore una
-# richiesta il cui Host non corrisponde allo SNI della connessione e risponde
-# 421, caddy instrada per Host e non si formalizza.
-proxy.brevl.ink:443 {
-	import routing
-}
-
+# nginx considera quella combinazione un errore — 421 in HTTP/2, connessione
+# chiusa in HTTP/1.1 — mentre caddy instrada per Host e non si formalizza. È per
+# questo che la gamba SaaS non passa da NPM.
+#
+# Il certificato è un Origin CA di Cloudflare per il fallback origin, valido 15
+# anni: Cloudflare lo verifica in Full (strict) e non serve nessun rinnovo.
+# Caddy lo presenta per qualunque SNI, perché su questa porta parla solo
+# Cloudflare. I file stanno in /data/certs, fuori dal repo: sono materiale privato.
 :443 {
+	tls /data/certs/proxy.brevl.ink.crt /data/certs/proxy.brevl.ink.key
 	import routing
 }
