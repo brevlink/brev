@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -60,6 +60,17 @@ class Settings(BaseSettings):
     proxy_origin: str = "http://backend:8000"  # internal docker network
     caddy_admin_api: str = "http://caddy:2019"  # Caddy admin API
     cname_target: str = "proxy.brevl.ink."
+
+    @field_validator("cname_target")
+    @classmethod
+    def normalize_cname_target(cls, value: str) -> str:
+        """Hand back a bare hostname for the dashboard to show.
+
+        The FQDN form with the root dot is valid DNS but several DNS panels
+        reject it or store it literally, breaking the CNAME the customer has to
+        create.
+        """
+        return value.strip().rstrip(".").lower()
 
     # ── Stripe one-time Cloud checkout (Cloud only) ──────────────────
     stripe_secret_key: str | None = None

@@ -120,6 +120,11 @@ export default function DomainPanel({ domains, onChange }) {
             {openDomainId === item.id && (
               <div className="grid min-w-0 max-w-full gap-3 overflow-hidden rounded-[14px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.5)] p-3.5">
                 <p className={`${dataText} m-0`}>In your DNS provider, create these records for {item.domain}.</p>
+                <p className={`${dataText} m-0`}>
+                  Both are needed: the TXT record proves the domain is yours, the CNAME points the
+                  domain at Brev. Changes can take a few minutes to propagate before verification
+                  succeeds.
+                </p>
                 <div className="grid min-w-0 gap-2.5">
                   <section className={dnsRecord}>
                     <h3 className="m-0 text-[0.82rem] font-black text-[#071936]">TXT verification</h3>

@@ -1,12 +1,12 @@
 # Brev Caddyfile
 # Proxy: landing (default), /api/* -> backend, /app/* -> dashboard, /slug -> backend.
 #
-# Il routing sta in uno snippet perché serve su due porte:
-#   :80  -> qui NPM inoltra brevl.ink e proxy.brevl.ink (percorso normale)
-#   :443 -> gamba Cloudflare for SaaS (vedi in fondo)
+# The routing lives in a snippet because it is served on two ports:
+#   :80  -> nginx-proxy-manager forwards brevl.ink and proxy.brevl.ink here
+#   :443 -> the Cloudflare for SaaS leg (see the bottom of this file)
 {
-	# Niente redirect automatici: il TLS lo fa NPM sul percorso normale e
-	# Cloudflare sulla gamba SaaS. Caddy qui resta un router.
+	# No automatic redirects: TLS is terminated by nginx-proxy-manager on the
+	# normal path and by Cloudflare on the SaaS leg. Caddy here is a router.
 	auto_https disable_redirects
 }
 
@@ -61,19 +61,20 @@
 
 # Cloudflare for SaaS.
 #
-# Cloudflare si connette su questa porta (pubblicata come 8443 sulla VPS, così
-# la 443 dell'host resta a nginx-proxy-manager) con SNI = proxy.brevl.ink, il
-# fallback origin, e Host = dominio del cliente. I due valori non coincidono, ed
-# è voluto: è dall'Host che il backend risolve il tenant.
+# Cloudflare connects to this port (published as 8443 on the host so that
+# nginx-proxy-manager keeps 443) with SNI = proxy.brevl.ink, the fallback
+# origin, and Host = the customer hostname. The two values differ, on purpose:
+# the backend resolves the tenant from the Host.
 #
-# nginx considera quella combinazione un errore — 421 in HTTP/2, connessione
-# chiusa in HTTP/1.1 — mentre caddy instrada per Host e non si formalizza. È per
-# questo che la gamba SaaS non passa da NPM.
+# nginx treats that combination as an error — 421 over HTTP/2, a dropped
+# connection over HTTP/1.1 — while Caddy routes by Host and does not care, which
+# is the whole reason this leg does not go through nginx-proxy-manager.
 #
-# Il certificato è un Origin CA di Cloudflare per il fallback origin, valido 15
-# anni: Cloudflare lo verifica in Full (strict) e non serve nessun rinnovo.
-# Caddy lo presenta per qualunque SNI, perché su questa porta parla solo
-# Cloudflare. I file stanno in /data/certs, fuori dal repo: sono materiale privato.
+# The certificate is a Cloudflare Origin CA certificate for the fallback origin,
+# valid 15 years: Cloudflare verifies it in Full (strict) and it never needs
+# renewing. Caddy serves it for any SNI, because only Cloudflare talks to this
+# port. The files live in /data/certs on the host, outside the repository,
+# because they are private material.
 :443 {
 	tls /data/certs/proxy.brevl.ink.crt /data/certs/proxy.brevl.ink.key
 	import routing
