@@ -1,7 +1,16 @@
 # Brev Caddyfile
 # Proxy: landing (default), /api/* -> backend, /app/* -> dashboard, /slug -> backend.
+#
+# Il routing sta in uno snippet perché serve su due porte:
+#   :80  -> qui NPM inoltra brevl.ink e proxy.brevl.ink (percorso normale)
+#   :443 -> gamba Cloudflare for SaaS (vedi in fondo)
+{
+	# Niente redirect automatici: il TLS lo fa NPM sul percorso normale e
+	# Cloudflare sulla gamba SaaS. Caddy qui resta un router.
+	auto_https disable_redirects
+}
 
-:80 {
+(routing) {
 	handle /api/* {
 		reverse_proxy backend:8000
 	}
@@ -44,4 +53,27 @@
 	handle {
 		reverse_proxy landing:80
 	}
+}
+
+:80 {
+	import routing
+}
+
+# Cloudflare for SaaS.
+#
+# Cloudflare si connette su questa porta (pubblicata come 8443 sulla VPS, così
+# la 443 dell'host resta a nginx-proxy-manager) con SNI = proxy.brevl.ink, il
+# fallback origin, e Host = dominio del cliente. Il certificato lo prende caddy
+# per il nome del fallback; le richieste dei clienti arrivano con un Host
+# diverso e le serve il sito senza host qui sotto, che accetta qualunque nome.
+#
+# È per questo che questa gamba non passa da NPM: nginx considera errore una
+# richiesta il cui Host non corrisponde allo SNI della connessione e risponde
+# 421, caddy instrada per Host e non si formalizza.
+proxy.brevl.ink:443 {
+	import routing
+}
+
+:443 {
+	import routing
 }

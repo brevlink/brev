@@ -104,6 +104,10 @@ services:
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-80}:80"
+      # Gamba Cloudflare for SaaS: Cloudflare si connette qui per i domini dei
+      # clienti (SNI = proxy.brevl.ink, Host = dominio del cliente). La 443
+      # dell'host resta a nginx-proxy-manager, che continua a servire tutto il resto.
+      - "${HTTPS_PORT:-8443}:443"
     volumes:
       - ${BREV_DATA:-./data}/caddy_data:/data
       - ${BREV_DATA:-./data}/caddy_config:/config
