@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { activateAdminUser, clearAdminLink, flagAdminLink, setAdminCloudEntitlement, suspendAdminUser } from '../api/client';
-import { alert, button, compactRow, dataList, dataText, dataTitle, eyebrow, panel, panelTitle, rowActions } from '../styles/ui';
+import { alert, button, dataList, dataRow, dataText, dataTitle, rowActions } from '../styles/ui';
 
-export default function AdminPanel({ users, links, onUsersChange, onLinksChange }) {
+export default function AdminPanel({ users = [], links = [], onUsersChange, onLinksChange }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  async function runAction(action) {
+  async function runAction(action, onChange) {
     setBusy(true);
     setError('');
     try {
       await action();
+      // Reload totals and queue membership as well as the changed row.
+      onChange();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -18,69 +20,42 @@ export default function AdminPanel({ users, links, onUsersChange, onLinksChange 
     }
   }
 
-  async function toggleUser(user) {
-    const updated = user.is_active ? await suspendAdminUser(user.id) : await activateAdminUser(user.id);
-    onUsersChange(current => current.map(item => (item.id === user.id ? updated : item)));
-  }
-
-  async function toggleCloud(user) {
-    const updated = await setAdminCloudEntitlement(user.id, !user.has_cloud_entitlement);
-    // Use the saved server response so the list reflects the persisted entitlement.
-    onUsersChange(current => current.map(item => (item.id === user.id ? updated : item)));
-  }
-
-  async function toggleLink(link) {
-    const updated = link.is_flagged ? await clearAdminLink(link.id) : await flagAdminLink(link.id);
-    onLinksChange(current => current.map(item => (item.id === link.id ? updated : item)));
-  }
-
   return (
-    <section className={`${panel} mt-[18px]`}>
-      <div>
-        <div>
-          <p className={eyebrow}>Admin</p>
-          <h2 className={panelTitle}>Users and moderation.</h2>
-        </div>
-      </div>
-
+    <div className={dataList}>
       {error && <p role="alert" className={alert}>{error}</p>}
-      <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))] max-[840px]:grid-cols-1">
-        <div className={dataList}>
-          <strong>Users</strong>
-          {users.map(user => (
-            <article key={user.id} className={compactRow}>
-              <div className="min-w-0">
-                <strong className={dataTitle}>{user.email}</strong>
-                <p className={dataText}>{user.is_admin ? 'Admin' : 'Member'} · {user.is_verified ? 'Verified' : 'Unverified'}</p>
-                <p className={dataText}>{user.is_active ? 'Active account' : 'Suspended account'} · {user.has_cloud_entitlement ? 'Cloud access granted' : 'No Cloud access'}</p>
-              </div>
-              <div className={rowActions}>
-                <button type="button" disabled={busy} className={button.compactSecondary} onClick={() => runAction(() => toggleUser(user))}>
-                  {user.is_active ? 'Suspend' : 'Activate'}
-                </button>
-                <button type="button" disabled={busy} className={user.has_cloud_entitlement ? button.compactDanger : button.compactSecondary} onClick={() => runAction(() => toggleCloud(user))}>
-                  {user.has_cloud_entitlement ? 'Revoke Cloud' : 'Grant Cloud'}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className={dataList}>
-          <strong>Links</strong>
-          {links.map(link => (
-            <article key={link.id} className={compactRow}>
-              <div className="min-w-0">
-                <strong className={dataTitle}>{link.slug}</strong>
-                <p className={dataText}>{link.url}</p>
-              </div>
-              <button type="button" disabled={busy} className={button.compactDanger} onClick={() => runAction(() => toggleLink(link))}>
-                {link.is_flagged ? 'Clear' : 'Flag'}
-              </button>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
+      {users.map(user => (
+        <article key={user.id} className={dataRow}>
+          <div className="min-w-0">
+            <strong className={dataTitle}>{user.email}</strong>
+            <p className={dataText}>{user.is_admin ? 'Admin' : 'Member'} · {user.is_verified ? 'Verified' : 'Unverified'} · Joined {new Date(user.created_at).toLocaleDateString()}</p>
+            <p className={dataText}>{user.is_active ? 'Active account' : 'Suspended account'} · {user.has_cloud_entitlement ? 'Cloud access granted' : 'No Cloud access'}</p>
+          </div>
+          <div className={rowActions}>
+            <button type="button" disabled={busy} className={button.compactSecondary} onClick={() => runAction(() => user.is_active ? suspendAdminUser(user.id) : activateAdminUser(user.id), onUsersChange)}>
+              {user.is_active ? 'Suspend' : 'Activate'}
+            </button>
+            <button type="button" disabled={busy} className={user.has_cloud_entitlement ? button.compactDanger : button.compactSecondary} onClick={() => runAction(() => setAdminCloudEntitlement(user.id, !user.has_cloud_entitlement), onUsersChange)}>
+              {user.has_cloud_entitlement ? 'Revoke Cloud' : 'Grant Cloud'}
+            </button>
+          </div>
+        </article>
+      ))}
+      {links.map(link => (
+        <article key={link.id} className={dataRow}>
+          <div className="min-w-0">
+            <strong className={dataTitle}>{link.short_url}</strong>
+            <p className={dataText}>{link.url}</p>
+            <p className={dataText}>{link.owner_email} · {new Date(link.created_at).toLocaleString()}</p>
+            <p className={dataText}>{link.is_flagged ? 'Blocked by moderation' : link.is_active ? 'Active' : 'Paused by owner'}{link.is_flagged && !link.is_active ? ' · Paused by owner' : ''}</p>
+            {link.report_count > 0 && <p className={dataText}>{link.report_count} reports · Latest: {link.latest_report_reason}</p>}
+          </div>
+          <div className={rowActions}>
+            <button type="button" disabled={busy} className={button.compactDanger} onClick={() => runAction(() => link.is_flagged ? clearAdminLink(link.id) : flagAdminLink(link.id), onLinksChange)}>
+              {link.is_flagged ? 'Clear block' : 'Block link'}
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }

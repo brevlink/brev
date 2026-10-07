@@ -65,6 +65,12 @@ export default function Layout({ children }) {
               <span aria-hidden="true">/</span>
               Links
             </NavLink>
+            {user?.is_admin && (
+              <NavLink to="/admin" className={linkClass} onClick={closeMenu}>
+                <span aria-hidden="true">!</span>
+                Administration
+              </NavLink>
+            )}
             <a className={navItem} href="https://brevl.ink" target="_blank" rel="noreferrer" onClick={closeMenu}>
               <span aria-hidden="true">↗</span>
               Landing

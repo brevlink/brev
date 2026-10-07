@@ -25,6 +25,10 @@ class AdminLinkOut(BaseModel):
     id: str
     user_id: str
     slug: str
+    short_url: str
+    owner_email: str
+    report_count: int = 0
+    latest_report_reason: str | None = None
     url: str
     is_active: bool
     is_flagged: bool
@@ -43,4 +47,24 @@ class AdminDomainOut(BaseModel):
 
 class AdminListUsers(BaseModel):
     items: list[AdminUserOut]
+    total: int
+
+
+class AdminListLinks(BaseModel):
+    items: list[AdminLinkOut]
+    total: int
+
+
+class AdminReportOut(BaseModel):
+    id: str
+    short_url: str
+    reason: str
+    reporter_email: str | None
+    created_at: datetime
+    reviewed_at: datetime | None
+    link: AdminLinkOut | None
+
+
+class AdminListReports(BaseModel):
+    items: list[AdminReportOut]
     total: int

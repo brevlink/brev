@@ -210,8 +210,8 @@ export async function createCheckoutSession() {
   return request('/billing/checkout', { method: 'POST' });
 }
 
-export async function getAdminUsers() {
-  return request('/admin/users');
+export async function getAdminUsers(params = {}) {
+  return request(`/admin/users?${new URLSearchParams(params)}`);
 }
 
 export async function setAdminCloudEntitlement(id, active) {
@@ -229,8 +229,8 @@ export async function activateAdminUser(id) {
   return request(`/admin/users/${id}/activate`, { method: 'POST' });
 }
 
-export async function getAdminLinks() {
-  return request('/admin/links');
+export async function getAdminLinks(params = {}) {
+  return request(`/admin/links?${new URLSearchParams(params)}`);
 }
 
 export async function flagAdminLink(id) {
@@ -239,4 +239,17 @@ export async function flagAdminLink(id) {
 
 export async function clearAdminLink(id) {
   return request(`/admin/links/${id}/clear`, { method: 'POST' });
+}
+
+
+export async function getAdminReports(params = {}) {
+  return request(`/admin/reports?${new URLSearchParams(params)}`);
+}
+
+export async function reviewAdminReport(id) {
+  return request(`/admin/reports/${id}/review`, { method: 'POST' });
+}
+
+export async function submitReport(body) {
+  return request('/reports', { method: 'POST', credentials: 'omit', body: JSON.stringify(body) });
 }

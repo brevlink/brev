@@ -11,7 +11,13 @@ from app.api.deps import get_current_admin_user
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.admin import (
-    AdminCloudEntitlementUpdate, AdminDomainOut, AdminLinkOut, AdminListUsers, AdminUserOut,
+    AdminCloudEntitlementUpdate,
+    AdminDomainOut,
+    AdminLinkOut,
+    AdminListLinks,
+    AdminListReports,
+    AdminListUsers,
+    AdminUserOut,
 )
 from app.services import admin as admin_service
 
@@ -20,12 +26,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/users", response_model=AdminListUsers)
 async def list_users(
+    q: str = Query("", max_length=2048),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_admin_user),
 ):
-    items, total = await admin_service.list_users(db, skip=skip, limit=limit)
+    items, total = await admin_service.list_users(db, skip=skip, limit=limit, q=q)
     return AdminListUsers(items=items, total=total)
 
 
@@ -57,14 +64,17 @@ async def activate_user(
     return await admin_service.set_user_active(db, user_id, True)
 
 
-@router.get("/links", response_model=list[AdminLinkOut])
+@router.get("/links", response_model=AdminListLinks)
 async def list_links(
+    q: str = Query("", max_length=2048),
+    queue: bool = True,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_admin_user),
 ):
-    return await admin_service.list_links(db, skip=skip, limit=limit)
+    items, total = await admin_service.list_links(db, skip=skip, limit=limit, q=q, queue=queue)
+    return AdminListLinks(items=items, total=total)
 
 
 @router.post("/links/{link_id}/flag", response_model=AdminLinkOut)
@@ -111,3 +121,25 @@ async def restore_domain(
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_domain_suspended(db, domain_id, False)
+
+
+@router.get("/reports", response_model=AdminListReports)
+async def list_reports(
+    q: str = Query("", max_length=2048),
+    open_only: bool = True,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin_user),
+):
+    items, total = await admin_service.list_reports(db, skip, limit, q, open_only)
+    return AdminListReports(items=items, total=total)
+
+
+@router.post("/reports/{report_id}/review", status_code=204)
+async def review_report(
+    report_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin_user),
+):
+    await admin_service.review_report(db, report_id)

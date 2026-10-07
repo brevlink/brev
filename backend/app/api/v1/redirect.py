@@ -16,7 +16,7 @@ async def redirect(slug: str, request: Request, db: AsyncSession = Depends(get_d
     """Resolve slug and redirect to target URL."""
     link = await links_service.get_redirect_link(db, request.headers.get("host", ""), slug)
 
-    if link is None or not link.is_active:
+    if link is None or not link.is_active or link.is_flagged:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Link not found",

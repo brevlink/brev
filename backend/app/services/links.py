@@ -135,7 +135,10 @@ async def get_link_by_id(db: AsyncSession, link_id: str, user_id: str) -> Link |
 
 async def get_redirect_link(db: AsyncSession, host: str, slug: str) -> Link | None:
     normalized_host = host.lower().split(":", 1)[0]
-    query = select(Link).options(selectinload(Link.domain)).where(Link.slug == slug)
+    # Resolution must respect moderation even if an owner re-enables the link.
+    query = select(Link).options(selectinload(Link.domain)).where(
+        Link.slug == slug, Link.is_flagged.is_(False)
+    )
     if normalized_host == settings.default_domain:
         query = query.where(Link.domain_id.is_(None))
     else:
@@ -173,6 +176,7 @@ async def update_link(
     if body.title is not None:
         link.title = body.title
     if body.is_active is not None:
+        # Owners control pauses; the independent moderation flag still blocks redirects.
         link.is_active = body.is_active
 
     await db.flush()

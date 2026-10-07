@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   getApiKeys,
   getBillingStatus,
@@ -160,12 +159,6 @@ export default function Dashboard() {
           <ApiKeyPanel apiKeys={apiKeys} onChange={setApiKeys} />
         </div>
       </div>
-
-      {user?.is_admin && (
-        <Link to="/admin" className={`${button.secondary} mt-[18px]`}>
-          Manage users and subscriptions
-        </Link>
-      )}
 
       <CreateLinkModal
         open={showCreate}

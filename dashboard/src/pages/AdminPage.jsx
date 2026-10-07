@@ -1,50 +1,142 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getAdminLinks, getAdminUsers } from '../api/client';
+import { getAdminLinks, getAdminReports, getAdminUsers, reviewAdminReport, flagAdminLink, clearAdminLink } from '../api/client';
 import AdminPanel from '../components/AdminPanel';
 import Layout from '../components/Layout';
-import { alert, button, eyebrow, muted, serif } from '../styles/ui';
+import { alert, button, dataRow, dataText, dataTitle, eyebrow, field, fieldLabel, input, muted, panel, panelTitle, rowActions, serif } from '../styles/ui';
+
+const PAGE_SIZE = 20;
+
+function Pagination({ total, page, onChange, label }) {
+  return (
+    <div className="my-4 flex flex-wrap items-center gap-3" aria-label={`${label} pagination`}>
+      <span className={muted}>{total} {label} · {total ? page * PAGE_SIZE + 1 : 0}–{Math.min((page + 1) * PAGE_SIZE, total)}</span>
+      <button className={button.compactSecondary} disabled={page === 0} onClick={() => onChange(page - 1)}>Previous</button>
+      <button className={button.compactSecondary} disabled={(page + 1) * PAGE_SIZE >= total} onClick={() => onChange(page + 1)}>Next</button>
+    </div>
+  );
+}
 
 export default function AdminPage() {
-  const [users, setUsers] = useState([]);
-  const [links, setLinks] = useState([]);
+  const [view, setView] = useState('queue');
+  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [flagPage, setFlagPage] = useState(0);
+  const [data, setData] = useState({ items: [], total: 0 });
+  const [flagged, setFlagged] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getAdminUsers(), getAdminLinks()])
-      .then(([usersData, linksData]) => {
-        if (cancelled) return;
-        setUsers(usersData.items || []);
-        setLinks(linksData || []);
+    const params = { q: search, skip: page * PAGE_SIZE, limit: PAGE_SIZE };
+    const load = view === 'users' ? getAdminUsers(params) : view === 'lookup'
+      ? getAdminLinks({ ...params, queue: false }) : getAdminReports({ ...params, open_only: view === 'queue' });
+    Promise.all([load, view === 'queue' ? getAdminLinks({ q: search, skip: flagPage * PAGE_SIZE, limit: PAGE_SIZE }) : Promise.resolve({ items: [], total: 0 })])
+      .then(([result, flags]) => {
+        if (!cancelled) { setData(result); setFlagged(flags); }
       })
-      .catch(err => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      .catch(err => { if (!cancelled) setError(err.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [view, search, page, flagPage, revision]);
+
+  function reload() {
+    setLoading(true);
+    setError('');
+    setRevision(value => value + 1);
+  }
+
+  function changePage(value) {
+    setLoading(true);
+    setError('');
+    setPage(value);
+  }
+
+  async function act(action) {
+    setBusy(true);
+    setError('');
+    try {
+      await action();
+      // Reset pagination because resolving the last row can remove a page.
+      setPage(0);
+      setFlagPage(0);
+      reload();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <Layout>
-      <header className="flex items-start justify-between gap-6 max-[520px]:flex-col">
-        <div>
-          <p className={eyebrow}>Admin</p>
-          <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88]`}>Administration.</h1>
-          <p className={muted}>Manage users, Cloud access, and link moderation.</p>
-        </div>
-        <Link to="/dashboard" className={button.secondary}>Back to dashboard</Link>
+      <header>
+        <p className={eyebrow}>Administration</p>
+        <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88]`}>Review and resolve.</h1>
+        <p className={muted}>Handle reports, investigate links, and help account owners.</p>
       </header>
+      <nav className="my-6 flex flex-wrap gap-2" aria-label="Administration views">
+        {Object.entries({ queue: 'Waiting for review', lookup: 'Find any link', reports: 'Report history', users: 'Accounts' }).map(([key, label]) => (
+          <button key={key} aria-pressed={view === key} className={view === key ? button.primary : button.secondary} onClick={() => {
+            setView(key); setPage(0); setFlagPage(0); setLoading(true); setError('');
+          }}>{label}</button>
+        ))}
+      </nav>
+      <form className={`${field} mb-6`} onSubmit={event => {
+        event.preventDefault(); setSearch(query.trim()); setPage(0); setFlagPage(0); reload();
+      }}>
+        <label className={fieldLabel} htmlFor="admin-search">{view === 'users' ? 'Search owner email' : 'Search short URL, destination, or owner email'}</label>
+        <div className="flex gap-3 max-[520px]:flex-col">
+          <input className={input} id="admin-search" type="search" maxLength={2048} value={query} onChange={event => setQuery(event.target.value)} />
+          <button className={button.secondary}>Search</button>
+        </div>
+      </form>
       {error && <p role="alert" className={alert}>{error}</p>}
-      {loading ? (
-        <p className={muted}>Loading admin data</p>
-      ) : !error && (
-        <AdminPanel users={users} links={links} onUsersChange={setUsers} onLinksChange={setLinks} />
+      {loading ? <p role="status" className={muted}>Loading…</p> : !error && (
+        <>
+          {view === 'queue' || view === 'reports' ? (
+            <section className={panel}>
+              <h2 className={panelTitle}>{view === 'queue' ? 'Open reports.' : 'Report history.'}</h2>
+              {!data.items.length && <p className={muted}>{view === 'queue' && !search ? 'No reports are waiting for review.' : 'No matching reports.'}</p>}
+              {data.items.map(report => (
+                <article key={report.id} className={dataRow}>
+                  <div>
+                    <strong className={dataTitle}>{report.link?.short_url || report.short_url}</strong>
+                    {report.link && <>
+                      <p className={dataText}>{report.link.url}</p>
+                      <p className={dataText}>{report.link.owner_email} · {report.link.is_flagged ? 'Blocked by moderation' : report.link.is_active ? 'Active' : 'Paused by owner'}</p>
+                      <p className={dataText}>{report.link.report_count} reports · Latest: {report.link.latest_report_reason}</p>
+                    </>}
+                    <p className={dataText}>{new Date(report.created_at).toLocaleString()} · {report.reviewed_at ? 'Reviewed' : 'Awaiting review'}{!report.link ? ' · Unresolved link' : ''}</p>
+                    <p className={dataText}>Reported URL: {report.short_url}</p>
+                    <p className={dataText}>Reason: {report.reason}</p>
+                    {report.reporter_email && <p className={dataText}>Reply to: <a href={`mailto:${report.reporter_email}`}>{report.reporter_email}</a></p>}
+                  </div>
+                  <div className={rowActions}>
+                    {report.link && <button disabled={busy} className={button.compactDanger} onClick={() => act(() => report.link.is_flagged ? clearAdminLink(report.link.id) : flagAdminLink(report.link.id))}>{report.link.is_flagged ? 'Clear block' : 'Block link'}</button>}
+                    {!report.reviewed_at && <button disabled={busy} className={button.compactSecondary} onClick={() => act(() => reviewAdminReport(report.id))}>Mark reviewed</button>}
+                  </div>
+                </article>
+              ))}
+              <Pagination total={data.total} page={page} onChange={changePage} label="reports" />
+            </section>
+          ) : (
+            <>
+              {!data.items.length && <p className={muted}>No matching {view === 'users' ? 'accounts' : 'links'}.</p>}
+              <AdminPanel users={view === 'users' ? data.items : []} links={view === 'lookup' ? data.items : []} onUsersChange={reload} onLinksChange={reload} />
+              <Pagination total={data.total} page={page} onChange={changePage} label={view === 'users' ? 'users' : 'links'} />
+            </>
+          )}
+          {view === 'queue' && <section className={`${panel} mt-6`}>
+            <h2 className={panelTitle}>Flagged links.</h2>
+            {!flagged.items.length && <p className={muted}>{search ? 'No matching flagged links.' : 'No flagged links are waiting. Nothing needs your attention here.'}</p>}
+            {flagged.items.length > 0 && <AdminPanel links={flagged.items} onLinksChange={() => { setFlagPage(0); reload(); }} />}
+            <Pagination total={flagged.total} page={flagPage} onChange={value => { setFlagPage(value); setLoading(true); setError(''); }} label="links" />
+          </section>}
+        </>
       )}
     </Layout>
   );

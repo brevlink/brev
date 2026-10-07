@@ -232,7 +232,7 @@ def test_first_user_is_admin_and_can_moderate(client):
     )
     assert response.status_code == 200
     assert response.json()["is_flagged"] is True
-    assert response.json()["is_active"] is False
+    assert response.json()["is_active"] is True
 
 
 def test_non_admin_is_forbidden_from_admin_routes(client):

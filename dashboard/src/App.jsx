@@ -4,6 +4,7 @@ import AdminPage from './pages/AdminPage';
 import Dashboard from './pages/Dashboard';
 import InviteAccept from './pages/InviteAccept';
 import Login from './pages/Login';
+import Report from './pages/Report';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
@@ -17,6 +18,7 @@ export default function App() {
     <BrowserRouter basename={routerBaseName()}>
       <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(217,197,165,0.7),transparent_34rem),linear-gradient(135deg,#f8f1e6_0%,#efe6d4_54%,#e3d2b7_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-[#071936] antialiased">
         <Routes>
+          <Route path="/report" element={<Report />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           {/* Both are targets of emails the backend sends, so both must be real

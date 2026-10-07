@@ -78,6 +78,7 @@ async def csrf_and_security_headers(request: Request, call_next):
     has_cookie = bool(request.cookies.get(settings.session_cookie_name))
     has_bearer = request.headers.get("authorization", "").lower().startswith("bearer ")
     public_cookie_free = request.url.path in {
+        "/api/v1/reports",
         "/api/v1/auth/register",
         "/api/v1/auth/login",
         "/api/v1/auth/verify-email",
