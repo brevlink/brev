@@ -36,9 +36,10 @@ export default function ResetPassword() {
         }
       } catch (err) {
         if (!cancelled) {
-          setPhase('expired');
-          setDetail('');
-          setError(err.message);
+          // 404 means the token is expired or already used: that is the normal
+          // end of a reset link, and it should read that way.
+          setPhase(err.status === 404 ? 'expired' : 'error');
+          setDetail(err.message);
         }
       }
     }
@@ -117,12 +118,12 @@ export default function ResetPassword() {
         {phase === 'changed' && <p className={muted}>Redirecting to sign in.</p>}
         {phase === 'expired' && (
           <p className={muted}>
-            This reset link is no longer valid
-            {detail ? ` (it expired ${detail})` : ''}. Ask for a new one below.
+            {detail || 'This reset link is no longer valid.'} Ask for a new one below.
           </p>
         )}
+        {phase === 'error' && <div className={alert}>{detail}</div>}
 
-        {phase === 'request' && (
+        {(phase === 'request' || phase === 'expired') && (
           <form onSubmit={handleRequest} className={formStack}>
             {error && <div className={alert}>{error}</div>}
             <div className={field}>
@@ -143,7 +144,7 @@ export default function ResetPassword() {
           </form>
         )}
 
-        {(phase === 'confirm' || phase === 'expired') && (
+        {phase === 'confirm' && (
           <form onSubmit={handleConfirm} className={formStack}>
             {error && <div className={alert}>{error}</div>}
             <div className={field}>

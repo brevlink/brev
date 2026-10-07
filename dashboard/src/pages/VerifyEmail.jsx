@@ -30,10 +30,11 @@ export default function VerifyEmail() {
         setPhase('done');
         setDetail(result.email || '');
       } catch (error) {
-        if (!cancelled) {
-          setPhase('error');
-          setDetail(error.message);
-        }
+        if (cancelled) return;
+        // An expired or already-used token comes back as 404, and that is the
+        // common case, not a failure: it deserves its own message.
+        setPhase(error.status === 404 ? 'expired' : 'error');
+        setDetail(error.message);
       }
     }
 
@@ -70,10 +71,10 @@ export default function VerifyEmail() {
           </p>
         )}
         {phase === 'expired' && (
-          <p className={muted}>
-            This confirmation link is no longer valid
-            {detail ? ` (it expired ${detail})` : ''}. Sign in and ask for a new one.
-          </p>
+          <>
+            <p className={muted}>{detail || 'This confirmation link is no longer valid.'}</p>
+            <p className={muted}>Sign in and ask for a new confirmation email.</p>
+          </>
         )}
         {phase === 'missing' && (
           <p className={muted}>

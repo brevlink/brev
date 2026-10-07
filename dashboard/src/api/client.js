@@ -37,7 +37,11 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data.detail || data.message || 'Something went wrong');
+    const error = new Error(data.detail || data.message || 'Something went wrong');
+    // Keep the status: callers need to tell "this link is dead" (404) from "the
+    // API is broken", because they deserve different words on screen.
+    error.status = res.status;
+    throw error;
   }
 
   return data;
