@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from app.core.config import settings
-from app.models.domain import Domain
+from app.models.domain import Domain, DomainMember
 from app.models.user import User
 from app.schemas.domain import DomainCreate, DomainOut
 from app.services import cloudflare
@@ -121,16 +121,59 @@ async def verify_domain(db: AsyncSession, domain_id: str, user_id: str) -> Domai
 async def get_user_domains(
     db: AsyncSession, user_id: str
 ) -> tuple[list[DomainOut], int]:
-    """List all domains owned by a user."""
-    uid = uuid.UUID(user_id)
-    total_q = select(func.count(Domain.id)).where(Domain.user_id == uid)
-    total = await db.scalar(total_q) or 0
+    """List every domain the account can use: its own plus the shared ones.
 
-    result = await db.execute(
-        select(Domain).where(Domain.user_id == uid).order_by(Domain.created_at.desc())
-    )
-    domains = result.scalars().all()
-    return [_domain_to_out(d) for d in domains], total
+    Members get the domain without the DNS token: that one belongs to the owner.
+    """
+    uid = uuid.UUID(user_id)
+
+    owned = (
+        await db.execute(select(Domain).where(Domain.user_id == uid))
+    ).scalars().all()
+    shared = (
+        await db.execute(
+            select(Domain)
+            .join(DomainMember, DomainMember.domain_id == Domain.id)
+            .where(
+                DomainMember.user_id == uid,
+                DomainMember.accepted_at.is_not(None),
+            )
+        )
+    ).scalars().all()
+
+    owners: dict[uuid.UUID, str] = {}
+    if shared:
+        righe = await db.execute(
+            select(User.id, User.email).where(User.id.in_({d.user_id for d in shared}))
+        )
+        owners = {row[0]: row[1] for row in righe.all()}
+
+    # One grouped query for every domain at once, instead of a count per domain.
+    counts: dict[uuid.UUID, int] = {}
+    ids = [d.id for d in owned + shared]
+    if ids:
+        righe = await db.execute(
+            select(DomainMember.domain_id, func.count(DomainMember.id))
+            .where(DomainMember.domain_id.in_(ids))
+            .group_by(DomainMember.domain_id)
+        )
+        counts = {row[0]: row[1] for row in righe.all()}
+
+    items = [
+        _domain_to_out(d, role="owner", member_count=counts.get(d.id, 0))
+        for d in owned
+    ] + [
+        _domain_to_out(
+            d,
+            role="member",
+            owner_email=owners.get(d.user_id),
+            member_count=counts.get(d.id, 0),
+            hide_verification_token=True,
+        )
+        for d in shared
+    ]
+    items.sort(key=lambda item: item.created_at, reverse=True)
+    return items, len(items)
 
 
 async def delete_domain(db: AsyncSession, domain_id: str, user_id: str) -> None:
@@ -179,19 +222,31 @@ async def _ensure_domain_entitlement(db: AsyncSession, user: User) -> None:
         )
 
 
-def _domain_to_out(domain: Domain) -> DomainOut:
+def _domain_to_out(
+    domain: Domain,
+    *,
+    role: str = "owner",
+    owner_email: str | None = None,
+    member_count: int = 0,
+    hide_verification_token: bool = False,
+) -> DomainOut:
     return DomainOut(
         id=str(domain.id),
         user_id=str(domain.user_id),
         domain=domain.domain,
         is_verified=domain.is_verified,
-        verification_token=domain.verification_token,
+        # A member never receives the DNS challenge token: setting the record is
+        # the owner's job, and the token is what proves the domain is his.
+        verification_token="" if hide_verification_token else domain.verification_token,
         verification_dns_name=domain.verification_dns_name,
         verified_at=domain.verified_at,
         last_checked_at=domain.last_checked_at,
         created_at=domain.created_at,
         cname_target=settings.cname_target,
         cloudflare_status=domain.cloudflare_status,
+        role=role,
+        owner_email=owner_email,
+        member_count=member_count,
     )
 
 

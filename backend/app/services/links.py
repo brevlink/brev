@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
-from app.models.domain import Domain
+from app.models.domain import Domain, DomainMember
 from app.models.link import Link
 from app.schemas.link import LinkCreate, LinkOut, LinkUpdate
 
@@ -23,13 +23,36 @@ def _random_slug(length: int = 8) -> str:
     return "".join(secrets.choice(ALPHABET) for _ in range(length))
 
 
+async def _accessible_domain(
+    db: AsyncSession, domain_id: uuid.UUID, user_id: uuid.UUID
+) -> Domain | None:
+    """The domain when the account owns it, or when it was shared and accepted.
+
+    Sharing lets someone publish links on a domain; it does not let them touch
+    the DNS, verify it, or remove it.
+    """
+    result = await db.execute(select(Domain).where(Domain.id == domain_id))
+    domain = result.scalar_one_or_none()
+    if domain is None or domain.user_id == user_id:
+        return domain
+    membro = await db.scalar(
+        select(DomainMember).where(
+            DomainMember.domain_id == domain.id,
+            DomainMember.user_id == user_id,
+            DomainMember.accepted_at.is_not(None),
+        )
+    )
+    return domain if membro is not None else None
+
+
 async def create_link(
     db: AsyncSession, user_id: str, body: LinkCreate
 ) -> LinkOut:
     """Create a new short link."""
     slug = body.slug or _random_slug()
 
-    # Validate domain ownership if domain_id provided
+    # The domain has to be one this account can use: its own, or one shared with
+    # it and accepted.
     domain_obj: Domain | None = None
     if body.domain_id:
         try:
@@ -39,13 +62,7 @@ async def create_link(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Invalid domain id",
             )
-        result = await db.execute(
-            select(Domain).where(
-                Domain.id == domain_uuid,
-                Domain.user_id == uuid.UUID(user_id),
-            )
-        )
-        domain_obj = result.scalar_one_or_none()
+        domain_obj = await _accessible_domain(db, domain_uuid, uuid.UUID(user_id))
         if domain_obj is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

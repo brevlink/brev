@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     # in the URL fragment so browser/proxy request logs do not receive them.
     frontend_verification_url: str | None = None
     frontend_password_reset_url: str | None = None
+    # Optional: the page that accepts a domain invitation. A deployment that
+    # never shares a domain leaves it empty and the invite falls back to
+    # app_base_url; if that is unset too, sending an invite fails loudly rather
+    # than mailing a link nobody can open. Deliberately not required: turning
+    # email on must never refuse to start because of a sharing feature that is
+    # not in use yet.
+    frontend_domain_invite_url: str | None = None
     email_verification_expire_minutes: int = 60 * 24
     password_reset_expire_minutes: int = 30
     smtp_host: str | None = None
