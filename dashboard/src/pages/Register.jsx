@@ -74,11 +74,16 @@ export default function Register() {
                 className={input}
                 id="register-password"
                 type="password"
+                aria-describedby="register-password-hint"
                 value={password}
                 onChange={event => setPassword(event.target.value)}
                 placeholder="At least 12 characters"
                 required
               />
+              {/* Keep guidance visible while typing; the server enforces the password policy. */}
+              <p id="register-password-hint" className={`${muted} m-0 text-sm`}>
+                Use at least 12 characters. Very common passwords are refused.
+              </p>
             </div>
 
             <div className={field}>

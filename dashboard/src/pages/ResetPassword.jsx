@@ -153,11 +153,16 @@ export default function ResetPassword() {
                 className={input}
                 id="reset-password"
                 type="password"
+                aria-describedby="reset-password-hint"
                 value={password}
                 onChange={event => setPassword(event.target.value)}
                 placeholder="At least 12 characters"
                 required
               />
+              {/* Keep guidance visible while typing; the server enforces the password policy. */}
+              <p id="reset-password-hint" className={`${muted} m-0 text-sm`}>
+                Use at least 12 characters. Very common passwords are refused.
+              </p>
             </div>
             <div className={field}>
               <label className={fieldLabel} htmlFor="reset-confirm">Confirm password</label>
