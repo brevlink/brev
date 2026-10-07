@@ -3,6 +3,7 @@ import {
   createDomain,
   deleteDomain,
   getDomainMembers,
+  getDomainDeletionImpact,
   inviteDomainMember,
   removeDomainMember,
   verifyDomain,
@@ -21,6 +22,7 @@ import {
   srOnly,
   status,
 } from '../styles/ui';
+import { domainPublishingIssue } from '../utils/domains';
 
 const domainItem =
   'grid min-w-0 gap-4 rounded-[18px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.38)] p-4';
@@ -43,7 +45,7 @@ function memberStatus(member) {
   return 'Waiting for the invitation to be accepted';
 }
 
-export default function DomainPanel({ domains, onChange }) {
+export default function DomainPanel({ domains, onChange, onDeleted }) {
   const [domain, setDomain] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,8 @@ export default function DomainPanel({ domains, onChange }) {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [busyDomainId, setBusyDomainId] = useState(null);
+  const [checkingDomainId, setCheckingDomainId] = useState(null);
 
   async function loadMembers(domainId) {
     try {
@@ -90,18 +94,38 @@ export default function DomainPanel({ domains, onChange }) {
 
   async function handleVerify(item) {
     setError('');
+    setBusyDomainId(item.id);
+    setCheckingDomainId(item.id);
     try {
       const verified = await verifyDomain(item.id);
       onChange(domains.map(domainItem => (domainItem.id === item.id ? verified : domainItem)));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusyDomainId(null);
+      setCheckingDomainId(null);
     }
   }
 
   async function handleDelete(item) {
-    if (!window.confirm(`Remove ${item.domain}?`)) return;
-    await deleteDomain(item.id);
-    onChange(domains.filter(domainItem => domainItem.id !== item.id));
+    setError('');
+    setBusyDomainId(item.id);
+    try {
+      // Fetch at confirmation time: the browser cannot count members' links.
+      const impact = await getDomainDeletionImpact(item.id);
+      if (!window.confirm(
+        `Remove ${item.domain}? This will permanently delete ${impact.total_links} links, ` +
+        `including ${impact.other_users_links} links belonging to other people. ` +
+        'These links will stop working and will not move to the default domain. This cannot be undone.',
+      )) return;
+      await deleteDomain(item.id);
+      onChange(domains.filter(domainItem => domainItem.id !== item.id));
+      await onDeleted?.(item.id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyDomainId(null);
+    }
   }
 
   async function handleInvite(event, item) {
@@ -178,15 +202,20 @@ export default function DomainPanel({ domains, onChange }) {
                 </div>
                 <div className={domainActions}>
                   <span className={item.is_verified ? status.good : status.base}>
-                    {shared ? 'Shared' : item.is_verified ? 'Verified' : 'Pending'}
+                    {item.is_verified ? 'TXT verified' : 'TXT pending'}
                   </span>
-                  {!shared && !item.is_verified && (
-                    <button type="button" className={button.compactSecondary} onClick={() => handleVerify(item)}>
-                      Verify
+                  {item.cloudflare_status != null && (
+                    <span className={item.cloudflare_status === 'active' ? status.good : status.base}>
+                      {item.cloudflare_status === 'active' ? 'Certificate active' : 'Certificate pending'}
+                    </span>
+                  )}
+                  {!shared && (
+                    <button type="button" className={button.compactSecondary} disabled={busyDomainId !== null} onClick={() => handleVerify(item)}>
+                      {checkingDomainId === item.id ? 'Checking' : item.is_verified ? 'Check status' : 'Verify'}
                     </button>
                   )}
                   {!shared && (
-                    <button type="button" className={button.compactDanger} onClick={() => handleDelete(item)}>
+                    <button type="button" className={button.compactDanger} disabled={busyDomainId !== null} onClick={() => handleDelete(item)}>
                       Remove
                     </button>
                   )}
@@ -196,8 +225,10 @@ export default function DomainPanel({ domains, onChange }) {
               {openDomainId === item.id && shared && (
                 <div className="grid min-w-0 max-w-full gap-3 overflow-hidden rounded-[14px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.5)] p-3.5">
                   <p className={`${dataText} m-0`}>
-                    You can publish links on {item.domain}. The DNS records and the certificate stay
-                    with the owner, so there is nothing for you to set up.
+                    {domainPublishingIssue(item)
+                      ? `${domainPublishingIssue(item)} Ask the owner to check status before publishing.`
+                      : `You can publish links on ${item.domain}.`}
+                    {' '}The DNS records and certificate are managed by the owner.
                   </p>
                   <p className={`${dataText} m-0`}>
                     Only the owner can remove this domain or decide who else uses it. If you no
@@ -214,6 +245,12 @@ export default function DomainPanel({ domains, onChange }) {
                     domain at Brev. Changes can take a few minutes to propagate before verification
                     succeeds.
                   </p>
+                  {item.cloudflare_status != null && (
+                    <p className={`${dataText} m-0`}>
+                      TXT verification proves ownership. Publishing also requires an active certificate.
+                      If the certificate is pending, confirm the CNAME target and use Check status again.
+                    </p>
+                  )}
                   <div className="grid min-w-0 gap-2.5">
                     <section className={dnsRecord}>
                       <h3 className="m-0 text-[0.82rem] font-black text-[#071936]">TXT verification</h3>

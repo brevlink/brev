@@ -183,6 +183,10 @@ export async function acceptDomainInvite(token) {
   });
 }
 
+export async function getDomainDeletionImpact(id) {
+  return request(`/domains/${id}/deletion-impact`);
+}
+
 export async function deleteDomain(id) {
   return request(`/domains/${id}`, { method: 'DELETE' });
 }

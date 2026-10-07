@@ -319,3 +319,35 @@ def test_the_owner_removes_a_member_and_a_member_can_leave(client, monkeypatch):
     assert _domains(client, b) == {}
     # The domain itself survives every share being dropped.
     assert client.get("/api/v1/domains", headers=owner).json()["total"] == 1
+
+
+def test_deletion_impact_counts_all_links_and_removal_deletes_them(client, monkeypatch):
+    owner = _register_and_login(client, "owner@example.com")
+    domain = _create_verified_domain(client, owner, monkeypatch)
+    impact_url = f"/api/v1/domains/{domain['id']}/deletion-impact"
+    assert client.get(impact_url, headers=owner).json() == {
+        "total_links": 0, "other_users_links": 0,
+    }
+    token = _invite(client, owner, domain["id"], "member@example.com")
+    member = _register_and_login(client, "member@example.com")
+    client.post("/api/v1/domains/invites/accept", json={"token": token}, headers=member)
+    for headers, slug in [(owner, "owner-link"), (member, "member-link")]:
+        response = client.post("/api/v1/links", headers=headers, json={
+            "url": "https://example.org", "slug": slug, "domain_id": domain["id"],
+        })
+        assert response.status_code == 201, response.text
+    # A default-domain link is outside the deletion's scope.
+    assert client.post("/api/v1/links", headers=owner, json={
+        "url": "https://example.org", "slug": "keep-me",
+    }).status_code == 201
+    assert client.get(impact_url, headers=owner).json() == {
+        "total_links": 2, "other_users_links": 1,
+    }
+    stranger = _register_and_login(client, "stranger@example.com")
+    for headers in (member, stranger):
+        assert client.get(impact_url, headers=headers).status_code == 404
+    assert client.delete(f"/api/v1/domains/{domain['id']}", headers=owner).status_code == 204
+    assert client.get("/api/v1/links", headers=member).json()["items"] == []
+    remaining = client.get("/api/v1/links", headers=owner).json()["items"]
+    assert [link["slug"] for link in remaining] == ["keep-me"]
+    assert client.get(impact_url, headers=owner).status_code == 404

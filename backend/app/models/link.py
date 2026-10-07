@@ -30,7 +30,7 @@ class Link(Base):
     )
     domain_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid(as_uuid=True),
-        ForeignKey("domains.id", ondelete="SET NULL"),
+        ForeignKey("domains.id", ondelete="CASCADE"),
         default=None,
         nullable=True,
     )
