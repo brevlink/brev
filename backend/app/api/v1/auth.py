@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, revoke_authenticated_session
+from app.api.deps import can_use_features, get_current_user, revoke_authenticated_session
 from app.core.database import get_db
 from app.core.rate_limit import enforce_rate_limit
 from app.core.security import clear_session_cookie, set_session_cookie
@@ -64,6 +64,7 @@ async def me(current_user: User = Depends(get_current_user)):
         display_name=current_user.display_name,
         is_verified=current_user.is_verified,
         is_admin=current_user.is_admin,
+        can_use_features=can_use_features(current_user),
         created_at=current_user.created_at,
     )
 

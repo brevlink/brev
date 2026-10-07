@@ -48,6 +48,13 @@ class LinkOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LinkSummary(BaseModel):
+    total_links: int
+    total_clicks: int
+    active_links: int
+
+
 class LinkList(BaseModel):
     items: list[LinkOut]
     total: int
+    summary: LinkSummary

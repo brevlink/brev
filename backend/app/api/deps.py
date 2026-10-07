@@ -60,6 +60,11 @@ async def get_current_user(
     return user
 
 
+def can_use_features(user: User) -> bool:
+    # Share the effective policy with /auth/me so UI copy cannot drift from enforcement.
+    return not settings.require_verified_email or user.is_verified or user.is_admin
+
+
 async def get_current_feature_user(
     user: User = Depends(get_current_user),
 ) -> User:
@@ -68,7 +73,7 @@ async def get_current_feature_user(
     Authentication itself stays available so an unverified user can resend
     the verification email. Admins retain access for recovery/moderation.
     """
-    if settings.require_verified_email and not user.is_verified and not user.is_admin:
+    if not can_use_features(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Verify your email before using this feature",
