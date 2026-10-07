@@ -152,13 +152,8 @@ async def update_link(
     db: AsyncSession, link_id: str, user_id: str, body: LinkUpdate
 ) -> LinkOut:
     """Update a link's fields. Raises 404 if not found or not owner."""
-    result = await db.execute(
-        select(Link).where(
-            Link.id == uuid.UUID(link_id),
-            Link.user_id == uuid.UUID(user_id),
-        )
-    )
-    link = result.scalar_one_or_none()
+    # Eagerly load the domain: async serialization must not trigger lazy SQL.
+    link = await get_link_by_id(db, link_id, user_id)
     if link is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -170,7 +165,8 @@ async def update_link(
     if body.slug is not None and body.slug != link.slug:
         await _ensure_slug_available(db, body.slug, link.domain_id, exclude_id=link.id)
         link.slug = body.slug
-    if body.title is not None:
+    # An explicit null clears a title; omission leaves the existing title alone.
+    if "title" in body.model_fields_set:
         link.title = body.title
     if body.is_active is not None:
         link.is_active = body.is_active

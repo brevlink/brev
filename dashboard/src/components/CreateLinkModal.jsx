@@ -10,6 +10,7 @@ import {
   iconButton,
   input,
   panelTitle,
+  status,
 } from '../styles/ui';
 
 const initialForm = { url: '', slug: '', title: '', domainId: '' };
@@ -19,10 +20,13 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
-  const [domainMenuOpen, setDomainMenuOpen] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const requestRef = useRef(false);
+  const copyRef = useRef(false);
+  const resultRef = useRef(null);
   const dialogRef = useRef(null);
   const verifiedDomains = domains.filter(domain => domain.is_verified);
-  const selectedDomain = verifiedDomains.find(domain => domain.id === form.domainId);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -35,19 +39,55 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open && result) resultRef.current?.focus();
+  }, [open, result]);
+
   if (!open) return null;
 
   function updateField(field, value) {
     setForm(current => ({ ...current, [field]: value }));
   }
 
-  function selectDomain(domainId) {
-    updateField('domainId', domainId);
-    setDomainMenuOpen(false);
+  function closeDialog() {
+    // Close natively before unmounting so keyboard focus returns to the opener.
+    dialogRef.current?.close();
+    onClose();
+  }
+
+  function resetForm() {
+    setForm(initialForm);
+    setResult(null);
+    setError('');
+    setCopied(false);
+  }
+
+  function finish() {
+    resetForm();
+    closeDialog();
+  }
+
+  async function copyResult() {
+    if (copyRef.current) return;
+    copyRef.current = true;
+    setCopying(true);
+    setCopied(false);
+    setError('');
+    try {
+      await navigator.clipboard.writeText(result.short_url);
+      setCopied(true);
+    } catch {
+      setError('Could not copy the link. Select the short URL and copy it manually.');
+    } finally {
+      copyRef.current = false;
+      setCopying(false);
+    }
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (requestRef.current) return;
+    requestRef.current = true;
     setError('');
     setResult(null);
     setLoading(true);
@@ -61,15 +101,12 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
       });
       setResult(data);
       onCreated?.(data);
-      window.setTimeout(() => {
-        setForm(initialForm);
-        setResult(null);
-        setDomainMenuOpen(false);
-        onClose();
-      }, 1000);
+      // The result stays available even if the dialog was closed during the request.
+      // No delayed close can accidentally dismiss a later opening.
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Could not create the link. Please try again.');
     } finally {
+      requestRef.current = false;
       setLoading(false);
     }
   }
@@ -77,35 +114,46 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh-48px)] w-[min(calc(100%-32px),560px)] overflow-visible rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[#f8f1e6] p-7 text-[#071936] shadow-[0_28px_90px_rgba(7,25,54,0.28)] backdrop:bg-[rgba(7,25,54,0.32)] backdrop:backdrop-blur-[10px] max-[520px]:max-h-[calc(100dvh-20px)] max-[520px]:w-[calc(100%-20px)] max-[520px]:p-[18px]"
+      className="fixed inset-0 m-auto max-h-[calc(100dvh-48px)] w-[min(calc(100%-32px),560px)] overflow-y-auto overscroll-contain rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[#f8f1e6] p-7 text-[#071936] shadow-[0_28px_90px_rgba(7,25,54,0.28)] backdrop:bg-[rgba(7,25,54,0.32)] backdrop:backdrop-blur-[10px] max-[520px]:max-h-[calc(100dvh-20px)] max-[520px]:w-[calc(100%-20px)] max-[520px]:p-[18px]"
       aria-labelledby="create-link-title"
-      onCancel={onClose}
+      onCancel={event => { event.preventDefault(); closeDialog(); }}
     >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className={eyebrow}>New short link</p>
             <h2 id="create-link-title" className={panelTitle}>Create link.</h2>
           </div>
-          <button type="button" className={iconButton} onClick={onClose} aria-label="Close modal">
+          <button type="button" className={iconButton} onClick={closeDialog} aria-label="Close modal">
             ×
           </button>
         </div>
 
+        {error && <div className={`${alert} mt-6`} role="alert">{error}</div>}
+
         {result ? (
           <div className="mt-6 grid gap-2 rounded-[20px] border border-[rgba(7,25,54,0.14)] bg-[rgba(217,197,165,0.2)] p-[18px]">
-            <strong>Link created</strong>
+            <strong ref={resultRef} tabIndex={-1} role="status">Link created</strong>
             <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[#38516f] [overflow-wrap:anywhere]">
               {result.short_url}
             </span>
+            {result.title && <span className="text-[#38516f] [overflow-wrap:anywhere]">{result.title}</span>}
+            <span className="text-[#38516f] [overflow-wrap:anywhere]">{result.url}</span>
+            <p className="m-0 text-sm text-[#38516f]">To find this link in the dashboard, search for {result.slug} or clear your search.</p>
+            {copied && <p className={`${status.good} m-0`} role="status">Link copied.</p>}
+            <div className="mt-3 flex flex-wrap gap-2.5">
+              <button type="button" className={button.primary} onClick={copyResult} disabled={copying}>{copying ? 'Copying' : 'Copy'}</button>
+              <button type="button" className={button.secondary} onClick={finish} disabled={copying}>Done</button>
+              <button type="button" className={button.secondary} onClick={resetForm} disabled={copying}>Create another</button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className={formStack}>
-            {error && <div className={alert}>{error}</div>}
-
             <div className={field}>
               <label className={fieldLabel} htmlFor="destination-url">Destination URL</label>
               <input
                 className={input}
+                disabled={loading}
+                autoFocus
                 id="destination-url"
                 type="url"
                 value={form.url}
@@ -119,6 +167,7 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
               <label className={fieldLabel} htmlFor="link-title">Title</label>
               <input
                 className={input}
+                disabled={loading}
                 id="link-title"
                 type="text"
                 value={form.title}
@@ -132,6 +181,8 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
               <label className={fieldLabel} htmlFor="custom-slug">Custom slug</label>
               <input
                 className={input}
+                disabled={loading}
+                minLength={3}
                 id="custom-slug"
                 type="text"
                 value={form.slug}
@@ -142,64 +193,12 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
             </div>
 
             <div className={field}>
-              <label className={fieldLabel} id="link-domain-label">Domain</label>
-              <div
-                className="relative"
-                onBlur={event => {
-                  if (!event.currentTarget.contains(event.relatedTarget)) {
-                    setDomainMenuOpen(false);
-                  }
-                }}
-              >
-                <button
-                  type="button"
-                  id="link-domain"
-                  className={`${input} flex items-center justify-between gap-3 text-left`}
-                  aria-labelledby="link-domain-label link-domain"
-                  aria-haspopup="listbox"
-                  aria-expanded={domainMenuOpen}
-                  onClick={() => setDomainMenuOpen(current => !current)}
-                >
-                  <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {selectedDomain?.domain || 'brevl.ink'}
-                  </span>
-                  <span className="shrink-0 text-sm text-[#38516f]" aria-hidden="true">⌄</span>
-                </button>
-
-                {domainMenuOpen && (
-                  <div
-                    className="absolute z-30 mt-2 max-h-52 w-full overflow-auto rounded-2xl border border-[rgba(7,25,54,0.14)] bg-[#fffaf1] p-1.5 shadow-[0_18px_46px_rgba(7,25,54,0.18)]"
-                    role="listbox"
-                    aria-labelledby="link-domain-label"
-                  >
-                    <button
-                      type="button"
-                      className={`flex min-h-10 w-full items-center rounded-xl px-3 text-left font-semibold text-[#071936] hover:bg-[rgba(217,197,165,0.35)] ${
-                        !form.domainId ? 'bg-[#071936] text-[#f8f1e6] hover:bg-[#071936]' : ''
-                      }`}
-                      role="option"
-                      aria-selected={!form.domainId}
-                      onClick={() => selectDomain('')}
-                    >
-                      brevl.ink
-                    </button>
-                    {verifiedDomains.map(domain => (
-                      <button
-                        key={domain.id}
-                        type="button"
-                        className={`mt-1 flex min-h-10 w-full items-center rounded-xl px-3 text-left font-semibold text-[#071936] hover:bg-[rgba(217,197,165,0.35)] ${
-                          form.domainId === domain.id ? 'bg-[#071936] text-[#f8f1e6] hover:bg-[#071936]' : ''
-                        }`}
-                        role="option"
-                        aria-selected={form.domainId === domain.id}
-                        onClick={() => selectDomain(domain.id)}
-                      >
-                        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{domain.domain}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <label className={fieldLabel} htmlFor="link-domain">Domain</label>
+              {/* A native select supports keyboard navigation without an overlay escaping the scroll area. */}
+              <select id="link-domain" className={input} value={form.domainId} disabled={loading} onChange={event => updateField('domainId', event.target.value)}>
+                <option value="">brevl.ink</option>
+                {verifiedDomains.map(domain => <option key={domain.id} value={domain.id}>{domain.domain}</option>)}
+              </select>
             </div>
 
             <button type="submit" className={button.fullPrimary} disabled={loading}>

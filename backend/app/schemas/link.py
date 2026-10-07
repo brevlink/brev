@@ -28,7 +28,7 @@ class LinkUpdate(BaseModel):
         max_length=64,
         pattern=r"^[a-zA-Z0-9_-]+$",
     )
-    title: str | None = None
+    title: str | None = Field(default=None, max_length=256)
     is_active: bool | None = None
 
 

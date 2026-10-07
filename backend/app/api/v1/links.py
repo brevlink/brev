@@ -57,6 +57,8 @@ async def get_link(
     return links_service._link_to_out(link)
 
 
+# Preserve PATCH for existing clients while supporting the dashboard update action.
+@router.put("/{link_id}", response_model=LinkOut)
 @router.patch("/{link_id}", response_model=LinkOut)
 async def update_link(
     link_id: str,
