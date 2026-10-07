@@ -28,6 +28,11 @@ class Domain(Base):
     domain: Mapped[str] = mapped_column(
         String(256), unique=True, index=True, nullable=False
     )
+    # Cloudflare for SaaS: the hostname we created for this domain, and its
+    # status there ("pending", "active"). Empty on a deployment that terminates
+    # customer TLS itself.
+    cloudflare_hostname_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    cloudflare_status: Mapped[str | None] = mapped_column(String(32), default=None)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_suspended: Mapped[bool] = mapped_column(Boolean, default=False)
     verification_token: Mapped[str] = mapped_column(String(96), nullable=False)

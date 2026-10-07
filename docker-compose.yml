@@ -65,6 +65,12 @@ services:
       SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
       EMAIL_API_URL: ${EMAIL_API_URL:-}
       EMAIL_API_TOKEN: ${EMAIL_API_TOKEN:-}
+      # Cloudflare for SaaS: the backend creates and removes the custom hostname
+      # for every customer domain. Empty on a deployment that terminates
+      # customer TLS itself. Never commit the token: it goes in the stack's
+      # environment, not in this file.
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
       # One-time Stripe checkout; leave empty for self-hosted deployments.
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}

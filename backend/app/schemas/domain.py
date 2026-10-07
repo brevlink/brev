@@ -27,6 +27,9 @@ class DomainOut(BaseModel):
     last_checked_at: datetime | None
     created_at: datetime
     cname_target: str
+    # None unless the deployment drives Cloudflare for SaaS: "pending" until
+    # Cloudflare has validated the hostname and issued its certificate.
+    cloudflare_status: str | None = None
 
     model_config = {"from_attributes": True}
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import secrets
 import uuid
 from datetime import UTC, datetime
@@ -16,7 +17,10 @@ from app.core.config import settings
 from app.models.domain import Domain
 from app.models.user import User
 from app.schemas.domain import DomainCreate, DomainOut
+from app.services import cloudflare
 from app.services.billing import user_has_cloud_entitlement
+
+logger = logging.getLogger(__name__)
 
 
 async def create_domain(db: AsyncSession, user: User, body: DomainCreate) -> DomainOut:
@@ -49,6 +53,24 @@ async def create_domain(db: AsyncSession, user: User, body: DomainCreate) -> Dom
     db.add(domain)
     await db.flush()
     await db.refresh(domain)
+
+    # Cloudflare for SaaS: the hostname has to exist there before the customer
+    # can point anything at us. If Cloudflare refuses, the domain is not left
+    # half-registered: the request fails, the session rolls back, and what the
+    # dashboard shows always matches what Cloudflare knows.
+    if cloudflare.is_configured():
+        try:
+            hostname = await cloudflare.create_custom_hostname(domain_name)
+        except cloudflare.CloudflareError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Cloudflare did not accept the domain: {exc}",
+            ) from exc
+        domain.cloudflare_hostname_id = hostname.get("id")
+        domain.cloudflare_status = _cloudflare_state(hostname)
+        await db.flush()
+        await db.refresh(domain)
+
     return _domain_to_out(domain)
 
 
@@ -79,6 +101,18 @@ async def verify_domain(db: AsyncSession, domain_id: str, user_id: str) -> Domai
 
     domain.is_verified = True
     domain.verified_at = datetime.now(UTC)
+
+    # The DNS check above is Brev's own; the certificate is Cloudflare's. Refresh
+    # its status so the dashboard can tell "waiting" from "serving". A hiccup
+    # here is not fatal: the domain is verified either way.
+    if domain.cloudflare_hostname_id:
+        try:
+            stato = await cloudflare.get_custom_hostname(domain.cloudflare_hostname_id)
+        except cloudflare.CloudflareError as exc:
+            logger.warning("Cloudflare status check failed for %s: %s", domain.domain, exc)
+        else:
+            domain.cloudflare_status = _cloudflare_state(stato)
+
     await db.flush()
     await db.refresh(domain)
     return _domain_to_out(domain)
@@ -113,6 +147,15 @@ async def delete_domain(db: AsyncSession, domain_id: str, user_id: str) -> None:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Domain not found",
         )
+    # Best effort: a leftover hostname would occupy one of the zone's custom
+    # hostnames, but the customer is already leaving, so a failure here must not
+    # block the removal.
+    if domain.cloudflare_hostname_id:
+        try:
+            await cloudflare.delete_custom_hostname(domain.cloudflare_hostname_id)
+        except cloudflare.CloudflareError as exc:
+            logger.warning("Cloudflare delete failed for %s: %s", domain.domain, exc)
+
     await db.delete(domain)
 
 
@@ -148,7 +191,14 @@ def _domain_to_out(domain: Domain) -> DomainOut:
         last_checked_at=domain.last_checked_at,
         created_at=domain.created_at,
         cname_target=settings.cname_target,
+        cloudflare_status=domain.cloudflare_status,
     )
+
+
+def _cloudflare_state(payload: dict) -> str:
+    """Return "active" only when the hostname and its certificate are both live."""
+    attivo = payload.get("status") == "active" and payload.get("ssl_status") == "active"
+    return "active" if attivo else "pending"
 
 
 def _dns_txt_contains(name: str, expected: str) -> bool:

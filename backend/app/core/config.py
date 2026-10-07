@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     require_verified_email: bool = False
     free_custom_domains: int = 0
 
+    # ── Cloudflare for SaaS (custom domains) ─────────────────────────
+    # Optional: a self-hosted deployment that terminates TLS for customer
+    # hostnames itself leaves these empty and Brev only keeps its own records.
+    cloudflare_api_token: str | None = None
+    cloudflare_zone_id: str | None = None
+
     # ── Transactional email ──────────────────────────────────────────
     # "none" is valid for self-hosted deployments without email. It keeps
     # startup, migrations, and existing-account login available while email-

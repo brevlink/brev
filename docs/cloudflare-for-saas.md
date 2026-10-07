@@ -50,7 +50,7 @@ Two other things ruled out alternatives:
 | --- | --- |
 | Cloudflare zone | `brevl.ink` (`dffe68e396421355289724ed4736067d`) |
 | Fallback origin | `proxy.brevl.ink` (proxied `A` record to the origin IP) |
-| Custom hostname | `custom_origin_server: proxy.brevl.ink` |
+| Custom hostname | `custom_origin_server: proxy.brevl.ink`, created and deleted by the backend (`app/services/cloudflare.py`) |
 | Origin Rule | `http_request_origin` phase: `not http.host in {"brevl.ink" "www.brevl.ink" "proxy.brevl.ink"} -> origin.port 8443` |
 | Published port | `${HTTPS_PORT:-8443}` in `docker-compose.yml` -> `brev-caddy:443` |
 | Origin certificate | issued on demand by Caddy's internal CA, for any SNI — nothing to configure. A deployment that wants Full (strict) swaps the `tls` block for a certificate file pair valid for `proxy.brevl.ink` |
@@ -72,10 +72,27 @@ The dashboard shows the records to create:
 Both are needed. The CNAME is what makes Cloudflare issue the customer
 certificate and start routing their traffic to the origin.
 
-**Until the Cloudflare automation lands, the custom hostname is created by hand
-in the Cloudflare dashboard.** The domain then shows as verified in Brev but
-does not serve traffic until that hostname exists. The backend does not call the
-Cloudflare API yet (`backend/app/services/domains.py` has no Cloudflare client).
+The hostname on Cloudflare is created **automatically**: adding a domain in the
+dashboard calls `POST /zones/{zone}/custom_hostnames` with `custom_origin_server`
+set to the CNAME target and HTTP validation, so the customer creates one CNAME
+and nothing else. Removing the domain deletes the hostname again. No operator
+action per customer domain — this was the last manual step in the flow.
+
+The integration is optional and off by default. It switches on when the stack
+environment carries `CLOUDFLARE_API_TOKEN` (permission `Zone → SSL and
+Certificates → Edit`, scoped to this zone alone — never a DNS permission) and
+`CLOUDFLARE_ZONE_ID`. A deployment that terminates customer TLS itself leaves
+both empty: Brev then keeps only its own records and `cloudflare_status` stays
+null.
+
+Two behaviours worth knowing:
+
+- If Cloudflare refuses the hostname, the request fails with `502` and **nothing
+  is stored**: `get_db` rolls the session back. The dashboard can never show a
+  domain whose Cloudflare side does not exist.
+- Removing a domain deletes the hostname on a best-effort basis: a leftover would
+  occupy one of the zone's custom hostnames, but a customer who is already
+  leaving must not be blocked by a Cloudflare hiccup.
 
 ## Pitfalls
 
