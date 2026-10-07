@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 
@@ -9,6 +11,7 @@ PASSWORD = "Correct-Horse-Battery-1"
 
 
 def _register_and_login(client: TestClient, email: str = "billing@example.com") -> str:
+    client.post("/api/v1/auth/register", json={"email": "billing-bootstrap@example.com", "password": PASSWORD})
     response = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": PASSWORD},
@@ -25,6 +28,7 @@ def _register_and_login(client: TestClient, email: str = "billing@example.com") 
 def _configure_stripe(monkeypatch, price_id: str = "price_test_cloud"):
     from app.services import billing
 
+    monkeypatch.setattr(billing.settings, "cloud_mode", True)
     monkeypatch.setattr(billing.settings, "stripe_secret_key", "sk_test_placeholder")
     monkeypatch.setattr(billing.settings, "stripe_webhook_secret", "whsec_test_placeholder")
     monkeypatch.setattr(billing.settings, "stripe_price_id", price_id)
@@ -94,6 +98,7 @@ def test_checkout_uses_one_time_mode_and_configured_price(client, monkeypatch):
 def test_checkout_returns_503_when_stripe_is_not_configured(client, monkeypatch):
     from app.services import billing
 
+    monkeypatch.setattr(billing.settings, "cloud_mode", True)
     monkeypatch.setattr(billing.settings, "stripe_secret_key", None)
     monkeypatch.setattr(billing.settings, "stripe_price_id", None)
     token = _register_and_login(client)
@@ -233,3 +238,188 @@ def test_one_time_entitlement_grants_cloud_access(client, monkeypatch):
         json={"domain": "paid.example.com"},
     )
     assert response.status_code == 201, response.text
+
+
+def test_self_hosted_checkout_never_calls_stripe(client, monkeypatch):
+    billing = _configure_stripe(monkeypatch)
+    monkeypatch.setattr(billing.settings, "cloud_mode", False)
+    token = _register_and_login(client)
+    monkeypatch.setattr(billing.stripe.checkout.Session, "create", lambda **kwargs: pytest.fail("Unexpected Stripe call"))
+    response = client.post("/api/v1/billing/checkout", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 409
+
+
+def test_checkout_reuses_open_session_and_blocks_completed_session(client, monkeypatch):
+    billing = _configure_stripe(monkeypatch)
+    token = _register_and_login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    created = []
+
+    def create(**kwargs):
+        created.append(kwargs)
+        return {"id": "cs_guard", "url": "https://checkout.stripe.test/guard"}
+
+    monkeypatch.setattr(billing.stripe.checkout.Session, "create", create)
+    monkeypatch.setattr(billing.stripe.checkout.Session, "retrieve", lambda _: {"status": "open", "payment_status": "unpaid"})
+    first = client.post("/api/v1/billing/checkout", headers=headers)
+    assert first.status_code == 200, first.text
+    assert client.post("/api/v1/billing/checkout", headers=headers).json() == first.json()
+    assert len(created) == 1
+    assert created[0]["idempotency_key"]
+    monkeypatch.setattr(billing.stripe.checkout.Session, "retrieve", lambda _: {"status": "complete", "payment_status": "paid"})
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 409
+    assert len(created) == 1
+
+
+def test_checkout_blocks_paid_account_even_after_admin_revocation(client, monkeypatch):
+    _configure_stripe(monkeypatch)
+    token = _register_and_login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    user_id = client.get("/api/v1/auth/me", headers=headers).json()["id"]
+    assert _post_event(client, _event(user_id, "price_test_cloud"), monkeypatch).status_code == 200
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 409
+    admin_token = client.post("/api/v1/auth/login", json={"email": "billing-bootstrap@example.com", "password": PASSWORD}).json()["access_token"]
+    assert client.put(f"/api/v1/admin/users/{user_id}/cloud-entitlement", headers={"Authorization": f"Bearer {admin_token}"},
+                      json={"active": False, "reason": "Operator revocation"}).status_code == 200
+    response = client.post("/api/v1/billing/checkout", headers=headers)
+    assert response.status_code == 409
+    assert "already paid" in response.text
+
+
+@pytest.mark.parametrize("access", ["manual", "legacy"])
+def test_checkout_blocks_existing_access(client, monkeypatch, access):
+    import uuid
+    from app.core.database import async_session
+    from app.models.billing import CloudEntitlement
+    from app.models.subscription import Subscription
+
+    _configure_stripe(monkeypatch)
+    token = _register_and_login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    user_id = client.get("/api/v1/auth/me", headers=headers).json()["id"]
+
+    async def seed():
+        async with async_session() as db:
+            model = CloudEntitlement if access == "manual" else Subscription
+            db.add(model(user_id=uuid.UUID(user_id), status="active"))
+            await db.commit()
+
+    client.portal.call(seed)
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 409
+
+
+def test_expired_checkout_can_start_a_new_attempt(client, monkeypatch):
+    billing = _configure_stripe(monkeypatch)
+    token = _register_and_login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    keys = []
+
+    def create(**kwargs):
+        keys.append(kwargs["idempotency_key"])
+        return {"id": f"cs_expiry_{len(keys)}", "url": f"https://checkout.stripe.test/{len(keys)}"}
+
+    monkeypatch.setattr(billing.stripe.checkout.Session, "create", create)
+    monkeypatch.setattr(billing.stripe.checkout.Session, "retrieve", lambda _: {"status": "expired", "payment_status": "unpaid"})
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 200
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 200
+    assert len(keys) == 2 and keys[0] != keys[1]
+
+
+def test_unknown_checkout_attempt_retries_same_key_and_fails_closed_after_window(client, monkeypatch):
+    import uuid
+    from datetime import UTC, datetime, timedelta
+    from app.core.database import async_session
+    from app.models.billing import CheckoutGuard
+
+    billing = _configure_stripe(monkeypatch)
+    token = _register_and_login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    user_id = client.get("/api/v1/auth/me", headers=headers).json()["id"]
+    keys = []
+
+    def incomplete(**kwargs):
+        keys.append(kwargs["idempotency_key"])
+        return {"id": "cs_missing_url"}
+
+    monkeypatch.setattr(billing.stripe.checkout.Session, "create", incomplete)
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 502
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 502
+    assert keys[0] == keys[1]
+
+    async def age():
+        async with async_session() as db:
+            guard = await db.get(CheckoutGuard, uuid.UUID(user_id))
+            guard.attempted_at = datetime.now(UTC) - timedelta(hours=24)
+            await db.commit()
+
+    client.portal.call(age)
+    assert client.post("/api/v1/billing/checkout", headers=headers).status_code == 409
+    assert len(keys) == 2
+
+
+def test_concurrent_checkout_requests_create_one_session(client, monkeypatch, tmp_path):
+    import asyncio
+    import uuid
+    from sqlalchemy import func, select
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    from app.core.database import Base
+    from app.models.billing import CloudPurchase
+    from app.models.user import User
+
+    billing = _configure_stripe(monkeypatch)
+    calls = []
+
+    def create(**kwargs):
+        calls.append(kwargs)
+        return {"id": "cs_concurrent", "url": "https://checkout.stripe.test/concurrent"}
+
+    monkeypatch.setattr(billing.stripe.checkout.Session, "create", create)
+    monkeypatch.setattr(billing.stripe.checkout.Session, "retrieve", lambda _: {"status": "open", "payment_status": "unpaid"})
+
+    async def run():
+        # Separate file-backed connections exercise the database lock, rather
+        # than sharing TestClient's in-memory connection between both requests.
+        engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path}/checkout.db")
+        sessions = async_sessionmaker(engine, expire_on_commit=False)
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            user_id = uuid.uuid4()
+            async with sessions() as db:
+                db.add(User(id=user_id, email="concurrent@example.com", password_hash="not-a-real-password-hash"))
+                await db.commit()
+
+            async def checkout():
+                async with sessions() as db:
+                    user = await db.get(User, user_id)
+                    url = await billing.create_checkout_session(db, user)
+                    await db.commit()
+                    return url
+
+            urls = await asyncio.gather(checkout(), checkout())
+            assert urls == ["https://checkout.stripe.test/concurrent"] * 2
+            async with sessions() as db:
+                assert await db.scalar(select(func.count(CloudPurchase.id))) == 1
+        finally:
+            await engine.dispose()
+
+    client.portal.call(run)
+    assert len(calls) == 1
+
+
+def test_payment_date_survives_a_second_event_for_the_same_payment(client, monkeypatch):
+    _configure_stripe(monkeypatch)
+    token = _register_and_login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    user_id = client.get("/api/v1/auth/me", headers=headers).json()["id"]
+    assert _post_event(client, _event(user_id, "price_test_cloud", event_id="evt_first_date"), monkeypatch).status_code == 200
+    admin_token = client.post("/api/v1/auth/login", json={"email": "billing-bootstrap@example.com", "password": PASSWORD}).json()["access_token"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+    before = client.get(f"/api/v1/admin/users/{user_id}", headers=admin_headers).json()
+    assert _post_event(client, _event(user_id, "price_test_cloud", event_id="evt_second_date"), monkeypatch).status_code == 200
+    after = client.get(f"/api/v1/admin/users/{user_id}", headers=admin_headers).json()
+    assert len(after["purchases"]) == 1
+    assert after["purchases"][0]["paid_at"] == before["purchases"][0]["paid_at"]
+    assert after["entitlement_source"] == "purchase"
+    assert after["source_purchase_id"] == after["purchases"][0]["id"]
+    assert after["effective_access"] is True

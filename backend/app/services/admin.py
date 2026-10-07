@@ -11,13 +11,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
-from app.models.billing import CloudEntitlement
+from app.models.billing import AdminAction, CloudEntitlement, CloudPurchase, StripeEvent
+from app.models.subscription import Subscription
 from app.models.domain import Domain
 from app.models.link import Link
 from app.models.report import Report
 from app.models.user import User
-from app.schemas.admin import AdminDomainOut, AdminLinkOut, AdminUserOut, AdminReportOut
-from app.services.billing import ONE_TIME_ENTITLEMENT_KEY, has_cloud_entitlement
+from app.schemas.admin import (AdminDomainOut, AdminLinkOut, AdminUserOut, AdminReportOut,
+    AdminActionOut, AdminUserDetails, AdminPurchaseOut, AdminDiagnostics, AdminIntegrationOut, AdminWebhookOut)
+from app.services.billing import ONE_TIME_ENTITLEMENT_KEY, has_cloud_entitlement, user_has_cloud_entitlement
 
 
 async def list_users(db: AsyncSession, skip: int = 0, limit: int = 100, q: str = "") -> tuple[list[AdminUserOut], int]:
@@ -27,7 +29,7 @@ async def list_users(db: AsyncSession, skip: int = 0, limit: int = 100, q: str =
     return [await _user_out(db, user) for user in result.scalars().all()], total
 
 
-async def set_cloud_entitlement(db: AsyncSession, user_id: uuid.UUID, active: bool) -> AdminUserOut:
+async def set_cloud_entitlement(db: AsyncSession, user_id: uuid.UUID, active: bool, actor: User, reason: str) -> AdminUserOut:
     # Lock the user so concurrent admin changes cannot create duplicate entitlements.
     user = await db.scalar(select(User).where(User.id == user_id).with_for_update())
     if user is None:
@@ -46,16 +48,28 @@ async def set_cloud_entitlement(db: AsyncSession, user_id: uuid.UUID, active: bo
         entitlement.status = state
         if active:
             entitlement.granted_at = datetime.now(UTC)
+    _record_action(db, actor, "grant_cloud" if active else "revoke_cloud", "user", user.id, user.id, reason)
     # Preserve purchase provenance; an admin change is not a new Stripe payment.
     await db.flush()
     return await _user_out(db, user)
 
 
-async def set_user_active(db: AsyncSession, user_id: str, active: bool) -> AdminUserOut:
-    user = await db.get(User, uuid.UUID(user_id))
+async def set_user_active(db: AsyncSession, user_id: uuid.UUID, active: bool, actor: User, reason: str) -> AdminUserOut:
+    # Lock every admin in a stable order before checking the last-admin invariant.
+    # On SQLite the initial write acquires the database write lock instead.
+    if db.get_bind().dialect.name == "sqlite":
+        await db.execute(User.__table__.update().where(User.id == actor.id).values(is_admin=actor.is_admin))
+    admins = (await db.scalars(select(User).where(User.is_admin.is_(True)).order_by(User.id).with_for_update().execution_options(populate_existing=True))).all()
+    user = await db.get(User, uuid.UUID(str(user_id)))
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if not active:
+        if user.id == actor.id:
+            raise HTTPException(status_code=409, detail="You cannot suspend your own account")
+        if user.is_admin and user.is_active and sum(admin.is_active for admin in admins) <= 1:
+            raise HTTPException(status_code=409, detail="You cannot suspend the last active admin")
     user.is_active = active
+    _record_action(db, actor, "activate" if active else "suspend", "user", user.id, user.id, reason)
     await db.flush()
     return await _user_out(db, user)
 
@@ -113,34 +127,42 @@ async def list_reports(db: AsyncSession, skip: int = 0, limit: int = 100,
     return items, total
 
 
-async def review_report(db: AsyncSession, report_id: uuid.UUID) -> None:
+async def review_report(db: AsyncSession, report_id: uuid.UUID, actor: User, reason: str) -> None:
     report = await db.get(Report, report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report not found")
+    link = await db.get(Link, report.link_id) if report.link_id else None
+    _record_action(db, actor, "review_report", "report", report.id, link.user_id if link else None, reason)
     report.reviewed_at = datetime.now(UTC)
     await db.flush()
 
 
-async def set_link_flagged(db: AsyncSession, link_id: str, flagged: bool) -> AdminLinkOut:
-    link = await db.scalar(_link_query().where(Link.id == uuid.UUID(link_id)))
+async def set_link_flagged(db: AsyncSession, link_id: uuid.UUID, flagged: bool, actor: User, reason: str) -> AdminLinkOut:
+    link = await db.scalar(_link_query().where(Link.id == uuid.UUID(str(link_id))))
     if link is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
     link.is_flagged = flagged
+    _record_action(db, actor, "block_link" if flagged else "clear_link", "link", link.id, link.user_id, reason)
     # Moderation owns only the flag; owner pauses remain intact when cleared.
     await db.flush()
     return await _link_with_reports(db, link)
 
 
-async def list_domains(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[AdminDomainOut]:
-    result = await db.execute(select(Domain).order_by(Domain.created_at.desc()).offset(skip).limit(limit))
-    return [_domain_out(domain) for domain in result.scalars().all()]
+async def list_domains(db: AsyncSession, skip: int = 0, limit: int = 100, q: str = "") -> tuple[list[AdminDomainOut], int]:
+    query = select(Domain).options(selectinload(Domain.user))
+    if q:
+        query = query.where(Domain.domain.ilike(_search_pattern(q), escape="\\"))
+    total = await db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    result = await db.scalars(query.order_by(Domain.created_at.desc(), Domain.id).offset(skip).limit(limit))
+    return [_domain_out(domain) for domain in result.all()], total
 
 
-async def set_domain_suspended(db: AsyncSession, domain_id: str, suspended: bool) -> AdminDomainOut:
-    domain = await db.get(Domain, uuid.UUID(domain_id))
+async def set_domain_suspended(db: AsyncSession, domain_id: uuid.UUID, suspended: bool, actor: User, reason: str) -> AdminDomainOut:
+    domain = await db.scalar(select(Domain).where(Domain.id == uuid.UUID(str(domain_id))).options(selectinload(Domain.user)))
     if domain is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
     domain.is_suspended = suspended
+    _record_action(db, actor, "suspend_domain" if suspended else "restore_domain", "domain", domain.id, domain.user_id, reason)
     await db.flush()
     return _domain_out(domain)
 
@@ -177,7 +199,73 @@ def _domain_out(domain: Domain) -> AdminDomainOut:
         id=str(domain.id),
         user_id=str(domain.user_id),
         domain=domain.domain,
+        owner_email=domain.user.email,
+        verified_at=domain.verified_at,
+        certificate_state=domain.cloudflare_status or "Not observed (TLS managed externally)",
+        last_checked_at=domain.last_checked_at,
+        updated_at=domain.updated_at,
         is_verified=domain.is_verified,
         is_suspended=domain.is_suspended,
         created_at=domain.created_at,
     )
+
+
+
+def _record_action(db, actor, action, target_type, target_id, account_id, reason):
+    db.add(AdminAction(actor_id=actor.id, actor_email=actor.email, action=action,
+                       target_type=target_type, target_id=target_id, account_id=account_id, reason=reason))
+
+
+async def user_details(db: AsyncSession, user_id: uuid.UUID) -> AdminUserDetails:
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    entitlement = await db.scalar(select(CloudEntitlement).where(
+        CloudEntitlement.user_id == user_id, CloudEntitlement.entitlement_key == ONE_TIME_ENTITLEMENT_KEY))
+    purchases = (await db.scalars(select(CloudPurchase).where(CloudPurchase.user_id == user_id)
+                                 .order_by(CloudPurchase.created_at.desc()).limit(100))).all()
+    subscription = await db.scalar(select(Subscription).where(Subscription.user_id == user_id))
+    actions = (await db.scalars(select(AdminAction).where(AdminAction.account_id == user_id)
+                               .order_by(AdminAction.created_at.desc(), AdminAction.id).limit(100))).all()
+    return AdminUserDetails(
+        user=await _user_out(db, user), effective_access=user.is_active and (user.is_admin or await user_has_cloud_entitlement(db, user)),
+        cloud_mode=settings.cloud_mode,
+        entitlement_status=entitlement.status if entitlement else None,
+        entitlement_source=("purchase" if entitlement.source_purchase_id else "manual grant" if entitlement.status == "active" else "manual decision") if entitlement else "none",
+        entitlement_granted_at=entitlement.granted_at if entitlement else None,
+        entitlement_updated_at=entitlement.updated_at if entitlement else None,
+        source_purchase_id=str(entitlement.source_purchase_id) if entitlement and entitlement.source_purchase_id else None,
+        purchases=[AdminPurchaseOut(id=str(p.id), status=p.status, created_at=p.created_at, paid_at=p.paid_at, updated_at=p.updated_at) for p in purchases],
+        legacy_status=subscription.status if subscription else None,
+        legacy_current_period_end=subscription.current_period_end if subscription else None,
+        actions=[AdminActionOut(actor_id=str(a.actor_id), actor_email=a.actor_email, action=a.action,
+                               target_type=a.target_type, target_id=str(a.target_id), reason=a.reason, created_at=a.created_at) for a in actions],
+        observed_at=datetime.now(UTC),
+    )
+
+
+async def diagnostics(db: AsyncSession) -> AdminDiagnostics:
+    # This query verifies only database availability. Configuration is not a probe.
+    await db.scalar(select(func.count(User.id)))
+    now = datetime.now(UTC)
+    configured = {
+        "Stripe checkout": bool(settings.stripe_secret_key and settings.stripe_price_id),
+        "Stripe webhooks": bool(settings.stripe_webhook_secret),
+        "Cloudflare for SaaS": bool(settings.cloudflare_api_token and settings.cloudflare_zone_id),
+        "Email": bool(settings.email_from and (
+            (settings.email_provider == "smtp" and settings.smtp_host) or
+            (settings.email_provider == "api" and settings.email_api_url and settings.email_api_token))),
+        "Caddy admin API": bool(settings.caddy_admin_api),
+    }
+    events = (await db.scalars(select(StripeEvent).order_by(StripeEvent.created_at.desc(), StripeEvent.id).limit(30))).all()
+    # Stored Cloudflare state combines hostname and SSL activation; other TLS
+    # providers have no persisted certificate observation and cannot be counted.
+    pending_query = select(Domain).where(Domain.cloudflare_status.is_not(None), Domain.cloudflare_status != "active")
+    total = await db.scalar(select(func.count()).select_from(pending_query.subquery())) or 0
+    pending = (await db.scalars(pending_query.options(selectinload(Domain.user))
+                               .order_by(Domain.updated_at.desc(), Domain.id).limit(30))).all()
+    return AdminDiagnostics(cloud_mode=settings.cloud_mode, observed_at=now, database_verified_at=now,
+        integrations=[AdminIntegrationOut(name=name, configured=value, observed_at=now) for name, value in configured.items()],
+        recent_webhooks=[AdminWebhookOut(event_type=e.event_type, status=e.status, failure_reason=e.failure_reason,
+                                        created_at=e.created_at, processed_at=e.processed_at) for e in events],
+        pending_certificates=[_domain_out(d) for d in pending], pending_certificates_total=total)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import stripe
 from fastapi import HTTPException, Request, status
@@ -13,7 +13,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.models.billing import CloudEntitlement, CloudPurchase, StripeEvent
+from app.models.billing import CheckoutGuard, CloudEntitlement, CloudPurchase, StripeEvent
 from app.models.subscription import Subscription
 from app.models.user import User
 from app.schemas.billing import BillingStatus
@@ -41,6 +41,10 @@ async def get_or_create_subscription(db: AsyncSession, user: User) -> Subscripti
 
 
 async def get_billing_status(db: AsyncSession, user: User) -> BillingStatus:
+    effective_access = user.is_active and (user.is_admin or await user_has_cloud_entitlement(db, user))
+    purchase_recorded = bool(await db.scalar(select(CloudPurchase.id).where(
+        CloudPurchase.user_id == user.id, CloudPurchase.status == "paid").limit(1)))
+    checkout_available = settings.cloud_mode and not effective_access and not purchase_recorded
     entitlement = await db.scalar(
         select(CloudEntitlement).where(
             CloudEntitlement.user_id == user.id,
@@ -52,6 +56,9 @@ async def get_billing_status(db: AsyncSession, user: User) -> BillingStatus:
             status="paid",
             plan="cloud-one-time",
             active=True,
+            effective_access=effective_access,
+            checkout_available=checkout_available,
+            purchase_recorded=purchase_recorded,
             current_period_end=None,
             billing_type="one_time",
             cloud_mode=settings.cloud_mode,
@@ -63,6 +70,9 @@ async def get_billing_status(db: AsyncSession, user: User) -> BillingStatus:
             status="revoked",
             plan="cloud-one-time",
             active=False,
+            effective_access=effective_access,
+            checkout_available=checkout_available,
+            purchase_recorded=purchase_recorded,
             current_period_end=None,
             billing_type="none",
             cloud_mode=settings.cloud_mode,
@@ -77,6 +87,9 @@ async def get_billing_status(db: AsyncSession, user: User) -> BillingStatus:
         status=subscription.status,
         plan=subscription.plan,
         active=subscription_is_active(subscription),
+        effective_access=effective_access,
+        checkout_available=checkout_available,
+        purchase_recorded=purchase_recorded,
         current_period_end=subscription.current_period_end,
         billing_type="legacy_subscription" if subscription_is_active(subscription) else "none",
         cloud_mode=settings.cloud_mode,
@@ -85,27 +98,79 @@ async def get_billing_status(db: AsyncSession, user: User) -> BillingStatus:
 
 
 async def create_checkout_session(db: AsyncSession, user: User) -> str:
+    if not settings.cloud_mode:
+        raise HTTPException(status_code=409, detail="Checkout is only available in Cloud mode")
     if not settings.stripe_secret_key or not settings.stripe_price_id:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Stripe is not configured",
         )
 
+    # An upsert takes a write lock on SQLite and a row lock on PostgreSQL.
+    # Keep it through session creation: two browsers must receive the same session.
+    guard = await _lock_checkout_guard(db, user.id)
+    if user.is_admin or await has_cloud_entitlement(db, user):
+        raise HTTPException(status_code=409, detail="This account already has Cloud access")
+    # A revoked entitlement is an operator decision, not an invitation to pay again.
+    paid = await db.scalar(select(CloudPurchase.id).where(CloudPurchase.user_id == user.id,
+                                                         CloudPurchase.status == "paid").limit(1))
+    if paid:
+        raise HTTPException(status_code=409, detail="This account has already paid. Contact support to restore access")
     stripe.api_key = settings.stripe_secret_key
+    if not guard.session_id and guard.attempted_at is None:
+        prior = await db.scalar(select(CloudPurchase).where(
+            CloudPurchase.user_id == user.id,
+            CloudPurchase.status.in_(["pending", "unpaid"])
+        ).order_by(CloudPurchase.created_at.desc()).limit(1))
+        if prior:
+            guard.session_id = prior.stripe_checkout_session_id
+    if guard.session_id:
+        try:
+            existing = stripe.checkout.Session.retrieve(guard.session_id)
+        except stripe.StripeError:
+            raise HTTPException(status_code=502, detail="Could not confirm the previous checkout. Retry or contact support; do not pay again")
+        if existing.get("payment_status") == "paid" or existing.get("status") == "complete":
+            raise HTTPException(status_code=409, detail="Payment is awaiting confirmation. Refresh billing; do not pay again")
+        if existing.get("status") != "expired":
+            guard.checkout_url = existing.get("url") or guard.checkout_url
+            if not guard.checkout_url:
+                raise HTTPException(status_code=409, detail="Checkout is awaiting confirmation. Contact support")
+            return guard.checkout_url
+        # Rotate only after Stripe confirms the old session can no longer be paid.
+        guard.attempt_id = uuid.uuid5(uuid.NAMESPACE_URL, f"cloud-checkout:{guard.session_id}")
+        guard.session_id = None
+        guard.checkout_url = None
+        guard.attempted_at = None
+    if guard.attempted_at is None:
+        guard.attempted_at = datetime.now(UTC)
+        # Persist the attempt before the external call. If this process crashes,
+        # retries use the same Stripe key rather than creating an orphan payment.
+        await db.commit()
+        guard = await _lock_checkout_guard(db, user.id)
+        if guard.session_id or await has_cloud_entitlement(db, user):
+            return await create_checkout_session(db, user)
+    if guard.attempted_at.replace(tzinfo=UTC) < datetime.now(UTC) - timedelta(hours=23):
+        # Stripe may discard idempotency keys after 24 hours. Fail closed when a
+        # crash left an old attempt's outcome unknown instead of charging again.
+        raise HTTPException(status_code=409, detail="An earlier checkout needs investigation. Contact support; do not pay again")
     legacy_subscription = await db.scalar(
         select(Subscription).where(Subscription.user_id == user.id)
     )
     customer_id = legacy_subscription.stripe_customer_id if legacy_subscription else None
-    session = stripe.checkout.Session.create(
-        mode="payment",
-        line_items=[{"price": settings.stripe_price_id, "quantity": 1}],
-        success_url=settings.stripe_success_url,
-        cancel_url=settings.stripe_cancel_url,
-        customer=customer_id,
-        customer_email=None if customer_id else user.email,
-        client_reference_id=str(user.id),
-        metadata={"user_id": str(user.id), "price_id": settings.stripe_price_id},
-    )
+    try:
+        session = stripe.checkout.Session.create(
+            idempotency_key=f"cloud-checkout-{user.id}-{guard.attempt_id}",
+            mode="payment",
+            line_items=[{"price": settings.stripe_price_id, "quantity": 1}],
+            success_url=settings.stripe_success_url,
+            cancel_url=settings.stripe_cancel_url,
+            customer=customer_id,
+            customer_email=None if customer_id else user.email,
+            client_reference_id=str(user.id),
+            metadata={"user_id": str(user.id), "price_id": settings.stripe_price_id},
+        )
+    except stripe.StripeError:
+        raise HTTPException(status_code=502, detail="Could not open checkout. Retry or contact support")
     session_id = session.get("id")
     session_url = session.get("url")
     if not session_id or not session_url:
@@ -114,6 +179,8 @@ async def create_checkout_session(db: AsyncSession, user: User) -> str:
             detail="Stripe returned an incomplete Checkout session",
         )
 
+    guard.session_id = session_id
+    guard.checkout_url = session_url
     db.add(
         CloudPurchase(
             user_id=user.id,
@@ -126,6 +193,15 @@ async def create_checkout_session(db: AsyncSession, user: User) -> str:
     )
     await db.flush()
     return session_url
+
+
+async def _lock_checkout_guard(db: AsyncSession, user_id: uuid.UUID) -> CheckoutGuard:
+    insert = sqlite_insert if db.get_bind().dialect.name == "sqlite" else postgres_insert
+    await db.execute(insert(CheckoutGuard).values(
+        user_id=user_id, attempt_id=uuid.uuid5(uuid.NAMESPACE_URL, f"cloud-checkout:{user_id}"))
+        .on_conflict_do_update(index_elements=[CheckoutGuard.user_id], set_={"user_id": user_id}))
+    return await db.scalar(select(CheckoutGuard).where(CheckoutGuard.user_id == user_id)
+                           .with_for_update().execution_options(populate_existing=True))
 
 
 async def handle_stripe_webhook(db: AsyncSession, request: Request) -> dict[str, str]:
@@ -177,7 +253,7 @@ async def handle_stripe_webhook(db: AsyncSession, request: Request) -> dict[str,
 def subscription_is_active(subscription: Subscription | None) -> bool:
     if subscription is None or subscription.status not in ACTIVE_STATUSES:
         return False
-    if subscription.current_period_end and subscription.current_period_end < datetime.now(UTC):
+    if subscription.current_period_end and subscription.current_period_end.replace(tzinfo=UTC) < datetime.now(UTC):
         return False
     return True
 
@@ -223,11 +299,16 @@ async def _apply_checkout_completed(db: AsyncSession, session) -> tuple[str, str
     if user is None:
         return "rejected", "user does not exist"
 
+    # Checkout and webhook delivery must serialize on the same account, or an
+    # early webhook could insert the purchase while checkout is still saving it.
+    guard = await _lock_checkout_guard(db, user_id)
     purchase, reason = await _get_or_create_purchase(db, session, user_id, price_id)
     if reason:
         return "rejected", reason
+    if not guard.session_id:
+        guard.session_id = session.get("id")
     purchase.status = "paid"
-    purchase.paid_at = datetime.now(UTC)
+    purchase.paid_at = purchase.paid_at or datetime.now(UTC)
     purchase.stripe_payment_intent_id = session.get("payment_intent") or purchase.stripe_payment_intent_id
     purchase.stripe_customer_id = session.get("customer") or purchase.stripe_customer_id
 
@@ -246,6 +327,8 @@ async def _apply_checkout_completed(db: AsyncSession, session) -> tuple[str, str
         )
         db.add(entitlement)
     else:
+        if entitlement.status != "active":
+            entitlement.granted_at = datetime.now(UTC)
         entitlement.status = "active"
         entitlement.source_purchase = purchase
     await db.flush()

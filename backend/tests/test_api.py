@@ -228,6 +228,7 @@ def test_first_user_is_admin_and_can_moderate(client):
 
     response = client.post(
         f"/api/v1/admin/links/{link_id}/flag",
+        json={"reason": "Confirmed abuse"},
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 200

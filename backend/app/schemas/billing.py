@@ -11,6 +11,9 @@ class BillingStatus(BaseModel):
     status: str
     plan: str
     active: bool
+    effective_access: bool
+    checkout_available: bool
+    purchase_recorded: bool
     current_period_end: datetime | None = None
     billing_type: str = "none"
     cloud_mode: bool

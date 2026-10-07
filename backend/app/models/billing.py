@@ -91,3 +91,31 @@ class StripeEvent(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
+
+
+class CheckoutGuard(Base):
+    """One reusable Checkout attempt per account, including before webhook delivery."""
+
+    __tablename__ = "checkout_guards"
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    attempt_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), default=uuid.uuid4, nullable=False)
+    session_id: Mapped[str | None] = mapped_column(String(255), default=None)
+    checkout_url: Mapped[str | None] = mapped_column(String(2048), default=None)
+    attempted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class AdminAction(Base):
+    """Snapshots survive target deletion so operator decisions remain explainable."""
+
+    __tablename__ = "admin_actions"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    actor_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    actor_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    target_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    account_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), index=True)
+    reason: Mapped[str] = mapped_column(String(1000), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
