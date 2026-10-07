@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  getAdminLinks,
-  getAdminUsers,
   getApiKeys,
   getBillingStatus,
   getDomains,
   getLinks,
   me,
 } from '../api/client';
-import AdminPanel from '../components/AdminPanel';
 import ApiKeyPanel from '../components/ApiKeyPanel';
 import BillingPanel from '../components/BillingPanel';
 import CreateLinkModal from '../components/CreateLinkModal';
@@ -27,8 +25,6 @@ export default function Dashboard() {
   const [domains, setDomains] = useState([]);
   const [apiKeys, setApiKeys] = useState([]);
   const [billing, setBilling] = useState(null);
-  const [adminUsers, setAdminUsers] = useState([]);
-  const [adminLinks, setAdminLinks] = useState([]);
 
   async function refreshBilling() {
     const data = await getBillingStatus();
@@ -50,12 +46,7 @@ export default function Dashboard() {
       if (linksData.status === 'fulfilled') setLinks(linksData.value.items || []);
       if (domainsData.status === 'fulfilled') setDomains(domainsData.value.items || []);
       if (apiKeysData.status === 'fulfilled') setApiKeys(apiKeysData.value.items || []);
-      if (currentUser?.is_admin) {
-        const [usersResult, linksResult] = await Promise.allSettled([getAdminUsers(), getAdminLinks()]);
-        if (cancelled) return;
-        if (usersResult.status === 'fulfilled') setAdminUsers(usersResult.value.items || []);
-        if (linksResult.status === 'fulfilled') setAdminLinks(linksResult.value || []);
-      } else if (currentUser) {
+      if (currentUser && !currentUser.is_admin) {
         const billingResult = await getBillingStatus().then(
           value => ({ status: 'fulfilled', value }),
           reason => ({ status: 'rejected', reason }),
@@ -171,12 +162,9 @@ export default function Dashboard() {
       </div>
 
       {user?.is_admin && (
-        <AdminPanel
-          users={adminUsers}
-          links={adminLinks}
-          onUsersChange={setAdminUsers}
-          onLinksChange={setAdminLinks}
-        />
+        <Link to="/admin" className={`${button.secondary} mt-[18px]`}>
+          Manage users and subscriptions
+        </Link>
       )}
 
       <CreateLinkModal

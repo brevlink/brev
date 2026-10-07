@@ -45,16 +45,26 @@ async def get_billing_status(db: AsyncSession, user: User) -> BillingStatus:
         select(CloudEntitlement).where(
             CloudEntitlement.user_id == user.id,
             CloudEntitlement.entitlement_key == ONE_TIME_ENTITLEMENT_KEY,
-            CloudEntitlement.status == "active",
         )
     )
-    if entitlement:
+    if entitlement and entitlement.status == "active":
         return BillingStatus(
             status="paid",
             plan="cloud-one-time",
             active=True,
             current_period_end=None,
             billing_type="one_time",
+            cloud_mode=settings.cloud_mode,
+            included_custom_domains=settings.free_custom_domains,
+        )
+
+    if entitlement and entitlement.status == "revoked":
+        return BillingStatus(
+            status="revoked",
+            plan="cloud-one-time",
+            active=False,
+            current_period_end=None,
+            billing_type="none",
             cloud_mode=settings.cloud_mode,
             included_custom_domains=settings.free_custom_domains,
         )
@@ -175,15 +185,21 @@ def subscription_is_active(subscription: Subscription | None) -> bool:
 async def user_has_cloud_entitlement(db: AsyncSession, user: User) -> bool:
     if not settings.cloud_mode:
         return True
+    return await has_cloud_entitlement(db, user)
+
+
+async def has_cloud_entitlement(db: AsyncSession, user: User) -> bool:
+    """Read persisted access even when a self-hosted installation bypasses billing."""
     entitlement = await db.scalar(
         select(CloudEntitlement).where(
             CloudEntitlement.user_id == user.id,
             CloudEntitlement.entitlement_key == ONE_TIME_ENTITLEMENT_KEY,
-            CloudEntitlement.status == "active",
         )
     )
     if entitlement:
-        return True
+        # An explicit admin revocation must also override legacy paid access.
+        if entitlement.status in {"active", "revoked"}:
+            return entitlement.status == "active"
 
     # Compatibility read for legacy subscription rows. New webhook events do
     # not mutate this table.

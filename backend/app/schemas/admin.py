@@ -14,6 +14,11 @@ class AdminUserOut(BaseModel):
     is_admin: bool
     is_verified: bool
     created_at: datetime
+    has_cloud_entitlement: bool
+
+
+class AdminCloudEntitlementUpdate(BaseModel):
+    active: bool
 
 
 class AdminLinkOut(BaseModel):

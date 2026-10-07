@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, Index, String, Uuid, text
+from sqlalchemy import Boolean, DateTime, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -13,12 +13,6 @@ from app.core.database import Base
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = (
-        # PostgreSQL advisory locking in the service serializes bootstrap;
-        # this index is the database backstop for all supported databases.
-        Index("uq_users_single_admin", "is_admin", unique=True,
-              postgresql_where=text("is_admin"), sqlite_where=text("is_admin")),
-    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         Uuid(as_uuid=True),

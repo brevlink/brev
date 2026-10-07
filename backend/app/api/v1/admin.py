@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import uuid
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin_user
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.admin import AdminDomainOut, AdminLinkOut, AdminListUsers, AdminUserOut
+from app.schemas.admin import (
+    AdminCloudEntitlementUpdate, AdminDomainOut, AdminLinkOut, AdminListUsers, AdminUserOut,
+)
 from app.services import admin as admin_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -23,6 +27,16 @@ async def list_users(
 ):
     items, total = await admin_service.list_users(db, skip=skip, limit=limit)
     return AdminListUsers(items=items, total=total)
+
+
+@router.put("/users/{user_id}/cloud-entitlement", response_model=AdminUserOut)
+async def set_cloud_entitlement(
+    user_id: uuid.UUID,
+    body: AdminCloudEntitlementUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin_user),
+):
+    return await admin_service.set_cloud_entitlement(db, user_id, body.active)
 
 
 @router.post("/users/{user_id}/suspend", response_model=AdminUserOut)

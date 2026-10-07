@@ -3,21 +3,48 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.billing import CloudEntitlement
 from app.models.domain import Domain
 from app.models.link import Link
 from app.models.user import User
 from app.schemas.admin import AdminDomainOut, AdminLinkOut, AdminUserOut
+from app.services.billing import ONE_TIME_ENTITLEMENT_KEY, has_cloud_entitlement
 
 
 async def list_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> tuple[list[AdminUserOut], int]:
     total = await db.scalar(select(func.count(User.id))) or 0
     result = await db.execute(select(User).order_by(User.created_at.desc()).offset(skip).limit(limit))
-    return [_user_out(user) for user in result.scalars().all()], total
+    return [await _user_out(db, user) for user in result.scalars().all()], total
+
+
+async def set_cloud_entitlement(db: AsyncSession, user_id: uuid.UUID, active: bool) -> AdminUserOut:
+    # Lock the user so concurrent admin changes cannot create duplicate entitlements.
+    user = await db.scalar(select(User).where(User.id == user_id).with_for_update())
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    entitlement = await db.scalar(
+        select(CloudEntitlement).where(
+            CloudEntitlement.user_id == user.id,
+            CloudEntitlement.entitlement_key == ONE_TIME_ENTITLEMENT_KEY,
+        )
+    )
+    state = "active" if active else "revoked"
+    if entitlement is None:
+        entitlement = CloudEntitlement(user_id=user.id, status=state)
+        db.add(entitlement)
+    elif entitlement.status != state:
+        entitlement.status = state
+        if active:
+            entitlement.granted_at = datetime.now(UTC)
+    # Preserve purchase provenance; an admin change is not a new Stripe payment.
+    await db.flush()
+    return await _user_out(db, user)
 
 
 async def set_user_active(db: AsyncSession, user_id: str, active: bool) -> AdminUserOut:
@@ -26,7 +53,7 @@ async def set_user_active(db: AsyncSession, user_id: str, active: bool) -> Admin
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     user.is_active = active
     await db.flush()
-    return _user_out(user)
+    return await _user_out(db, user)
 
 
 async def list_links(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[AdminLinkOut]:
@@ -59,7 +86,7 @@ async def set_domain_suspended(db: AsyncSession, domain_id: str, suspended: bool
     return _domain_out(domain)
 
 
-def _user_out(user: User) -> AdminUserOut:
+async def _user_out(db: AsyncSession, user: User) -> AdminUserOut:
     return AdminUserOut(
         id=str(user.id),
         email=user.email,
@@ -67,6 +94,7 @@ def _user_out(user: User) -> AdminUserOut:
         is_admin=user.is_admin,
         is_verified=user.is_verified,
         created_at=user.created_at,
+        has_cloud_entitlement=await has_cloud_entitlement(db, user),
     )
 
 

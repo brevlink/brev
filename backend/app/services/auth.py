@@ -174,7 +174,7 @@ async def _revoke_user_sessions(db: AsyncSession, user_id: uuid.UUID) -> None:
 
 
 async def _bootstrap_admin_lock(db: AsyncSession) -> bool:
-    """Serialize first-admin selection on PostgreSQL and use a unique index backstop."""
+    """Serialize first-admin selection on PostgreSQL without limiting later admins."""
     bind = db.sync_session.get_bind()
     if bind.dialect.name == "postgresql":
         await db.execute(text("SELECT pg_advisory_xact_lock(8247351)"))

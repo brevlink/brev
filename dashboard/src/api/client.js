@@ -214,6 +214,13 @@ export async function getAdminUsers() {
   return request('/admin/users');
 }
 
+export async function setAdminCloudEntitlement(id, active) {
+  return request(`/admin/users/${id}/cloud-entitlement`, {
+    method: 'PUT',
+    body: JSON.stringify({ active }),
+  });
+}
+
 export async function suspendAdminUser(id) {
   return request(`/admin/users/${id}/suspend`, { method: 'POST' });
 }
