@@ -1,12 +1,8 @@
 name: Deploy Landing
 
+# Chiamato da CI solo dopo il successo dei test e se cambiano i percorsi interessati.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'landing/**'
-      - 'Dockerfile.landing'
-      - '.github/workflows/deploy-landing.yml'
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io

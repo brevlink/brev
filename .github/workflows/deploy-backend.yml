@@ -1,12 +1,8 @@
 name: Deploy Backend
 
+# Chiamato da CI solo dopo il successo dei test e se cambiano i percorsi interessati.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - 'docker-compose.yml'
-      - '.github/workflows/deploy-backend.yml'
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io

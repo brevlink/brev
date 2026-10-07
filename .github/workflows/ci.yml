@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   backend:
+    name: backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -33,6 +34,7 @@ jobs:
         run: bandit -r backend/app -q
 
   frontend:
+    name: frontend (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -61,3 +63,59 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ${{ matrix.app }}
+
+  deploy-changes:
+    # Il confronto copre tutto il push, anche quando contiene più commit.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      dashboard: ${{ steps.changes.outputs.dashboard }}
+      landing: ${{ steps.changes.outputs.landing }}
+      caddy: ${{ steps.changes.outputs.caddy }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Individua i deploy necessari
+        id: changes
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: bash .github/scripts/deploy-changes.sh "$BEFORE" "$AFTER" >> "$GITHUB_OUTPUT"
+
+  deploy-backend:
+    # needs include entrambi i gate: un test rosso impedisce la pubblicazione.
+    needs: [backend, frontend, deploy-changes]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-changes.outputs.backend == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/deploy-backend.yml
+
+  deploy-dashboard:
+    # needs include entrambi i gate: un test rosso impedisce la pubblicazione.
+    needs: [backend, frontend, deploy-changes]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-changes.outputs.dashboard == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/deploy-dashboard.yml
+
+  deploy-landing:
+    # needs include entrambi i gate: un test rosso impedisce la pubblicazione.
+    needs: [backend, frontend, deploy-changes]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-changes.outputs.landing == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/deploy-landing.yml
+
+  deploy-caddy:
+    # needs include entrambi i gate: un test rosso impedisce la pubblicazione.
+    needs: [backend, frontend, deploy-changes]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-changes.outputs.caddy == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/deploy-caddy.yml
