@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.database import db_session
 from app.services import links as links_service
 
 router = APIRouter(tags=["redirect"])
 
 
 @router.get("/{slug}")
-async def redirect(slug: str, request: Request, db: AsyncSession = Depends(get_db)):
+async def redirect(slug: str, request: Request, db: AsyncSession = db_session):
     """Resolve slug and redirect to target URL."""
     link = await links_service.get_redirect_link(db, request.headers.get("host", ""), slug)
 

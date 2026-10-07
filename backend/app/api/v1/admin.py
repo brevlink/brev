@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin_user
-from app.core.database import get_db
+from app.core.database import db_session
 from app.models.user import User
 from app.schemas.admin import (
     AdminCloudEntitlementUpdate,
@@ -29,7 +29,7 @@ async def list_users(
     q: str = Query("", max_length=2048),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     items, total = await admin_service.list_users(db, skip=skip, limit=limit, q=q)
@@ -40,7 +40,7 @@ async def list_users(
 async def set_cloud_entitlement(
     user_id: uuid.UUID,
     body: AdminCloudEntitlementUpdate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_cloud_entitlement(db, user_id, body.active)
@@ -49,7 +49,7 @@ async def set_cloud_entitlement(
 @router.post("/users/{user_id}/suspend", response_model=AdminUserOut)
 async def suspend_user(
     user_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_user_active(db, user_id, False)
@@ -58,7 +58,7 @@ async def suspend_user(
 @router.post("/users/{user_id}/activate", response_model=AdminUserOut)
 async def activate_user(
     user_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_user_active(db, user_id, True)
@@ -70,7 +70,7 @@ async def list_links(
     queue: bool = True,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     items, total = await admin_service.list_links(db, skip=skip, limit=limit, q=q, queue=queue)
@@ -80,7 +80,7 @@ async def list_links(
 @router.post("/links/{link_id}/flag", response_model=AdminLinkOut)
 async def flag_link(
     link_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_link_flagged(db, link_id, True)
@@ -89,7 +89,7 @@ async def flag_link(
 @router.post("/links/{link_id}/clear", response_model=AdminLinkOut)
 async def clear_link(
     link_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_link_flagged(db, link_id, False)
@@ -99,7 +99,7 @@ async def clear_link(
 async def list_domains(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.list_domains(db, skip=skip, limit=limit)
@@ -108,7 +108,7 @@ async def list_domains(
 @router.post("/domains/{domain_id}/suspend", response_model=AdminDomainOut)
 async def suspend_domain(
     domain_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_domain_suspended(db, domain_id, True)
@@ -117,7 +117,7 @@ async def suspend_domain(
 @router.post("/domains/{domain_id}/restore", response_model=AdminDomainOut)
 async def restore_domain(
     domain_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     return await admin_service.set_domain_suspended(db, domain_id, False)
@@ -129,7 +129,7 @@ async def list_reports(
     open_only: bool = True,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     items, total = await admin_service.list_reports(db, skip, limit, q, open_only)
@@ -139,7 +139,7 @@ async def list_reports(
 @router.post("/reports/{report_id}/review", status_code=204)
 async def review_report(
     report_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     _: User = Depends(get_current_admin_user),
 ):
     await admin_service.review_report(db, report_id)

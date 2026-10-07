@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import can_use_features, get_current_user, revoke_authenticated_session
-from app.core.database import get_db
+from app.core.database import db_session
 from app.core.rate_limit import enforce_rate_limit
 from app.core.security import clear_session_cookie, set_session_cookie
 from app.models.user import User
@@ -35,7 +35,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     response_model=RegisterResponse,
     status_code=201,
 )
-async def register(request: Request, body: RegisterRequest, db: AsyncSession = Depends(get_db)):
+async def register(request: Request, body: RegisterRequest, db: AsyncSession = db_session):
     enforce_rate_limit("auth-register", identifiers=[request.client.host if request.client else "unknown", body.email.casefold()], limit=10, window_seconds=3600)
     return await auth_service.register(db, body)
 
@@ -48,7 +48,7 @@ async def login(
     request: Request,
     body: LoginRequest,
     response: Response,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     enforce_rate_limit("auth-login", identifiers=[request.client.host if request.client else "unknown", body.email.casefold()], limit=20, window_seconds=900)
     login_response = await auth_service.login(db, body.email, body.password)
@@ -70,7 +70,7 @@ async def me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/logout", status_code=204)
-async def logout(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+async def logout(request: Request, response: Response, db: AsyncSession = db_session):
     await revoke_authenticated_session(request, db)
     clear_session_cookie(response)
 
@@ -78,7 +78,7 @@ async def logout(request: Request, response: Response, db: AsyncSession = Depend
 @router.get("/verify-email", response_model=AuthLinkBootstrapResponse)
 async def verify_email_bootstrap(
     token: str = Query(min_length=32, max_length=256),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     """Validate a browser link without consuming or applying the token."""
     expires_at = await auth_service.inspect_email_verification(db, token)
@@ -92,7 +92,7 @@ async def verify_email_bootstrap(
 @router.post("/verify-email", response_model=VerifyEmailResponse)
 async def verify_email(
     body: VerifyEmailRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     user = await auth_service.verify_email(db, body.token)
     return VerifyEmailResponse(email=user.email, is_verified=user.is_verified)
@@ -101,7 +101,7 @@ async def verify_email(
 @router.post("/resend-verification", response_model=ResendVerificationResponse)
 async def resend_verification(
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     current_user: User = Depends(get_current_user),
 ):
     enforce_rate_limit("auth-resend", identifiers=[request.client.host if request.client else "unknown", current_user.email], limit=3, window_seconds=3600)
@@ -113,7 +113,7 @@ async def resend_verification(
 async def request_password_reset(
     request: Request,
     body: PasswordResetRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     enforce_rate_limit("auth-reset-request", identifiers=[request.client.host if request.client else "unknown", body.email.casefold()], limit=5, window_seconds=3600)
     return await auth_service.request_password_reset(db, body.email)
@@ -122,7 +122,7 @@ async def request_password_reset(
 @router.get("/password-reset/confirm", response_model=AuthLinkBootstrapResponse)
 async def password_reset_bootstrap(
     token: str = Query(min_length=32, max_length=256),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     """Validate a reset link without changing a password or consuming it."""
     expires_at = await auth_service.inspect_password_reset(db, token)
@@ -137,7 +137,7 @@ async def password_reset_bootstrap(
 async def confirm_password_reset(
     request: Request,
     body: PasswordResetConfirm,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     enforce_rate_limit("auth-reset-confirm", identifiers=[request.client.host if request.client else "unknown", body.token[:16]], limit=10, window_seconds=3600)
     return await auth_service.reset_password(db, body)
@@ -146,7 +146,7 @@ async def confirm_password_reset(
 @router.post("/password/change", response_model=MessageResponse)
 async def change_password(
     body: PasswordChangeRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     current_user: User = Depends(get_current_user),
 ):
     return await auth_service.change_password(db, current_user, body)

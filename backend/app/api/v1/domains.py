@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_feature_user, get_current_user
-from app.core.database import get_db
+from app.core.database import db_session
 from app.models.user import User
 from app.schemas.domain import (
     DomainCreate,
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 @router.post("", response_model=DomainOut, status_code=201)
 async def create_domain(
     body: DomainCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     return await domain_service.create_domain(db, user, body)
@@ -37,7 +37,7 @@ async def create_domain(
 
 @router.get("", response_model=DomainList)
 async def list_domains(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     items, total = await domain_service.get_user_domains(db, str(user.id))
@@ -52,7 +52,7 @@ async def list_domains(
 @router.get("/invites/accept", response_model=DomainInviteBootstrap)
 async def inspect_invite(
     token: str = Query(min_length=32, max_length=256),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
 ):
     """Public: names the domain and the address before anyone has signed in."""
     return await sharing.inspect_invite(db, token)
@@ -61,7 +61,7 @@ async def inspect_invite(
 @router.post("/invites/accept", response_model=DomainMemberOut)
 async def accept_invite(
     body: DomainInviteAccept,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_user),
 ):
     """Authentication only, not the feature gate: an unverified account can accept.
@@ -75,7 +75,7 @@ async def accept_invite(
 @router.get("/{domain_id}/members", response_model=DomainMemberList)
 async def list_members(
     domain_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     """Who the domain is shared with. Owner only: members just use it."""
@@ -87,7 +87,7 @@ async def list_members(
 async def invite_member(
     domain_id: str,
     body: DomainMemberCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     return await sharing.invite_member(db, user, domain_id, body)
@@ -97,7 +97,7 @@ async def invite_member(
 async def remove_member(
     domain_id: str,
     member_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     """The owner can drop any member; a member can drop himself."""
@@ -107,7 +107,7 @@ async def remove_member(
 @router.get("/{domain_id}/deletion-impact", response_model=DomainDeletionImpact)
 async def deletion_impact(
     domain_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     return await domain_service.get_deletion_impact(db, domain_id, str(user.id))
@@ -116,7 +116,7 @@ async def deletion_impact(
 @router.delete("/{domain_id}", status_code=204)
 async def delete_domain(
     domain_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     await domain_service.delete_domain(db, domain_id, str(user.id))
@@ -125,7 +125,7 @@ async def delete_domain(
 @router.post("/{domain_id}/verify", response_model=DomainVerifyResponse)
 async def verify_domain(
     domain_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     return await domain_service.verify_domain(db, domain_id, str(user.id))

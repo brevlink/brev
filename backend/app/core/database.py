@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -42,6 +43,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
+
+
+# Commit before sending the response so the next request sees durable writes,
+# and commit failures cannot follow an already successful HTTP response.
+db_session = Depends(get_db, scope="function")
 
 
 async def init_db() -> None:

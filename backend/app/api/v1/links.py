@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_feature_user
-from app.core.database import get_db
+from app.core.database import db_session
 from app.core.rate_limit import rate_limit
 from app.models.user import User
 from app.schemas.link import LinkCreate, LinkList, LinkOut, LinkUpdate
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/links", tags=["links"])
 )
 async def create_link(
     body: LinkCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     return await links_service.create_link(db, str(user.id), body)
@@ -34,7 +34,7 @@ async def list_links(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     search: str = Query("", max_length=256),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     items, total = await links_service.get_user_links(
@@ -47,7 +47,7 @@ async def list_links(
 @router.get("/{slug}", response_model=LinkOut)
 async def get_link(
     slug: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     link = await links_service.get_user_link_by_slug(db, slug, str(user.id))
@@ -65,7 +65,7 @@ async def get_link(
 async def update_link(
     link_id: str,
     body: LinkUpdate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     return await links_service.update_link(db, link_id, str(user.id), body)
@@ -74,7 +74,7 @@ async def update_link(
 @router.delete("/{link_id}", status_code=204)
 async def delete_link(
     link_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
     await links_service.delete_link(db, link_id, str(user.id))
