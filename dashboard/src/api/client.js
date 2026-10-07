@@ -65,6 +65,44 @@ export async function logout() {
   await request('/auth/logout', { method: 'POST' });
 }
 
+// The token travels in the URL fragment, so it never reaches a server log.
+// The GET is a read-only check (it does not consume the token); the POST does.
+export async function fetchVerifyEmailLink(token) {
+  return request(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+}
+
+export async function verifyEmail(token) {
+  return request('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function fetchPasswordResetLink(token) {
+  return request(`/auth/password-reset/confirm?token=${encodeURIComponent(token)}`);
+}
+
+export async function requestPasswordReset(email) {
+  return request('/auth/password-reset/request', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function confirmPasswordReset(token, newPassword) {
+  return request('/auth/password-reset/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token, new_password: newPassword }),
+  });
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  return request('/auth/password/change', {
+    method: 'POST',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+}
+
 export async function getLinks() {
   return request('/links');
 }

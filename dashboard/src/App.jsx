@@ -3,6 +3,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 
 function routerBaseName() {
   return window.location.pathname.startsWith('/app') ? '/app' : undefined;
@@ -15,6 +17,11 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          {/* Both are targets of emails the backend sends, so both must be real
+              routes: their URLs go in FRONTEND_VERIFICATION_URL and
+              FRONTEND_PASSWORD_RESET_URL. */}
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/dashboard"
             element={
