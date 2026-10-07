@@ -2,8 +2,8 @@
 from alembic import op
 import sqlalchemy as sa
 
-revision = "0007_link_reports"
-down_revision = "0006_multiple_admins"
+revision = "0008_link_reports"
+down_revision = "0007_domain_link_cascade"
 branch_labels = None
 depends_on = None
 
