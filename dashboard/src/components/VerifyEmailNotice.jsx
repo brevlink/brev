@@ -3,11 +3,10 @@ import { resendVerification } from '../api/client';
 import { alert, button, eyebrow, muted, panel, serif } from '../styles/ui';
 
 /**
- * Shown while the account is not confirmed. Saying what stays locked matters:
- * the backend answers 403 on links, domains and API keys, and without this
- * notice the user meets that refusal with no explanation and no way out.
+ * The backend reports effective access, including the deployment setting and
+ * admin exemption, so an optional reminder never promises a lock that isn't there.
  */
-export default function VerifyEmailNotice({ email }) {
+export default function VerifyEmailNotice({ email, canUseFeatures }) {
   const [state, setState] = useState('idle');
   const [error, setError] = useState('');
 
@@ -29,7 +28,11 @@ export default function VerifyEmailNotice({ email }) {
       <h2 className={`${serif} m-0 text-[1.9rem] leading-[1]`}>Confirm your email.</h2>
       <p className={muted}>
         {email ? `We sent a confirmation link to ${email}. ` : ''}
-        You can sign in, but links, domains and API keys stay locked until you confirm.
+        {canUseFeatures === false
+          ? 'You can sign in, but links, domains and API keys stay locked until you confirm.'
+          : canUseFeatures === true
+            ? 'Please confirm your email. You can keep using links, domains and API keys while your email is unconfirmed.'
+            : 'Please confirm your email using the confirmation link.'}
       </p>
       {state === 'sent' && (
         <p className={muted}>Sent. Check that inbox — and the spam folder, just in case.</p>

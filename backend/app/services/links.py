@@ -7,14 +7,14 @@ import string
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.models.domain import Domain, DomainMember
 from app.models.link import Link
-from app.schemas.link import LinkCreate, LinkOut, LinkUpdate
+from app.schemas.link import LinkCreate, LinkOut, LinkSummary, LinkUpdate
 
 ALPHABET = string.ascii_lowercase + string.digits
 
@@ -100,23 +100,53 @@ async def create_link(
 
 
 async def get_user_links(
-    db: AsyncSession, user_id: str, skip: int = 0, limit: int = 50
+    db: AsyncSession,
+    user_id: str,
+    skip: int = 0,
+    limit: int = 50,
+    search: str = "",
 ) -> tuple[list[LinkOut], int]:
     """Paginated list of user's links."""
     uid = uuid.UUID(user_id)
-    total_q = select(func.count(Link.id)).where(Link.user_id == uid)
-    total = await db.scalar(total_q) or 0
+    query = select(Link).outerjoin(Domain).where(Link.user_id == uid)
+    term = search.strip().lower()
+    if term:
+        short_url = (
+            literal("https://")
+            + func.coalesce(Domain.domain, settings.default_domain)
+            + literal("/")
+            + Link.slug
+        )
+        # Escape LIKE wildcards: a customer's search text is a literal substring.
+        query = query.where(or_(*(
+            func.lower(column).contains(term, autoescape=True)
+            for column in (Link.slug, Link.url, Link.title, short_url)
+        )))
+    total = await db.scalar(select(func.count()).select_from(query.subquery())) or 0
 
     result = await db.execute(
-        select(Link)
+        query
         .options(selectinload(Link.domain))
-        .where(Link.user_id == uid)
-        .order_by(Link.created_at.desc())
+        # Ties must have a stable order or offset pagination can repeat/skip links.
+        .order_by(Link.created_at.desc(), Link.id.desc())
         .offset(skip)
         .limit(limit)
     )
     links = result.scalars().all()
     return [_link_to_out(l) for l in links], total
+
+
+async def get_user_link_summary(db: AsyncSession, user_id: str) -> LinkSummary:
+    # Account metrics must not depend on the search or the page being displayed.
+    # Click counters belong to current links; deleting a link removes its counter.
+    row = (await db.execute(
+        select(
+            func.count(Link.id),
+            func.coalesce(func.sum(Link.clicks), 0),
+            func.coalesce(func.sum(case((Link.is_active.is_(True), 1), else_=0)), 0),
+        ).where(Link.user_id == uuid.UUID(user_id))
+    )).one()
+    return LinkSummary(total_links=row[0], total_clicks=row[1], active_links=row[2])
 
 
 async def get_user_link_by_slug(db: AsyncSession, slug: str, user_id: str) -> Link | None:

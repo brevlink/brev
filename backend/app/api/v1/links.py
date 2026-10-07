@@ -33,13 +33,15 @@ async def create_link(
 async def list_links(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
+    search: str = Query("", max_length=256),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_feature_user),
 ):
     items, total = await links_service.get_user_links(
-        db, str(user.id), skip=skip, limit=limit
+        db, str(user.id), skip=skip, limit=limit, search=search
     )
-    return LinkList(items=items, total=total)
+    summary = await links_service.get_user_link_summary(db, str(user.id))
+    return LinkList(items=items, total=total, summary=summary)
 
 
 @router.get("/{slug}", response_model=LinkOut)

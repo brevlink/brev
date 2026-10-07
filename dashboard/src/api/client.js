@@ -124,8 +124,9 @@ export async function resendVerification() {
   return request('/auth/resend-verification', { method: 'POST' });
 }
 
-export async function getLinks() {
-  return request('/links');
+export async function getLinks({ search = '', skip = 0, limit = 50 } = {}) {
+  const query = new URLSearchParams({ search, skip, limit });
+  return request(`/links?${query}`);
 }
 
 export async function createLink({ url, slug, title, domainId }) {

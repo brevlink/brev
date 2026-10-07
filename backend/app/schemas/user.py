@@ -13,6 +13,7 @@ class UserOut(BaseModel):
     display_name: str | None
     is_verified: bool
     is_admin: bool
+    can_use_features: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}
