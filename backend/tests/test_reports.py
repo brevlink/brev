@@ -32,11 +32,18 @@ def test_public_reports_resolve_without_account_and_keep_unknown_links(client):
     assert latest["link"]["id"] == first["link"]["id"] == link["id"]
     assert latest["link"]["report_count"] == 2
     assert latest["link"]["latest_report_reason"] == "Latest reason"
-    assert client.post(f"/api/v1/admin/reports/{unknown['id']}/review", headers=headers).status_code == 204
+    assert client.post(f"/api/v1/admin/reports/{unknown['id']}/review", headers=headers, json={"reason": "Investigated report"}).status_code == 204
     assert client.get("/api/v1/admin/reports", headers=headers).json()["total"] == 2
     history = client.get("/api/v1/admin/reports?open_only=false&limit=1&skip=0", headers=headers).json()
     assert history["total"] == 3 and len(history["items"]) == 1
     assert history["items"][0]["reviewed_at"]
+    assert client.post(f"/api/v1/admin/reports/{latest['id']}/review", headers=headers,
+                       json={"reason": "Reviewed the owner report"}).status_code == 204
+    user_id = client.get("/api/v1/auth/me", headers=headers).json()["id"]
+    actions = client.get(f"/api/v1/admin/users/{user_id}", headers=headers).json()["actions"]
+    assert actions[0]["action"] == "review_report"
+    assert actions[0]["target_id"] == latest["id"]
+    assert actions[0]["reason"] == "Reviewed the owner report"
 
 
 def test_report_validation_rate_limit_and_admin_guards(client):
@@ -66,23 +73,23 @@ def test_flag_blocks_active_link_and_clear_preserves_owner_pause(client):
         return client.get(f"/{link['slug']}", headers={"Host": "brevl.ink"}, follow_redirects=False).status_code
 
     assert redirect_status() == 307
-    flagged = client.post(f"{moderation}/flag", headers=admin).json()
+    flagged = client.post(f"{moderation}/flag", headers=admin, json={"reason": "Confirmed abuse"}).json()
     assert flagged["is_flagged"] is True and flagged["is_active"] is True
     assert redirect_status() == 404
     assert client.patch(owner, headers=admin, json={"is_active": True}).status_code == 200
     assert redirect_status() == 404
-    assert client.post(f"{moderation}/clear", headers=admin).status_code == 200
+    assert client.post(f"{moderation}/clear", headers=admin, json={"reason": "Cleared after review"}).status_code == 200
     assert redirect_status() == 307
     assert client.patch(owner, headers=admin, json={"is_active": False}).status_code == 200
-    assert client.post(f"{moderation}/flag", headers=admin).status_code == 200
-    cleared = client.post(f"{moderation}/clear", headers=admin).json()
+    assert client.post(f"{moderation}/flag", headers=admin, json={"reason": "Confirmed abuse"}).status_code == 200
+    cleared = client.post(f"{moderation}/clear", headers=admin, json={"reason": "Cleared after review"}).json()
     assert cleared["is_flagged"] is False and cleared["is_active"] is False
     assert redirect_status() == 404
     # Pausing while blocked also remains an owner decision after clearing.
     client.patch(owner, headers=admin, json={"is_active": True})
-    client.post(f"{moderation}/flag", headers=admin)
+    client.post(f"{moderation}/flag", headers=admin, json={"reason": "Confirmed abuse"})
     client.patch(owner, headers=admin, json={"is_active": False})
-    client.post(f"{moderation}/clear", headers=admin)
+    client.post(f"{moderation}/clear", headers=admin, json={"reason": "Cleared after review"})
     assert redirect_status() == 404
 
 

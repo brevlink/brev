@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getAdminLinks, getAdminReports, getAdminUsers, reviewAdminReport, flagAdminLink, clearAdminLink } from '../api/client';
-import AdminPanel from '../components/AdminPanel';
+import { getAdminLinks, getAdminReports, getAdminUsers } from '../api/client';
+import AdminPanel, { adminRequest } from '../components/AdminPanel';
 import Layout from '../components/Layout';
 import { alert, button, dataRow, dataText, dataTitle, eyebrow, field, fieldLabel, input, muted, panel, panelTitle, rowActions, serif } from '../styles/ui';
 
@@ -27,12 +27,13 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [reason, setReason] = useState('');
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const params = { q: search, skip: page * PAGE_SIZE, limit: PAGE_SIZE };
-    const load = view === 'users' ? getAdminUsers(params) : view === 'lookup'
+    const load = view === 'diagnostics' ? adminRequest('diagnostics') : view === 'domains' ? adminRequest(`domains?${new URLSearchParams(params)}`) : view === 'users' ? getAdminUsers(params) : view === 'lookup'
       ? getAdminLinks({ ...params, queue: false }) : getAdminReports({ ...params, open_only: view === 'queue' });
     Promise.all([load, view === 'queue' ? getAdminLinks({ q: search, skip: flagPage * PAGE_SIZE, limit: PAGE_SIZE }) : Promise.resolve({ items: [], total: 0 })])
       .then(([result, flags]) => {
@@ -79,28 +80,32 @@ export default function AdminPage() {
         <p className={muted}>Handle reports, investigate links, and help account owners.</p>
       </header>
       <nav className="my-6 flex flex-wrap gap-2" aria-label="Administration views">
-        {Object.entries({ queue: 'Waiting for review', lookup: 'Find any link', reports: 'Report history', users: 'Accounts' }).map(([key, label]) => (
+        {Object.entries({ queue: 'Waiting for review', lookup: 'Find any link', reports: 'Report history', users: 'Accounts', domains: 'Domains', diagnostics: 'Diagnostics' }).map(([key, label]) => (
           <button key={key} aria-pressed={view === key} className={view === key ? button.primary : button.secondary} onClick={() => {
             setView(key); setPage(0); setFlagPage(0); setLoading(true); setError('');
           }}>{label}</button>
         ))}
       </nav>
-      <form className={`${field} mb-6`} onSubmit={event => {
+      {view !== 'diagnostics' && <form className={`${field} mb-6`} onSubmit={event => {
         event.preventDefault(); setSearch(query.trim()); setPage(0); setFlagPage(0); reload();
       }}>
-        <label className={fieldLabel} htmlFor="admin-search">{view === 'users' ? 'Search owner email' : 'Search short URL, destination, or owner email'}</label>
+        <label className={fieldLabel} htmlFor="admin-search">{view === 'domains' ? 'Search hostname' : view === 'users' ? 'Search owner email' : 'Search short URL, destination, or owner email'}</label>
         <div className="flex gap-3 max-[520px]:flex-col">
           <input className={input} id="admin-search" type="search" maxLength={2048} value={query} onChange={event => setQuery(event.target.value)} />
           <button className={button.secondary}>Search</button>
         </div>
-      </form>
+      </form>}
+      {view === 'diagnostics' && <button className={button.secondary} disabled={loading} onClick={reload}>Refresh diagnostics</button>}
       {error && <p role="alert" className={alert}>{error}</p>}
       {loading ? <p role="status" className={muted}>Loading…</p> : !error && (
         <>
-          {view === 'queue' || view === 'reports' ? (
+          {view === 'diagnostics' ? <Diagnostics data={data} /> : view === 'queue' || view === 'reports' ? (
             <section className={panel}>
               <h2 className={panelTitle}>{view === 'queue' ? 'Open reports.' : 'Report history.'}</h2>
               {!data.items.length && <p className={muted}>{view === 'queue' && !search ? 'No reports are waiting for review.' : 'No matching reports.'}</p>}
+              <label className={fieldLabel}>Reason for the next review or moderation action
+                <input className={input} maxLength={1000} value={reason} onChange={event => setReason(event.target.value)} placeholder="Explain the decision" />
+              </label>
               {data.items.map(report => (
                 <article key={report.id} className={dataRow}>
                   <div>
@@ -116,8 +121,8 @@ export default function AdminPage() {
                     {report.reporter_email && <p className={dataText}>Reply to: <a href={`mailto:${report.reporter_email}`}>{report.reporter_email}</a></p>}
                   </div>
                   <div className={rowActions}>
-                    {report.link && <button disabled={busy} className={button.compactDanger} onClick={() => act(() => report.link.is_flagged ? clearAdminLink(report.link.id) : flagAdminLink(report.link.id))}>{report.link.is_flagged ? 'Clear block' : 'Block link'}</button>}
-                    {!report.reviewed_at && <button disabled={busy} className={button.compactSecondary} onClick={() => act(() => reviewAdminReport(report.id))}>Mark reviewed</button>}
+                    {report.link && <button disabled={busy || !reason.trim()} className={button.compactDanger} onClick={() => act(() => adminRequest(`links/${report.link.id}/${report.link.is_flagged ? 'clear' : 'flag'}`, { reason }))}>{report.link.is_flagged ? 'Clear block' : 'Block link'}</button>}
+                    {!report.reviewed_at && <button disabled={busy || !reason.trim()} className={button.compactSecondary} onClick={() => act(() => adminRequest(`reports/${report.id}/review`, { reason }))}>Mark reviewed</button>}
                   </div>
                 </article>
               ))}
@@ -125,9 +130,9 @@ export default function AdminPage() {
             </section>
           ) : (
             <>
-              {!data.items.length && <p className={muted}>No matching {view === 'users' ? 'accounts' : 'links'}.</p>}
-              <AdminPanel users={view === 'users' ? data.items : []} links={view === 'lookup' ? data.items : []} onUsersChange={reload} onLinksChange={reload} />
-              <Pagination total={data.total} page={page} onChange={changePage} label={view === 'users' ? 'users' : 'links'} />
+              {!data.items.length && <p className={muted}>No matching {view === 'domains' ? 'domains' : view === 'users' ? 'accounts' : 'links'}.</p>}
+              <AdminPanel users={view === 'users' ? data.items : []} links={view === 'lookup' ? data.items : []} domains={view === 'domains' ? data.items : []} onUsersChange={reload} onLinksChange={reload} onDomainsChange={reload} />
+              <Pagination total={data.total} page={page} onChange={changePage} label={view === 'domains' ? 'domains' : view === 'users' ? 'users' : 'links'} />
             </>
           )}
           {view === 'queue' && <section className={`${panel} mt-6`}>
@@ -140,4 +145,21 @@ export default function AdminPage() {
       )}
     </Layout>
   );
+}
+
+
+function Diagnostics({ data }) {
+  const time = value => value ? new Date(value).toLocaleString() : 'Not recorded';
+  return <section className={panel}>
+    <h2 className={panelTitle}>System diagnostics.</h2>
+    <p className={muted}>Deployment: {data.cloud_mode ? 'Cloud' : 'Self-hosted'} · Observed: {time(data.observed_at)}</p>
+    <p className={dataText}>Database query succeeded: {time(data.database_verified_at)}</p>
+    {data.integrations.map(item => <p key={item.name} className={dataText}>{item.name} · Configuration: {item.configured ? 'Available' : 'Incomplete or disabled'} · Health: {item.health} · Observed: {time(item.observed_at)}</p>)}
+    <h3 className={dataTitle}>Recent webhook outcomes (latest 30)</h3>
+    {!data.recent_webhooks.length && <p className={muted}>No verified Stripe events recorded. Signature failures are rejected before storage.</p>}
+    {data.recent_webhooks.map((event, index) => <p key={index} className={dataText}>{event.event_type} · {event.status}{event.failure_reason ? ` · ${event.failure_reason}` : ''} · Received: {time(event.created_at)} · Processed: {time(event.processed_at)}</p>)}
+    <h3 className={dataTitle}>Pending hostname / certificate activation ({data.pending_certificates_total}; showing up to 30)</h3>
+    <p className={muted}>Stored Cloudflare state combines hostname and TLS activation. Externally managed certificates have no recorded status.</p>
+    {data.pending_certificates.map(domain => <p key={domain.id} className={dataText}>{domain.domain} · {domain.owner_email} · {domain.certificate_state} · Record updated: {time(domain.updated_at)} · Last DNS check: {time(domain.last_checked_at)}</p>)}
+  </section>;
 }
