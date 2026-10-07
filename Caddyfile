@@ -70,13 +70,21 @@
 # connection over HTTP/1.1 — while Caddy routes by Host and does not care, which
 # is the whole reason this leg does not go through nginx-proxy-manager.
 #
-# The certificate comes from SAAS_TLS so that a plain clone needs no extra files:
-# the compose default is "tls internal" (Caddy's own CA), and Brev Cloud sets it
-# to the Cloudflare Origin CA certificate for the fallback origin — 15 years,
-# verified by Cloudflare in Full (strict), no renewal. Caddy serves it for any
-# SNI, because only Cloudflare talks to this port. Those files live outside the
-# repository, under the Caddy data volume, because they are private material.
+# The certificate is issued on demand by Caddy's own CA, for whatever name
+# arrives: Cloudflare connects to this port with SNI = the fallback origin, and a
+# name this site does not declare would otherwise get no certificate at all, and
+# the handshake would die with a 525 from Cloudflare.
+#
+# Plain `tls internal` is NOT enough here: it only covers names the site
+# declares, and this site deliberately declares none. A proxy in Full mode (no
+# certificate verification) accepts the internal certificate, so nothing needs
+# configuring and a plain clone starts as it is. A deployment that wants Full
+# (strict) replaces this block with `tls /path/cert.pem /path/key.pem`, where the
+# certificate is valid for the fallback origin hostname.
 :443 {
-	{$SAAS_TLS}
+	tls {
+		on_demand
+		issuer internal
+	}
 	import routing
 }

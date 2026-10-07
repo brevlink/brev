@@ -22,10 +22,14 @@ def test_saas_leg_serves_any_host_on_its_own_port():
     domain would fall through."""
     caddyfile = (Path(__file__).resolve().parents[2] / "Caddyfile").read_text(encoding="utf-8")
     assert ":443 {" in caddyfile
-    assert "{$SAAS_TLS}" in caddyfile
-    # The repository must not hardcode a certificate path: a fresh clone has no
-    # such file and Caddy refuses to start ("loading certificates: no such file
-    # or directory"), which would break every self-hosted deployment.
+    # Plain `tls internal` covers only names the site declares, and this site
+    # declares none: without on_demand, Cloudflare gets no certificate for the
+    # fallback origin and every customer domain fails with a 525.
+    assert "on_demand" in caddyfile
+    assert "issuer internal" in caddyfile
+    # No certificate path may be hardcoded: a fresh clone has no such file and
+    # Caddy refuses to start ("loading certificates: no such file or directory"),
+    # which would break every self-hosted deployment.
     assert "/data/certs/" not in caddyfile
     # The certificate belongs to the fallback origin, so no host-specific site
     # may claim port 443: that would shadow the catch-all for customer hostnames.

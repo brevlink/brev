@@ -53,15 +53,13 @@ Two other things ruled out alternatives:
 | Custom hostname | `custom_origin_server: proxy.brevl.ink` |
 | Origin Rule | `http_request_origin` phase: `not http.host in {"brevl.ink" "www.brevl.ink" "proxy.brevl.ink"} -> origin.port 8443` |
 | Published port | `${HTTPS_PORT:-8443}` in `docker-compose.yml` -> `brev-caddy:443` |
-| Origin certificate | `SAAS_TLS` in the stack environment: `tls /data/certs/proxy.brevl.ink.crt /data/certs/proxy.brevl.ink.key` — Cloudflare Origin CA for `proxy.brevl.ink`, 15 years, no renewal, kept in the Caddy data volume |
+| Origin certificate | issued on demand by Caddy's internal CA, for any SNI — nothing to configure. A deployment that wants Full (strict) swaps the `tls` block for a certificate file pair valid for `proxy.brevl.ink` |
 | Caddyfile | `:443` site without a host matcher, `import routing` shared with `:80` |
 
-The Origin CA certificate and its private key are **not in the repository**, and
-the Caddyfile never hardcodes their path: a fresh clone has no such file and
-Caddy refuses to start (`loading certificates: no such file or directory`). The
-site takes its certificate from `SAAS_TLS`, whose compose default is
-`tls internal`; Cloud sets it to the Origin CA files. The key was generated
-locally and never left the machine that issued the request.
+No certificate file is needed, and none is in the repository. The Caddyfile must
+never hardcode a path either: a fresh clone has no such file and Caddy refuses to
+start (`loading certificates: no such file or directory`), which would break
+every self-hosted deployment.
 
 ## Customer onboarding
 
@@ -81,12 +79,15 @@ Cloudflare API yet (`backend/app/services/domains.py` has no Cloudflare client).
 
 ## Pitfalls
 
-- **The repository must not hardcode the certificate path.** A clone has no
+- **`tls internal` alone is not enough for this site.** It covers only hostnames
+  the site declares, and the SaaS site declares none on purpose: Cloudflare then
+  gets no certificate for the fallback origin and the handshake dies with a 525
+  on every customer domain. The site needs `on_demand`, so Caddy issues a
+  certificate for whatever name arrives. Measured on 7 October 2026: plain
+  `tls internal` → 525; `tls { on_demand; issuer internal }` → 307.
+- **The Caddyfile must not hardcode a certificate path.** A clone has no
   `/data/certs`, and a missing file makes Caddy refuse to start, breaking every
-  self-hosted install. Hence `SAAS_TLS`, with `tls internal` as the compose
-  default. Brev Cloud sets it to the Origin CA files; a stack that forgets to
-  falls back to an internal certificate, which Cloudflare accepts in `full` mode
-  and rejects in `strict`.
+  self-hosted install.
 - **The zone SSL mode must stay `full`, not `strict`.** With `strict`,
   Cloudflare verifies the origin certificate: for the apex `brevl.ink` the
   request returns `526` because nginx-proxy-manager serves a `*.brevl.ink`
