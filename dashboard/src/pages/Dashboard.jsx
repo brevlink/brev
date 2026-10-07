@@ -15,6 +15,7 @@ import CreateLinkModal from '../components/CreateLinkModal';
 import DomainPanel from '../components/DomainPanel';
 import Layout from '../components/Layout';
 import LinkCard from '../components/LinkCard';
+import VerifyEmailNotice from '../components/VerifyEmailNotice';
 import { button, eyebrow, input, muted, serif, srOnly } from '../styles/ui';
 
 export default function Dashboard() {
@@ -104,6 +105,8 @@ export default function Dashboard() {
           New link
         </button>
       </header>
+
+      {user && !user.is_verified && <VerifyEmailNotice email={user.email} />}
 
       <section
         className="my-9 mb-6 grid grid-cols-3 overflow-hidden rounded-[28px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.32)] max-[840px]:grid-cols-1"

@@ -107,6 +107,12 @@ export async function changePassword(currentPassword, newPassword) {
   });
 }
 
+// Takes no body: the session identifies the account, and the backend answers the
+// same way whether the address is already confirmed or not.
+export async function resendVerification() {
+  return request('/auth/resend-verification', { method: 'POST' });
+}
+
 export async function getLinks() {
   return request('/links');
 }
