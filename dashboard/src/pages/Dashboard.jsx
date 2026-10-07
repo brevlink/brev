@@ -76,6 +76,14 @@ export default function Dashboard() {
     setLinks(current => current.filter(link => link.id !== id));
   }
 
+  async function handleDomainDeleted(domainId) {
+    // Remove affected cards immediately, even if the follow-up request fails.
+    // Other members see the deletion on their next link-list refresh.
+    setLinks(current => current.filter(link => link.domain_id !== domainId));
+    const data = await getLinks();
+    setLinks(data.items || []);
+  }
+
   function handleCreated(link) {
     setLinks(current => [link, ...current]);
   }
@@ -153,7 +161,7 @@ export default function Dashboard() {
       )}
 
       <div className="mt-[34px] grid min-w-0 gap-[18px]">
-        <DomainPanel domains={domains} onChange={setDomains} />
+        <DomainPanel domains={domains} onChange={setDomains} onDeleted={handleDomainDeleted} />
         <div className="grid min-w-0 items-start gap-[18px] [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))]">
           {!user?.is_admin && <BillingPanel billing={billing} onRefresh={refreshBilling} />}
           <ApiKeyPanel apiKeys={apiKeys} onChange={setApiKeys} />

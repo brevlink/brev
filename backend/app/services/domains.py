@@ -8,15 +8,16 @@ import uuid
 from datetime import UTC, datetime
 
 import dns.resolver
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.models.domain import Domain, DomainMember
+from app.models.link import Link
 from app.models.user import User
-from app.schemas.domain import DomainCreate, DomainOut
+from app.schemas.domain import DomainCreate, DomainDeletionImpact, DomainOut
 from app.services import cloudflare
 from app.services.billing import user_has_cloud_entitlement
 
@@ -176,8 +177,29 @@ async def get_user_domains(
     return items, len(items)
 
 
+async def get_deletion_impact(
+    db: AsyncSession, domain_id: str, user_id: str
+) -> DomainDeletionImpact:
+    """Count all affected links, including members' links, for the owner only."""
+    uid = uuid.UUID(user_id)
+    domain = await db.scalar(
+        select(Domain).where(Domain.id == uuid.UUID(domain_id), Domain.user_id == uid)
+    )
+    if domain is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
+    # Counting the owner's visible links would miss links published by members,
+    # including former members whose links still live on this domain.
+    total, others = (await db.execute(
+        select(
+            func.count(Link.id),
+            func.coalesce(func.sum(case((Link.user_id != uid, 1), else_=0)), 0),
+        ).where(Link.domain_id == domain.id)
+    )).one()
+    return DomainDeletionImpact(total_links=total, other_users_links=others)
+
+
 async def delete_domain(db: AsyncSession, domain_id: str, user_id: str) -> None:
-    """Remove a domain. Raises 404 if not found or not owner."""
+    """Permanently delete a domain and all its links, including members’ links."""
     result = await db.execute(
         select(Domain).where(
             Domain.id == uuid.UUID(domain_id),

@@ -185,3 +185,27 @@ def test_delete_survives_a_cloudflare_failure(client, monkeypatch):
 
     assert response.status_code == 204
     assert client.get("/api/v1/domains", headers=headers).json()["total"] == 0
+
+
+def test_pending_certificate_blocks_publishing_until_rechecked(client, monkeypatch):
+    _configure_cloudflare(monkeypatch)
+    calls = _stub_cloudflare(monkeypatch, status={
+        "id": "cf-1", "status": "active", "ssl_status": "pending",
+    })
+    headers = _headers(client)
+    created = client.post("/api/v1/domains", json={"domain": "go.example.com"}, headers=headers)
+    domain_id = created.json()["id"]
+    from app.services import domains as domains_service
+    monkeypatch.setattr(domains_service, "_dns_txt_contains", lambda name, token: True)
+    verified = client.post(f"/api/v1/domains/{domain_id}/verify", headers=headers)
+    assert verified.json()["is_verified"] is True
+    assert verified.json()["cloudflare_status"] == "pending"
+    body = {"url": "https://example.org", "slug": "ready", "domain_id": domain_id}
+    refused = client.post("/api/v1/links", json=body, headers=headers)
+    assert refused.status_code == 422
+    assert "certificate" in refused.json()["detail"]
+    _stub_cloudflare(monkeypatch)
+    checked = client.post(f"/api/v1/domains/{domain_id}/verify", headers=headers)
+    assert checked.json()["cloudflare_status"] == "active"
+    assert calls["status"] == ["cf-1"]
+    assert client.post("/api/v1/links", json=body, headers=headers).status_code == 201

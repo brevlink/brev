@@ -40,6 +40,11 @@ class DomainOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class DomainDeletionImpact(BaseModel):
+    total_links: int
+    other_users_links: int
+
+
 class DomainList(BaseModel):
     items: list[DomainOut]
     total: int

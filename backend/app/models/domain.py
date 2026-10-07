@@ -54,6 +54,9 @@ class Domain(Base):
 
     # relationships
     user = relationship("User", back_populates="domains")
+    # Links live in this hostname’s slug namespace. Moving them to the default
+    # domain could collide with existing slugs, so removal deletes them in both
+    # the ORM and the database (links.domain_id uses ON DELETE CASCADE).
     links = relationship("Link", back_populates="domain", cascade="all, delete-orphan")
     members = relationship(
         "DomainMember", back_populates="domain", cascade="all, delete-orphan"

@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.domain import (
     DomainCreate,
+    DomainDeletionImpact,
     DomainInviteAccept,
     DomainInviteBootstrap,
     DomainList,
@@ -101,6 +102,15 @@ async def remove_member(
 ):
     """The owner can drop any member; a member can drop himself."""
     await sharing.remove_member(db, user, domain_id, member_id)
+
+
+@router.get("/{domain_id}/deletion-impact", response_model=DomainDeletionImpact)
+async def deletion_impact(
+    domain_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_feature_user),
+):
+    return await domain_service.get_deletion_impact(db, domain_id, str(user.id))
 
 
 @router.delete("/{domain_id}", status_code=204)

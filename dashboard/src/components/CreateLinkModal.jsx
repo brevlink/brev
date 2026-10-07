@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createLink } from '../api/client';
+import { domainPublishingIssue } from '../utils/domains';
 import {
   alert,
   button,
@@ -21,8 +22,7 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
   const [result, setResult] = useState(null);
   const [domainMenuOpen, setDomainMenuOpen] = useState(false);
   const dialogRef = useRef(null);
-  const verifiedDomains = domains.filter(domain => domain.is_verified);
-  const selectedDomain = verifiedDomains.find(domain => domain.id === form.domainId);
+  const selectedDomain = domains.find(domain => domain.id === form.domainId);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -50,6 +50,12 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
     event.preventDefault();
     setError('');
     setResult(null);
+    // Readiness may change while the dialog is open; never silently publish
+    // on the default domain when a previously selected domain becomes unusable.
+    if (form.domainId && (!selectedDomain || domainPublishingIssue(selectedDomain))) {
+      setError(selectedDomain ? domainPublishingIssue(selectedDomain) : 'Domain no longer available. Choose another domain.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -183,7 +189,7 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
                     >
                       brevl.ink
                     </button>
-                    {verifiedDomains.map(domain => (
+                    {domains.map(domain => (
                       <button
                         key={domain.id}
                         type="button"
@@ -192,9 +198,18 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
                         }`}
                         role="option"
                         aria-selected={form.domainId === domain.id}
+                        disabled={Boolean(domainPublishingIssue(domain))}
+                        aria-disabled={Boolean(domainPublishingIssue(domain))}
                         onClick={() => selectDomain(domain.id)}
                       >
-                        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{domain.domain}</span>
+                        <span className="min-w-0">
+                          <span className="block overflow-hidden text-ellipsis whitespace-nowrap">{domain.domain}</span>
+                          {domainPublishingIssue(domain) && (
+                            <span className="block text-[0.78rem] font-normal text-[#38516f]">
+                              {domainPublishingIssue(domain)} {domain.role === 'member' ? 'Ask the owner to check status.' : 'Check status in Custom domains.'}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                   </div>

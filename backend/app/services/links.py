@@ -74,6 +74,14 @@ async def create_link(
                 detail="Domain must be verified before it can be used for links",
             )
 
+        # TXT ownership alone does not mean Cloudflare can serve HTTPS.
+        # Null means this deployment handles customer TLS without Cloudflare.
+        if domain_obj.cloudflare_status not in (None, "active"):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Domain certificate is pending. Check status before publishing links",
+            )
+
     await _ensure_slug_available(db, slug, domain_obj.id if domain_obj else None)
 
     link = Link(
