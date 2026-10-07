@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { logout, me } from '../api/client';
-import { brand, srOnly, textButton } from '../styles/ui';
+import { alert, brand, button, srOnly, textButton } from '../styles/ui';
 
 const navItem =
   'flex min-h-11 items-center gap-3 rounded-full border border-transparent px-3.5 text-[0.94rem] font-extrabold text-[#38516f] hover:border-[rgba(7,25,54,0.14)] hover:bg-[rgba(255,250,241,0.52)] hover:text-[#071936]';
@@ -10,20 +10,26 @@ const linkClass = ({ isActive }) =>
 
 export default function Layout({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
+  const [accountStatus, setAccountStatus] = useState('loading');
+  const [accountError, setAccountError] = useState('');
+  const [revision, setRevision] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     me()
       .then(data => {
-        if (!cancelled) setUser(data);
+        if (!cancelled) { setUser(data); setAccountStatus('ready'); }
       })
-      .catch(() => {});
+      .catch(err => {
+        if (!cancelled) { setAccountError(err.message || 'Please try again.'); setAccountStatus('error'); }
+      });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [revision]);
 
   async function handleLogout() {
     await logout().catch(() => {});
@@ -61,36 +67,28 @@ export default function Layout({ children }) {
           className={`contents ${menuOpen ? 'max-[840px]:block' : 'max-[840px]:hidden'}`}
         >
           <nav className="mt-11 grid gap-2 max-[840px]:mt-5" aria-label="Dashboard navigation">
-            <NavLink to="/dashboard" end className={linkClass} onClick={closeMenu}>
-              <span aria-hidden="true">/</span>
-              Links
-            </NavLink>
+            {[['', 'Links'], ['#domains', 'Domains'], ['#billing', 'Billing'], ['#api-keys', 'API keys']]
+              .filter(([hash]) => hash !== '#billing' || !user?.is_admin)
+              .map(([hash, label]) => {
+                const active = location.pathname === '/dashboard' && (location.hash === '#links' ? '' : location.hash || '') === hash;
+                return <NavLink key={label} to={`/dashboard${hash}`} className={linkClass({ isActive: active })} aria-current={active ? 'page' : false} onClick={closeMenu}>{label}</NavLink>;
+              })}
             {user?.is_admin && (
               <NavLink to="/admin" className={linkClass} onClick={closeMenu}>
                 <span aria-hidden="true">!</span>
                 Administration
               </NavLink>
             )}
-            <a className={navItem} href="https://brevl.ink" target="_blank" rel="noreferrer" onClick={closeMenu}>
-              <span aria-hidden="true">↗</span>
-              Landing
-            </a>
-            <a
-              className={navItem}
-              href="https://github.com/brevlink/brev"
-              target="_blank"
-              rel="noreferrer"
-              onClick={closeMenu}
-            >
-              <span aria-hidden="true">#</span>
-              GitHub
-            </a>
           </nav>
 
+          {accountStatus === 'error' && <div className={`${alert} mt-4`} role="alert">
+            <p>Could not load account: {accountError}</p>
+            <button type="button" className={button.compactSecondary} onClick={() => { setAccountStatus('loading'); setRevision(current => current + 1); }}>Retry</button>
+          </div>}
           <div className="mt-auto flex items-center justify-between gap-4 border-t border-[rgba(7,25,54,0.14)] pt-[22px] max-[840px]:mt-5">
             <div>
               <p className="m-0 max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap font-extrabold">
-                {user?.email || 'Signed in'}
+                {accountStatus === 'loading' ? 'Loading account…' : accountStatus === 'error' ? 'Account unavailable' : user.email}
               </p>
               <span className="text-[0.78rem] text-[#38516f]">Brev Dashboard</span>
             </div>
@@ -101,7 +99,7 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      <main className="mx-auto w-[min(100%-48px,1120px)] py-14 pb-[72px] max-[520px]:w-[min(100%-20px,1120px)]">
+      <main className="mx-auto w-[min(100%-48px,1120px)] py-7 pb-[72px] max-[520px]:w-[min(100%-20px,1120px)]">
         {children}
       </main>
     </div>

@@ -16,7 +16,7 @@ import {
 
 const initialForm = { url: '', slug: '', title: '', domainId: '' };
 
-export default function CreateLinkModal({ open, onClose, onCreated, domains = [] }) {
+export default function CreateLinkModal({ open, onClose, onCreated, domains = [], domainsStatus = 'ready', domainsError = '', onRetryDomains }) {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +26,9 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
   // The domain picker explains why a domain cannot serve yet, which a native
   // select cannot do, so it stays a custom listbox and needs its own open state.
   const [domainMenuOpen, setDomainMenuOpen] = useState(false);
+  const [activeDomainIndex, setActiveDomainIndex] = useState(0);
+  const domainTriggerRef = useRef(null);
+  const domainOptionsRef = useRef([]);
   const requestRef = useRef(false);
   const copyRef = useRef(false);
   const resultRef = useRef(null);
@@ -47,6 +50,14 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
     if (open && result) resultRef.current?.focus();
   }, [open, result]);
 
+  useEffect(() => {
+    if (open && domainMenuOpen) {
+      const option = domainOptionsRef.current[activeDomainIndex];
+      option?.focus();
+      option?.scrollIntoView?.({ block: 'nearest' });
+    }
+  }, [open, domainMenuOpen, activeDomainIndex]);
+
   if (!open) return null;
 
   function updateField(field, value) {
@@ -55,11 +66,13 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
 
   function closeDialog() {
     // Close natively before unmounting so keyboard focus returns to the opener.
+    setDomainMenuOpen(false);
     dialogRef.current?.close();
     onClose();
   }
 
   function resetForm() {
+    setDomainMenuOpen(false);
     setForm(initialForm);
     setResult(null);
     setError('');
@@ -88,6 +101,41 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
     }
   }
 
+  function openDomainMenu() {
+    setActiveDomainIndex(Math.max(0, domains.findIndex(domain => domain.id === form.domainId) + 1));
+    setDomainMenuOpen(true);
+  }
+
+  function selectDomain(domain) {
+    // Keep unavailable options focusable so their readiness explanation is audible.
+    if (domain && domainPublishingIssue(domain)) return;
+    updateField('domainId', domain?.id || '');
+    setDomainMenuOpen(false);
+    domainTriggerRef.current?.focus();
+  }
+
+  function handleDomainKey(event) {
+    if (event.key === 'Escape' && domainMenuOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      setDomainMenuOpen(false);
+      domainTriggerRef.current?.focus();
+    } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault();
+      if (!domainMenuOpen) {
+        openDomainMenu();
+      } else {
+        setActiveDomainIndex(current => event.key === 'Home' ? 0 : event.key === 'End' ? domains.length :
+          (current + (event.key === 'ArrowDown' ? 1 : -1) + domains.length + 1) % (domains.length + 1));
+      }
+    } else if (event.key === 'Enter' && domainMenuOpen) {
+      event.preventDefault();
+      if (activeDomainIndex === 0 || domains[activeDomainIndex - 1]) {
+        selectDomain(activeDomainIndex === 0 ? null : domains[activeDomainIndex - 1]);
+      }
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     if (requestRef.current) return;
@@ -98,6 +146,7 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
     // on the default domain when a previously selected domain becomes unusable.
     if (form.domainId && (!selectedDomain || domainPublishingIssue(selectedDomain))) {
       setError(selectedDomain ? domainPublishingIssue(selectedDomain) : 'Domain no longer available. Choose another domain.');
+      requestRef.current = false;
       return;
     }
     setLoading(true);
@@ -148,7 +197,7 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
             </span>
             {result.title && <span className="text-[#38516f] [overflow-wrap:anywhere]">{result.title}</span>}
             <span className="text-[#38516f] [overflow-wrap:anywhere]">{result.url}</span>
-            <p className="m-0 text-sm text-[#38516f]">To find this link in the dashboard, search for {result.slug} or clear your search.</p>
+            <p className="m-0 text-sm text-[#38516f]">Your dashboard search has been cleared so the new link is visible.</p>
             {copied && <p className={`${status.good} m-0`} role="status">Link copied.</p>}
             <div className="mt-3 flex flex-wrap gap-2.5">
               <button type="button" className={button.primary} onClick={copyResult} disabled={copying}>{copying ? 'Copying' : 'Copy'}</button>
@@ -204,8 +253,14 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
 
             <div className={field}>
               <label className={fieldLabel} id="link-domain-label">Domain</label>
+              {domainsStatus === 'loading' && <p className="m-0 text-sm text-[#38516f]" role="status">Loading custom domains… You can use brevl.ink.</p>}
+              {domainsStatus === 'error' && <div className={alert} role="alert">
+                <p>Could not load custom domains: {domainsError}. You can use brevl.ink.</p>
+                <button type="button" className={button.compactSecondary} onClick={onRetryDomains}>Retry domains</button>
+              </div>}
               <div
                 className="relative"
+                onKeyDown={handleDomainKey}
                 onBlur={event => {
                   if (!event.currentTarget.contains(event.relatedTarget)) {
                     setDomainMenuOpen(false);
@@ -215,11 +270,14 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
                 <button
                   type="button"
                   id="link-domain"
+                  ref={domainTriggerRef}
+                  disabled={loading}
                   className={`${input} flex items-center justify-between gap-3 text-left`}
                   aria-labelledby="link-domain-label link-domain"
                   aria-haspopup="listbox"
+                  aria-controls={domainMenuOpen ? 'link-domain-options' : undefined}
                   aria-expanded={domainMenuOpen}
-                  onClick={() => setDomainMenuOpen(current => !current)}
+                  onClick={() => domainMenuOpen ? setDomainMenuOpen(false) : openDomainMenu()}
                 >
                   <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                     {selectedDomain?.domain || 'brevl.ink'}
@@ -230,6 +288,7 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
                 {domainMenuOpen && (
                   <div
                     className="absolute z-30 mt-2 max-h-52 w-full overflow-auto rounded-2xl border border-[rgba(7,25,54,0.14)] bg-[#fffaf1] p-1.5 shadow-[0_18px_46px_rgba(7,25,54,0.18)]"
+                    id="link-domain-options"
                     role="listbox"
                     aria-labelledby="link-domain-label"
                   >
@@ -240,11 +299,14 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
                       }`}
                       role="option"
                       aria-selected={!form.domainId}
-                      onClick={() => { updateField('domainId', ''); setDomainMenuOpen(false); }}
+                      ref={element => { domainOptionsRef.current[0] = element; }}
+                      tabIndex={activeDomainIndex === 0 ? 0 : -1}
+                      onFocus={() => setActiveDomainIndex(0)}
+                      onClick={() => selectDomain(null)}
                     >
                       brevl.ink
                     </button>
-                    {domains.map(domain => (
+                    {domains.map((domain, index) => (
                       <button
                         key={domain.id}
                         type="button"
@@ -253,9 +315,11 @@ export default function CreateLinkModal({ open, onClose, onCreated, domains = []
                         }`}
                         role="option"
                         aria-selected={form.domainId === domain.id}
-                        disabled={Boolean(domainPublishingIssue(domain))}
+                        ref={element => { domainOptionsRef.current[index + 1] = element; }}
+                        tabIndex={activeDomainIndex === index + 1 ? 0 : -1}
+                        onFocus={() => setActiveDomainIndex(index + 1)}
                         aria-disabled={Boolean(domainPublishingIssue(domain))}
-                        onClick={() => { updateField('domainId', domain.id); setDomainMenuOpen(false); }}
+                        onClick={() => selectDomain(domain)}
                       >
                         <span className="min-w-0">
                           <span className="block overflow-hidden text-ellipsis whitespace-nowrap">{domain.domain}</span>

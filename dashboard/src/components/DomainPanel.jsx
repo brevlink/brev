@@ -58,12 +58,13 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
   const [checkingDomainId, setCheckingDomainId] = useState(null);
 
   async function loadMembers(domainId) {
+    // Unknown sharing is different from a successfully loaded empty member list.
+    setMembers(current => ({ ...current, [domainId]: { status: 'loading' } }));
     try {
       const data = await getDomainMembers(domainId);
-      setMembers(current => ({ ...current, [domainId]: data.items || [] }));
-    } catch {
-      // Losing the member list is not worth breaking the panel over.
-      setMembers(current => ({ ...current, [domainId]: [] }));
+      setMembers(current => ({ ...current, [domainId]: { status: 'ready', items: data.items || [] } }));
+    } catch (err) {
+      setMembers(current => ({ ...current, [domainId]: { status: 'error', error: err.message || 'Please try again.' } }));
     }
   }
 
@@ -308,11 +309,18 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
                         </button>
                       </form>
                       {inviteError && <div className={alert}>{inviteError}</div>}
-                      {(members[item.id] || []).length === 0 ? (
+                      {!members[item.id] || members[item.id].status === 'loading' ? (
+                        <p className={`${dataText} m-0`} role="status">Loading people…</p>
+                      ) : members[item.id].status === 'error' ? (
+                        <div className={alert} role="alert">
+                          <p>Could not load people: {members[item.id].error}</p>
+                          <button type="button" className={button.compactSecondary} onClick={() => loadMembers(item.id)}>Retry</button>
+                        </div>
+                      ) : members[item.id].items.length === 0 ? (
                         <p className={`${dataText} m-0`}>Not shared with anyone yet.</p>
                       ) : (
                         <div className="grid gap-2">
-                          {(members[item.id] || []).map(member => (
+                          {members[item.id].items.map(member => (
                             <div key={member.id} className={memberRow}>
                               <div className="min-w-0">
                                 <span className="block font-extrabold [overflow-wrap:anywhere]">{member.email}</span>
