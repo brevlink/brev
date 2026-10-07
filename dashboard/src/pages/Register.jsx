@@ -19,8 +19,8 @@ export default function Register() {
       setError('Passwords do not match');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+    if (password.length < 12) {
+      setError('Password must be at least 12 characters');
       return;
     }
 
@@ -76,7 +76,7 @@ export default function Register() {
                 type="password"
                 value={password}
                 onChange={event => setPassword(event.target.value)}
-                placeholder="At least 8 characters"
+                placeholder="At least 12 characters"
                 required
               />
             </div>

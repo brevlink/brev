@@ -37,7 +37,18 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    const error = new Error(data.detail || data.message || 'Something went wrong');
+    // Pydantic validation details are objects; their messages keep the banner
+    // readable instead of letting Error stringify them as "[object Object]".
+    const detail = typeof data.detail === 'string'
+      ? data.detail
+      : Array.isArray(data.detail)
+        ? data.detail
+          .filter(item => typeof item?.msg === 'string')
+          .map(item => item.msg.replace(/^Value error, /, ''))
+          .join('; ')
+        : '';
+    const message = detail || (typeof data.message === 'string' && data.message) || 'Something went wrong';
+    const error = new Error(message);
     // Keep the status: callers need to tell "this link is dead" (404) from "the
     // API is broken", because they deserve different words on screen.
     error.status = res.status;
