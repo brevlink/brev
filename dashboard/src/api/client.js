@@ -135,6 +135,13 @@ export async function createLink({ url, slug, title, domainId }) {
   });
 }
 
+export async function updateLink(id, changes) {
+  return request(`/links/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(changes),
+  });
+}
+
 export async function deleteLink(id) {
   return request(`/links/${id}`, { method: 'DELETE' });
 }
