@@ -50,15 +50,20 @@ export default function Layout({ children }) {
           </a>
           <button
             type="button"
-            className="hidden size-[42px] cursor-pointer place-items-center rounded-full border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.52)] text-[#071936] max-[840px]:grid"
+            className="hidden size-11 shrink-0 cursor-pointer place-items-center rounded-full border border-[rgba(7,25,54,0.24)] bg-[rgba(255,250,241,0.9)] text-[#071936] transition-colors hover:border-[rgba(7,25,54,0.45)] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#071936] active:bg-[rgba(7,25,54,0.08)] max-[840px]:grid"
             aria-expanded={menuOpen}
             aria-controls="dashboard-menu"
             onClick={() => setMenuOpen(current => !current)}
           >
             <span className={srOnly}>{menuOpen ? 'Close menu' : 'Open menu'}</span>
-            <span className="block h-0.5 w-4 rounded-full bg-current" aria-hidden="true" />
-            <span className="block h-0.5 w-4 rounded-full bg-current" aria-hidden="true" />
-            <span className="block h-0.5 w-4 rounded-full bg-current" aria-hidden="true" />
+            {/* Geometria fissa: tre barre da 2px larghe 18px, distanza 4px.
+                Le due esterne ruotano su se stesse per formare la X quando il
+                menu e' aperto; quella centrale sparisce. */}
+            <span className="flex h-[14px] w-[18px] flex-col justify-between" aria-hidden="true">
+              <span className={`h-0.5 w-full origin-center rounded-full bg-current transition-transform duration-200 ${menuOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
+              <span className={`h-0.5 w-full rounded-full bg-current transition-opacity duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
+              <span className={`h-0.5 w-full origin-center rounded-full bg-current transition-transform duration-200 ${menuOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
+            </span>
           </button>
         </div>
 
