@@ -32,3 +32,42 @@ jobs:
       - name: Audit completo (produzione e sviluppo)
         run: npm audit --audit-level=moderate
         working-directory: ${{ matrix.app }}
+
+  report-failure:
+    # La matrice termina tutta prima di creare/aggiornare una sola segnalazione.
+    needs: audit
+    if: always() && needs.audit.result == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    # Serializza anche le esecuzioni manuali per evitare issue duplicate.
+    concurrency:
+      group: audit-dipendenze-issue
+      cancel-in-progress: false
+    steps:
+      - name: Segnala il fallimento dell'audit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title='Audit dipendenze: intervento richiesto'
+          marker='<!-- brev-audit-dipendenze -->'
+          # Usa l'API senza indice di ricerca: una issue appena creata è subito visibile.
+          issues=$(gh api --paginate "repos/$GH_REPO/issues?state=all&per_page=100" \
+            --jq '.[] | select(.pull_request == null) | select((.body // "") | contains("<!-- brev-audit-dipendenze -->")) | [.number, .state] | @tsv')
+          existing=$(printf '%s\n' "$issues" | head -n 1)
+          body=$(printf '%s\n\n%s\n\n%s\n' "$marker" \
+            'Audit completo fallito (dashboard/landing, produzione e sviluppo, soglia moderate). Controllare le advisory o gli errori di installazione nel run e risolverli.' \
+            "Run: $RUN_URL")
+          if [[ -n "$existing" ]]; then
+            read -r number state <<< "$existing"
+            if [[ "$state" == 'closed' ]]; then
+              gh issue reopen "$number"
+            fi
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
