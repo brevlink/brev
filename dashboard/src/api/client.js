@@ -143,6 +143,35 @@ export async function verifyDomain(id) {
   return request(`/domains/${id}/verify`, { method: 'POST' });
 }
 
+// ── Sharing a domain ────────────────────────────────────────────────────
+// The invitation page is the target of an email the backend sends, so its URL
+// goes in FRONTEND_DOMAIN_INVITE_URL. The token rides in the fragment.
+export async function getDomainMembers(domainId) {
+  return request(`/domains/${domainId}/members`);
+}
+
+export async function inviteDomainMember(domainId, email) {
+  return request(`/domains/${domainId}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function removeDomainMember(domainId, memberId) {
+  await request(`/domains/${domainId}/members/${memberId}`, { method: 'DELETE' });
+}
+
+export async function fetchDomainInvite(token) {
+  return request(`/domains/invites/accept?token=${encodeURIComponent(token)}`);
+}
+
+export async function acceptDomainInvite(token) {
+  return request('/domains/invites/accept', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
 export async function deleteDomain(id) {
   return request(`/domains/${id}`, { method: 'DELETE' });
 }

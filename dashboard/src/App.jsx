@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
+import InviteAccept from './pages/InviteAccept';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
@@ -22,6 +23,9 @@ export default function App() {
               FRONTEND_PASSWORD_RESET_URL. */}
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          {/* Target of the invitation email the backend sends, so its URL goes in
+              FRONTEND_DOMAIN_INVITE_URL. */}
+          <Route path="/invites/accept" element={<InviteAccept />} />
           <Route
             path="/dashboard"
             element={
