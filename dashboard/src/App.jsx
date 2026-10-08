@@ -11,7 +11,6 @@ import Login from './pages/Login';
 import Report from './pages/Report';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
-import ConfirmEmailChange from './pages/ConfirmEmailChange';
 import VerifyEmail from './pages/VerifyEmail';
 
 function routerBaseName() {
@@ -29,7 +28,6 @@ export default function App() {
           {/* Both are targets of emails the backend sends, so both must be real
               routes: their URLs go in FRONTEND_VERIFICATION_URL and
               FRONTEND_PASSWORD_RESET_URL. */}
-          <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           {/* Target of the invitation email the backend sends, so its URL goes in
