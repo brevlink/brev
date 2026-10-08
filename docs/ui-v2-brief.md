@@ -1,5 +1,10 @@
 # Brev - Dashboard UI v2 - brief di implementazione
 
+Attuato, in esercizio. Due cose sono cambiate dopo la stesura: i token sono confluiti in
+un'unica sorgente condivisa con la landing (design/palette.css), e `--color-line` si è
+separato in `--color-line` (bordi decorativi) e `--color-control` (bordi dei controlli
+interattivi), per il requisito di contrasto sul confine dei controlli.
+
 ## 1. Obiettivo di questa passata (e solo di questa)
 
 Rifare la veste e la struttura della dashboard (`dashboard/`): un design system di token
@@ -24,7 +29,7 @@ nessuna dipendenza npm nuova.
 ## 3. Vincoli di brand - non negoziabili
 
 L'identità attuale (landing compresa) resta quella. I valori sono già nel codice
-(`dashboard/src/styles/ui.js`, `landing/src/pages/index.astro`):
+(`landing/src/pages/index.astro`):
 
 - navy `#071936` (testo, superfici piene, bottone primario), navy attenuato `#38516f`
 - beige `#f8f1e6`, `#efe6d4` (fondi), pericolo `#b42318`, esito positivo `#17683a`
@@ -36,36 +41,9 @@ L'identità attuale (landing compresa) resta quella. I valori sono già nel codi
 Vietato: inventare una palette nuova, introdurre dark mode, cambiare i due font,
 introdurre gradienti viola/blu "da SaaS".
 
-## 4. Come si usa la skill (obbligatorio)
+## 4. Cosa costruire
 
-La skill è installata per Codex in `$HOME/.codex/skills/`. Per questa passata servono
-`ui-ux-pro-max` (primaria), `ui-styling` e `design-system`.
-
-1. Leggi `$HOME/.codex/skills/ui-ux-pro-max/SKILL.md` **per intero** prima di agire.
-2. Interroga il database con la sua CLI (solo libreria standard di Python 3):
-
-   ```bash
-   python3 "$HOME/.codex/skills/ui-ux-pro-max/scripts/search.py" "<query>" --domain <dominio>
-   ```
-
-   Query da eseguire almeno su questi problemi:
-   - `"data table dense list row actions" --domain ux`
-   - `"modal dialog focus trap escape" --domain ux`
-   - `"empty state no results first use" --domain ux`
-   - `"form label error message near field" --domain ux`
-   - `"navigation tabs active state" --domain ux`
-   - `"touch target size spacing" --domain ux`
-   - `"chip badge long label overflow" --stack html-tailwind`
-   - `"component tokens semantic naming" --domain` - usa il dominio giusto per i token
-     (vedi `design-system`)
-3. **Vietato `--design-system`**: quella modalità genera una palette nuova a partire da un
-   brief e cancella l'identità esistente. La palette è già fissata al §3.
-4. Nel rapporto finale: quali query hai eseguito e **quale regola concreta hai applicato**
-   per ognuna. Una regola citata ma non applicata nel codice vale zero.
-
-## 5. Cosa costruire
-
-### 5.1 Token (Tailwind v4, CSS-first)
+### 4.1 Token (Tailwind v4, CSS-first)
 
 `dashboard/src/index.css` oggi contiene solo `@import "tailwindcss";`. Aggiungi un blocco
 `@theme` con **nomi semantici**, non `navy`/`beige`: chi scrive un componente deve
@@ -78,7 +56,8 @@ chiedere "superficie", non ricordare un esadecimale.
 | `--color-surface-solid` | `#fffaf1` | superfici opache (dialog) |
 | `--color-ink` | `#071936` | testo, bottone primario |
 | `--color-ink-muted` | `#38516f` | testo secondario |
-| `--color-line` | `rgba(7,25,54,0.14)` | bordi |
+| `--color-line` | `rgba(7,25,54,0.14)` | bordi decorativi |
+| `--color-control` | `rgba(7,25,54,0.5)` | bordi dei controlli interattivi |
 | `--color-accent` | beige neutro (non arancione) | accento residuo |
 | `--color-danger` | `#b42318` | errori |
 | `--color-success` | `#17683a` | esiti positivi |
@@ -88,7 +67,7 @@ chiedere "superficie", non ricordare un esadecimale.
 Aggiungi anche i token di forma: raggio (oggi 28px pannelli, 18px righe, `full` bottoni),
 ombra e durata delle transizioni, così i valori smettono di essere ripetuti in ogni file.
 
-### 5.2 Primitive di proprietà (`dashboard/src/components/ui/`)
+### 4.2 Primitive di proprietà (`dashboard/src/components/ui/`)
 
 Forma da shadcn/ui, **scritte a mano**: nessuna dipendenza nuova, niente Radix in questa
 passata.
@@ -111,7 +90,7 @@ primitiva, non come stringa.
 **Priorità:** token + primitive + *una* schermata fatta bene valgono più di tre schermate
 approssimate. Se il tempo stringe, finisci prima il fondamento.
 
-### 5.3 Struttura: da una pagina a hash a tre schermate
+### 4.3 Struttura: da una pagina a hash a tre schermate
 
 Oggi: un'unica rotta `/dashboard` che sceglie la sezione da `location.hash`
 (`#links`, `#domains`, `#billing`, `#api-keys`), con un `<h1>` che cambia testo
@@ -136,14 +115,14 @@ Le rotte annidate funzionano anche in produzione: nginx serve la SPA con
 `try_files $uri $uri/ /index.html`, quindi un hard refresh su `/app/dashboard/links` è
 coperto. Non serve toccare Caddy o nginx.
 
-### 5.4 Comportamento che non deve cambiare
+### 4.4 Comportamento che non deve cambiare
 
 Tutte le chiamate in `dashboard/src/api/client.js` e i loro payload; i blocchi di verifica
 email (`VerifyEmailNotice`, 403 "verifica la mail"); i token nei link trasportati nel
 fragment; i testi di stato già presenti (billing, dominio in verifica); l'accessibilità
 esistente (`aria-label`, `role="status"`, gestione del focus).
 
-## 6. Criteri di accettazione
+## 5. Criteri di accettazione
 
 1. `npm run build` verde e `npm run lint` pulito, eseguiti in `dashboard/`.
 2. Le tre sezioni sono raggiungibili da rotte reali; `/dashboard` e i vecchi hash
@@ -153,11 +132,3 @@ esistente (`aria-label`, `role="status"`, gestione del focus).
    `dashboard/**` e da questo brief.
 5. Nessun cambiamento nei contratti API.
 6. `git status` sul branch: solo file dentro `dashboard/` più questo brief.
-
-## 7. Rapporto finale richiesto
-
-- file creati e modificati (elenco)
-- query della skill eseguite, con la regola applicata per ognuna
-- comando di verifica eseguito e **risultato reale** (build, lint)
-- cosa non hai fatto e perché
-- dubbi aperti e punti in cui una decisione è stata presa al posto mio
