@@ -77,7 +77,7 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
     <link rel="apple-touch-icon" href="/brev_icona.webp" />
     <title>Brev - Open-source link infrastructure</title>
   </head>
-  <body class="min-h-screen scroll-smooth bg-[radial-gradient(circle_at_top_left,rgba(217,197,165,0.72),transparent_34rem),linear-gradient(135deg,#f8f1e6_0%,#efe6d4_54%,#e3d2b7_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-[#071936] antialiased">
+  <body class="min-h-screen scroll-smooth bg-[radial-gradient(circle_at_top_left,rgba(255,250,241,0.85),transparent_34rem),linear-gradient(135deg,#f8f1e6_0%,#efe6d4_54%,#e8e0d2_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-[#071936] antialiased">
     <nav class="sticky top-0 z-20 border-b border-[rgba(7,25,54,0.14)] bg-[rgba(248,241,230,0.78)] backdrop-blur-[18px]">
       <div class={`${shell} flex h-[72px] items-center justify-between gap-6`}>
         <a href="/" class="flex items-center gap-3 font-extrabold tracking-[0.02em]" aria-label="Brev home">
@@ -133,7 +133,7 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
           </div>
 
           <div class="grid grid-cols-[42px_1fr] items-start gap-4 border-t border-[rgba(7,25,54,0.14)] py-5">
-            <span class="font-extrabold text-[#d9c5a5]">01</span>
+            <span class="font-extrabold text-[#38516f]">01</span>
             <div>
               <strong class="mb-2 block text-[1.05rem]">Your domain</strong>
               <p class="m-0 leading-[1.55] text-[#38516f]">Point a custom domain at Brev and keep every shared URL on-brand.</p>
@@ -141,14 +141,14 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
           </div>
 
           <div class="grid grid-cols-[42px_1fr] items-start gap-4 border-y border-[rgba(7,25,54,0.14)] py-5">
-            <span class="font-extrabold text-[#d9c5a5]">02</span>
+            <span class="font-extrabold text-[#38516f]">02</span>
             <div>
               <strong class="mb-2 block text-[1.05rem]">Your stack</strong>
               <p class="m-0 leading-[1.55] text-[#38516f]">PostgreSQL auth, FastAPI, Caddy routing, and no vendor lock-in.</p>
             </div>
           </div>
 
-          <div class={`${mono} mt-[26px] rounded-[20px] bg-[#071936] p-[18px] text-[0.84rem] leading-[1.85] text-[#f8f1e6] [&_span]:text-[#d9c5a5]`}>
+          <div class={`${mono} mt-[26px] rounded-[20px] bg-[#071936] p-[18px] text-[0.84rem] leading-[1.85] text-[#f8f1e6] [&_span]:text-[#e8e0d2]`}>
             <span>$</span> brev create https://example.com --slug go<br />
             <span>→</span> https://brevl.ink/go
           </div>
@@ -204,7 +204,7 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
           {
             steps.map((step) => (
               <article class="grid grid-cols-[120px_1fr_1.1fr] items-center gap-7 rounded-[26px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.36)] p-7 max-[900px]:grid-cols-1 max-[900px]:gap-3">
-                <span class={`${mono} text-[2.2rem] font-extrabold text-[#d9c5a5]`}>{step.code}</span>
+                <span class={`${mono} text-[2.2rem] font-extrabold text-[#38516f]`}>{step.code}</span>
                 <h3 class="m-0 text-[1.55rem] tracking-[-0.04em]">{step.title}</h3>
                 <p class="m-0 leading-[1.65] text-[#38516f]">{step.description}</p>
               </article>
@@ -231,9 +231,9 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
             <div class="text-[clamp(3rem,6vw,5.8rem)] font-extrabold leading-[0.85] tracking-[-0.07em]">$0</div>
             <p class="mt-4 mb-7 text-[#38516f]">Forever. Docker compose, PostgreSQL, FastAPI, dashboard, and CLI.</p>
             <ul class="m-0 list-none p-0">
-              <li class="border-t border-[rgba(127,105,73,0.18)] py-2.5 text-[#38516f]">Unlimited links on your own infrastructure</li>
-              <li class="border-t border-[rgba(127,105,73,0.18)] py-2.5 text-[#38516f]">Custom domains behind your reverse proxy</li>
-              <li class="border-t border-[rgba(127,105,73,0.18)] py-2.5 text-[#38516f]">OpenAPI docs and CLI access</li>
+              <li class="border-t border-[rgba(7,25,54,0.14)] py-2.5 text-[#38516f]">Unlimited links on your own infrastructure</li>
+              <li class="border-t border-[rgba(7,25,54,0.14)] py-2.5 text-[#38516f]">Custom domains behind your reverse proxy</li>
+              <li class="border-t border-[rgba(7,25,54,0.14)] py-2.5 text-[#38516f]">OpenAPI docs and CLI access</li>
             </ul>
           </article>
 
