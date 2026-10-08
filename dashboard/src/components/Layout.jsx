@@ -95,6 +95,7 @@ export default function Layout({ children }) {
             onNavigate={closeMenu}
             items={[
               { to: '/dashboard/links', label: 'Links' },
+              { to: '/dashboard/stats', label: 'Statistics' },
               { to: '/dashboard/domains', label: 'Domains' },
               { to: '/dashboard/account', label: 'Account' },
               ...(user?.is_admin

@@ -24,6 +24,15 @@ class Settings(BaseSettings):
     secure_cookies: bool = False
 
     # ── App ───────────────────────────────────────────────────────────
+    click_event_retention_days: int = 90
+
+    @field_validator("click_event_retention_days")
+    @classmethod
+    def positive_click_retention(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("Click event retention must be at least one day")
+        return value
+
     default_domain: str = "brevl.ink"
     app_name: str = "Brev API"
     cors_origins: list[str] = []

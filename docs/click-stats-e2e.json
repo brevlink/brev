@@ -1,0 +1,245 @@
+{
+  "environment": "Isolated local PostgreSQL 16 + backend from feat/click-stats + fake SMTP; synthetic data only",
+  "redirect": {
+    "status": 307,
+    "Location": "https://example.com/destination"
+  },
+  "database_before_repeat": {
+    "events": [
+      {
+        "id": "1a3aa97e-df23-4d50-a8f1-68c03e8fd0c5",
+        "link_id": "4583ef20-b4b9-437e-8524-66c244b46e69",
+        "occurred_at": "2026-10-08T22:48:02.688632+00:00",
+        "day": "2026-10-08",
+        "country": "IT",
+        "referrer_host": "news.example.com",
+        "device": "desktop",
+        "visitor_hash": "312d1654222f98e0a069a537408b4ec4",
+        "hits": 1
+      }
+    ],
+    "daily": [
+      {
+        "link_id": "4583ef20-b4b9-437e-8524-66c244b46e69",
+        "day": "2026-10-08",
+        "clicks": 1,
+        "visitors": 1
+      }
+    ],
+    "counter": 1
+  },
+  "database_after_repeat": {
+    "events": [
+      {
+        "id": "1a3aa97e-df23-4d50-a8f1-68c03e8fd0c5",
+        "link_id": "4583ef20-b4b9-437e-8524-66c244b46e69",
+        "occurred_at": "2026-10-08T22:48:02.688632+00:00",
+        "day": "2026-10-08",
+        "country": "IT",
+        "referrer_host": "news.example.com",
+        "device": "desktop",
+        "visitor_hash": "312d1654222f98e0a069a537408b4ec4",
+        "hits": 2
+      }
+    ],
+    "daily": [
+      {
+        "link_id": "4583ef20-b4b9-437e-8524-66c244b46e69",
+        "day": "2026-10-08",
+        "clicks": 2,
+        "visitors": 1
+      }
+    ],
+    "counter": 2
+  },
+  "apis": {
+    "/api/v1/links/stats-e2e/stats?range=7d&host=brevl.ink": {
+      "status": 200,
+      "body": {
+        "range": "7d",
+        "start": "2026-10-02",
+        "end": "2026-10-08",
+        "totals": {
+          "clicks": 2,
+          "visitors": 1
+        },
+        "series": [
+          {
+            "day": "2026-10-02",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-03",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-04",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-05",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-06",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-07",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-08",
+            "clicks": 2,
+            "visitors": 1
+          }
+        ],
+        "visitor_definition": "Sum of daily distinct visitors per link; not deduplicated across days or links. Unidentifiable visits count separately.",
+        "breakdown_retention_days": 90,
+        "breakdown_attribution": "Country, referrer and device of the visitor's first click on that link each UTC day.",
+        "countries": [
+          {
+            "name": "IT",
+            "clicks": 2
+          }
+        ],
+        "referrers": [
+          {
+            "name": "news.example.com",
+            "clicks": 2
+          }
+        ],
+        "devices": [
+          {
+            "name": "desktop",
+            "clicks": 2
+          }
+        ],
+        "link": {
+          "id": "4583ef20-b4b9-437e-8524-66c244b46e69",
+          "user_id": "6cb948a6-45b2-4175-b039-d04e797c6115",
+          "domain_id": null,
+          "slug": "stats-e2e",
+          "url": "https://example.com/destination",
+          "title": null,
+          "is_active": true,
+          "clicks": 2,
+          "created_at": "2026-10-08T22:48:02.483432Z",
+          "updated_at": "2026-10-08T22:49:09.956324Z",
+          "short_url": "https://brevl.ink/stats-e2e"
+        }
+      }
+    },
+    "/api/v1/stats/summary?range=7d": {
+      "status": 200,
+      "body": {
+        "range": "7d",
+        "start": "2026-10-02",
+        "end": "2026-10-08",
+        "totals": {
+          "clicks": 2,
+          "visitors": 1
+        },
+        "series": [
+          {
+            "day": "2026-10-02",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-03",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-04",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-05",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-06",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-07",
+            "clicks": 0,
+            "visitors": 0
+          },
+          {
+            "day": "2026-10-08",
+            "clicks": 2,
+            "visitors": 1
+          }
+        ],
+        "visitor_definition": "Sum of daily distinct visitors per link; not deduplicated across days or links. Unidentifiable visits count separately.",
+        "breakdown_retention_days": 90,
+        "breakdown_attribution": "Country, referrer and device of the visitor's first click on that link each UTC day.",
+        "countries": [
+          {
+            "name": "IT",
+            "clicks": 2
+          }
+        ],
+        "referrers": [
+          {
+            "name": "news.example.com",
+            "clicks": 2
+          }
+        ],
+        "devices": [
+          {
+            "name": "desktop",
+            "clicks": 2
+          }
+        ],
+        "top_links": [
+          {
+            "slug": "stats-e2e",
+            "short_url": "https://brevl.ink/stats-e2e",
+            "clicks": 2
+          }
+        ]
+      }
+    }
+  },
+  "concurrency_check": {
+    "additional_real_redirects": 10,
+    "statuses": [
+      307,
+      307,
+      307,
+      307,
+      307,
+      307,
+      307,
+      307,
+      307,
+      307
+    ],
+    "totals": {
+      "clicks": 12,
+      "visitors": 1
+    }
+  },
+  "pruning_check": {
+    "backend": "PostgreSQL",
+    "synthetic_event_age_days": 100,
+    "retention_days": 90,
+    "events_removed": 1,
+    "old_events_remaining": 0,
+    "old_daily_clicks": 1,
+    "old_daily_visitors": 1
+  }
+}

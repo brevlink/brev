@@ -265,3 +265,9 @@ export async function reviewAdminReport(id) {
 export async function submitReport(body) {
   return request('/reports', { method: 'POST', credentials: 'omit', body: JSON.stringify(body) });
 }
+
+export function getStats({ slug, host, range = '30d' } = {}) {
+  const query = new URLSearchParams({ range });
+  if (host) query.set('host', host);
+  return request(slug ? `/links/${encodeURIComponent(slug)}/stats?${query}` : `/stats/summary?${query}`);
+}

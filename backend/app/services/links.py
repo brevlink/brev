@@ -7,7 +7,7 @@ import string
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import case, func, literal, or_, select
+from sqlalchemy import case, func, literal, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -171,7 +171,7 @@ async def get_link_by_id(db: AsyncSession, link_id: str, user_id: str) -> Link |
     return result.scalar_one_or_none()
 
 
-async def get_qr_link_by_slug(db: AsyncSession, slug: str, user_id: str) -> Link | None:
+async def get_qr_link_by_slug(db: AsyncSession, slug: str, user_id: str, host: str | None = None) -> Link | None:
     """Resolve only links owned by the account or on a domain it can use.
 
     Slugs are unique per domain, so never choose an arbitrary hostname when
@@ -183,13 +183,12 @@ async def get_qr_link_by_slug(db: AsyncSession, slug: str, user_id: str) -> Link
         DomainMember.user_id == uid,
         DomainMember.accepted_at.is_not(None),
     ).exists()
-    result = await db.execute(
-        select(Link)
-        .outerjoin(Domain)
-        .options(selectinload(Link.domain))
-        .where(Link.slug == slug, or_(Link.user_id == uid, Domain.user_id == uid, membership))
-        .limit(2)
+    query = select(Link).outerjoin(Domain).options(selectinload(Link.domain)).where(
+        Link.slug == slug, or_(Link.user_id == uid, Domain.user_id == uid, membership)
     )
+    if host is not None:
+        query = _for_host(query, host)
+    result = await db.execute(query.limit(2))
     matches = result.scalars().all()
     if len(matches) > 1:
         raise HTTPException(
@@ -199,20 +198,24 @@ async def get_qr_link_by_slug(db: AsyncSession, slug: str, user_id: str) -> Link
     return matches[0] if matches else None
 
 
+def _for_host(query, host: str, require_available: bool = False):
+    """Shared host + slug resolution for redirects and authenticated reads."""
+    normalized = host.lower().split(":", 1)[0]
+    if normalized == settings.default_domain.lower():
+        return query.where(Link.domain_id.is_(None))
+    query = query.where(Domain.domain == normalized)
+    if require_available:
+        query = query.join(Domain).where(Domain.is_verified.is_(True), Domain.is_suspended.is_(False))
+    return query
+
+
 async def get_redirect_link(db: AsyncSession, host: str, slug: str) -> Link | None:
     normalized_host = host.lower().split(":", 1)[0]
     # Resolution must respect moderation even if an owner re-enables the link.
     query = select(Link).options(selectinload(Link.domain)).where(
         Link.slug == slug, Link.is_flagged.is_(False)
     )
-    if normalized_host == settings.default_domain:
-        query = query.where(Link.domain_id.is_(None))
-    else:
-        query = query.join(Domain).where(
-            Domain.domain == normalized_host,
-            Domain.is_verified.is_(True),
-            Domain.is_suspended.is_(False),
-        )
+    query = _for_host(query, normalized_host, require_available=True)
     result = await db.execute(query)
     return result.scalar_one_or_none()
 
@@ -265,8 +268,7 @@ async def delete_link(db: AsyncSession, link_id: str, user_id: str) -> None:
 
 async def increment_clicks(db: AsyncSession, link: Link) -> None:
     """Atomically increment the click counter."""
-    link.clicks = (link.clicks or 0) + 1
-    await db.flush()
+    await db.execute(update(Link).where(Link.id == link.id).values(clicks=Link.clicks + 1))
 
 
 def _link_to_out(link: Link) -> LinkOut:

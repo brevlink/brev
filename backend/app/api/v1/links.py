@@ -64,11 +64,12 @@ async def get_link(
 @router.get("/{slug}/qr.svg")
 async def get_link_qr(
     slug: str,
+    host: str | None = Query(None, max_length=253),
     scale: int = Query(12, ge=1, le=40),
     db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
-    link = await links_service.get_qr_link_by_slug(db, slug, str(user.id))
+    link = await links_service.get_qr_link_by_slug(db, slug, str(user.id), host)
     if link is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
     short_url = links_service._link_to_out(link).short_url

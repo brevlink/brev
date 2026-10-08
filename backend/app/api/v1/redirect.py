@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
+
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import db_session
+from app.core.database import async_session, db_session
 from app.services import links as links_service
+from app.services.link_stats import record_click
 from app.templates.link_unavailable import LINK_UNAVAILABLE_HTML
 
 router = APIRouter(tags=["redirect"])
@@ -33,9 +37,20 @@ async def redirect(slug: str, request: Request, db: AsyncSession = db_session):
             detail="Link not found",
         )
 
-    await links_service.increment_clicks(db, link)
+    target_url = link.url
+    try:
+        # Bound analytics latency, including lock waits and commit failures.
+        async with asyncio.timeout(1):
+            # Isolate analytics failures (including rollback/close) from the
+            # read session that resolved the critical redirect.
+            async with async_session() as analytics_db:
+                await record_click(analytics_db, link, request)
+                await analytics_db.commit()
+    except Exception as error:
+        # Avoid dumping SQL parameters or request data into logs.
+        logging.getLogger(__name__).warning("Click recording failed (%s)", type(error).__name__)
 
     return Response(
         status_code=status.HTTP_307_TEMPORARY_REDIRECT,
-        headers={"Location": link.url},
+        headers={"Location": target_url},
     )
