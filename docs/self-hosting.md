@@ -118,7 +118,7 @@ Caddy also listens on 443 inside the container, published as `HTTPS_PORT`
 site deliberately has no host matcher and issues its certificate on demand from
 Caddy's own CA, for whatever name arrives: a fresh clone starts with no extra
 files and nothing to configure. Point customer domains at that port if your
-reverse proxy does not terminate TLS for them — the certificate is not publicly
+reverse proxy does not terminate TLS for them - the certificate is not publicly
 trusted, which a proxy in Full mode accepts and a browser does not.
 
 ## CLI Against a Self-Hosted Server

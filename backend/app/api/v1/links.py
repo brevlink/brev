@@ -1,4 +1,4 @@
-"""Links router — CRUD for short links."""
+"""Links router - CRUD for short links."""
 
 from __future__ import annotations
 

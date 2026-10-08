@@ -1,4 +1,4 @@
-"""Brev API — FastAPI application."""
+"""Brev API - FastAPI application."""
 
 from __future__ import annotations
 

@@ -232,7 +232,7 @@ export default function Dashboard() {
         {!loading && !linksError && total > 0 && (
           <nav className="mt-[18px] flex flex-wrap items-center justify-between gap-3" aria-label="Links pagination">
             <p className={muted} aria-live="polite">
-              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total} {filter.trim() ? 'matching links' : 'links'}
+              {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, total)} of {total} {filter.trim() ? 'matching links' : 'links'}
             </p>
             <div className="flex flex-wrap gap-2">
               <button type="button" className={button.secondary} disabled={page === 0} onClick={() => changePage(page - 1)}>Previous</button>

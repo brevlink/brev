@@ -1,4 +1,4 @@
-"""Domain service — manage custom domains per user."""
+"""Domain service - manage custom domains per user."""
 
 from __future__ import annotations
 

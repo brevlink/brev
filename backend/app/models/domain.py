@@ -1,4 +1,4 @@
-"""Domain model — custom domains per user."""
+"""Domain model - custom domains per user."""
 
 from __future__ import annotations
 

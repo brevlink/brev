@@ -1,4 +1,4 @@
-"""HTTP client for the Brev API — zero deps, pure stdlib."""
+"""HTTP client for the Brev API - zero deps, pure stdlib."""
 
 from __future__ import annotations
 

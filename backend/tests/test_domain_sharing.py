@@ -223,7 +223,7 @@ def test_an_invitation_only_works_for_the_address_it_was_sent_to(client, monkeyp
         "/api/v1/domains/invites/accept", json={"token": token}, headers=brother
     )
     # The invitation is spent the moment it is accepted: the token hash is
-    # cleared, so nothing stays usable — not even for the account that used it.
+    # cleared, so nothing stays usable - not even for the account that used it.
     assert ripetuto.status_code == 404
     # And nobody else can pick the link up either.
     altro = _register_and_login(client, "late@example.com")

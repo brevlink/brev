@@ -53,7 +53,7 @@ Two other things ruled out alternatives:
 | Custom hostname | `custom_origin_server: proxy.brevl.ink`, created and deleted by the backend (`app/services/cloudflare.py`) |
 | Origin Rule | `http_request_origin` phase: `not http.host in {"brevl.ink" "www.brevl.ink" "proxy.brevl.ink"} -> origin.port 8443` |
 | Published port | `${HTTPS_PORT:-8443}` in `docker-compose.yml` -> `brev-caddy:443` |
-| Origin certificate | issued on demand by Caddy's internal CA, for any SNI — nothing to configure. A deployment that wants Full (strict) swaps the `tls` block for a certificate file pair valid for `proxy.brevl.ink` |
+| Origin certificate | issued on demand by Caddy's internal CA, for any SNI - nothing to configure. A deployment that wants Full (strict) swaps the `tls` block for a certificate file pair valid for `proxy.brevl.ink` |
 | Caddyfile | `:443` site without a host matcher, `import routing` shared with `:80` |
 
 No certificate file is needed, and none is in the repository. The Caddyfile must
@@ -65,9 +65,9 @@ every self-hosted deployment.
 
 The dashboard shows the records to create:
 
-1. `TXT _brev.<domain>` with the token returned by `POST /api/v1/domains` —
+1. `TXT _brev.<domain>` with the token returned by `POST /api/v1/domains` -
    proves the customer controls the domain, checked by `POST /domains/{id}/verify`.
-2. `CNAME <domain> -> proxy.brevl.ink` — points the domain at Brev.
+2. `CNAME <domain> -> proxy.brevl.ink` - points the domain at Brev.
 
 Both are needed. The CNAME is what makes Cloudflare issue the customer
 certificate and start routing their traffic to the origin.
@@ -76,11 +76,11 @@ The hostname on Cloudflare is created **automatically**: adding a domain in the
 dashboard calls `POST /zones/{zone}/custom_hostnames` with `custom_origin_server`
 set to the CNAME target and HTTP validation, so the customer creates one CNAME
 and nothing else. Removing the domain deletes the hostname again. No operator
-action per customer domain — this was the last manual step in the flow.
+action per customer domain - this was the last manual step in the flow.
 
 The integration is optional and off by default. It switches on when the stack
 environment carries `CLOUDFLARE_API_TOKEN` (permission `Zone → SSL and
-Certificates → Edit`, scoped to this zone alone — never a DNS permission) and
+Certificates → Edit`, scoped to this zone alone - never a DNS permission) and
 `CLOUDFLARE_ZONE_ID`. A deployment that terminates customer TLS itself leaves
 both empty: Brev then keeps only its own records and `cloudflare_status` stays
 null.
@@ -117,8 +117,8 @@ Two behaviours worth knowing:
   and `proxy.brevl.ink`.
 - **Cloudflare's Free plan includes 100 custom hostnames per zone.** The risk is
   not cost, it is exhaustion: a bot creating accounts could consume the whole
-  allowance and lock real customers out. The defence is the per-account cap —
-  `FREE_CUSTOM_DOMAINS` plus the Brev Cloud entitlement beyond it — and rate
+  allowance and lock real customers out. The defence is the per-account cap -
+  `FREE_CUSTOM_DOMAINS` plus the Brev Cloud entitlement beyond it - and rate
   limiting on `POST /api/v1/domains`.
 - The Origin CA certificate has no renewal to schedule and no OCSP responder
   (Caddy logs a harmless "no OCSP stapling" warning at startup).

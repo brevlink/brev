@@ -1,4 +1,4 @@
-"""Configuration storage — token + server URL."""
+"""Configuration storage - token + server URL."""
 
 from __future__ import annotations
 
