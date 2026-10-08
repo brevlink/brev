@@ -1,6 +1,6 @@
+import { Alert, Button, Eyebrow, Muted, Panel } from './ui';
 import { useState } from 'react';
 import { resendVerification } from '../api/client';
-import { alert, button, eyebrow, muted, panel, serif } from '../styles/ui';
 
 /**
  * The backend reports effective access, including the deployment setting and
@@ -23,29 +23,37 @@ export default function VerifyEmailNotice({ email, canUseFeatures }) {
   }
 
   return (
-    <section className={`${panel} mb-6`} aria-label="Email verification">
-      <p className={eyebrow}>Account</p>
-      <h2 className={`${serif} m-0 text-[1.9rem] leading-[1]`}>Confirm your email.</h2>
-      <p className={muted}>
+    <Panel className={`mb-6`} aria-label="Email verification">
+      <Eyebrow>Account</Eyebrow>
+      <h2 className={`font-display m-0 text-[1.9rem] leading-[1]`}>
+        Confirm your email.
+      </h2>
+      <Muted>
         {email ? `We sent a confirmation link to ${email}. ` : ''}
         {canUseFeatures === false
           ? 'You can sign in, but links, domains and API keys stay locked until you confirm.'
           : canUseFeatures === true
             ? 'Please confirm your email. You can keep using links, domains and API keys while your email is unconfirmed.'
             : 'Please confirm your email using the confirmation link.'}
-      </p>
+      </Muted>
       {state === 'sent' && (
-        <p className={muted}>Sent. Check that inbox - and the spam folder, just in case.</p>
+        <Muted>
+          Sent. Check that inbox - and the spam folder, just in case.
+        </Muted>
       )}
-      {error && <div className={alert}>{error}</div>}
-      <button
+      {error && <Alert>{error}</Alert>}
+      <Button
         type="button"
-        className={button.secondary}
+        variant="secondary"
         onClick={handleResend}
         disabled={state === 'sending'}
       >
-        {state === 'sending' ? 'Sending' : state === 'sent' ? 'Send it again' : 'Send the confirmation email'}
-      </button>
-    </section>
+        {state === 'sending'
+          ? 'Sending'
+          : state === 'sent'
+            ? 'Send it again'
+            : 'Send the confirmation email'}
+      </Button>
+    </Panel>
   );
 }

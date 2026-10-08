@@ -1,6 +1,6 @@
+import { Alert, Button, DataRow, FieldInput, FormStack, MonoValue, Note, RowActions, StatusBadge, TitleBadge } from './ui';
 import { useId, useRef, useState } from 'react';
 import { deleteLink, updateLink } from '../api/client';
-import { alert, button, field, fieldLabel, formStack, input, status } from '../styles/ui';
 
 export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
   const [saved, setSaved] = useState(null);
@@ -27,7 +27,11 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
 
   async function saveChanges(event) {
     event.preventDefault();
-    await handleUpdate({ url: form.url, title: form.title || null }, 'saving', 'Changes saved.');
+    await handleUpdate(
+      { url: form.url, title: form.title || null },
+      'saving',
+      'Changes saved.',
+    );
   }
 
   async function handleUpdate(changes, action, success) {
@@ -52,7 +56,8 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
 
   async function handleDelete() {
     if (actionRef.current || copyRef.current) return;
-    if (!window.confirm('Delete this link? Redirects will stop working.')) return;
+    if (!window.confirm('Delete this link? Redirects will stop working.'))
+      return;
     actionRef.current = true;
     setPending('deleting');
     setError('');
@@ -79,14 +84,21 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
       await navigator.clipboard.writeText(link.short_url);
       setMessage('Link copied.');
     } catch {
-      setError('Could not copy the link. Select the short URL and copy it manually.');
+      setError(
+        'Could not copy the link. Select the short URL and copy it manually.',
+      );
     } finally {
       copyRef.current = false;
       setCopying(false);
     }
   }
 
-  if (deleted) return <p role="status" className={status.good}>Link deleted.</p>;
+  if (deleted)
+    return (
+      <StatusBadge role="status" tone="success" as="p">
+        Link deleted.
+      </StatusBadge>
+    );
 
   const created = new Date(link.created_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -95,68 +107,140 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
   });
 
   return (
-    <article className="grid grid-cols-[minmax(0,1fr)_auto] gap-[18px] rounded-3xl border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.46)] p-[22px] max-[840px]:grid-cols-1 max-[520px]:rounded-[22px] max-[520px]:p-[18px]">
+    <DataRow>
       <div>
         <div>
-          <a
+          <MonoValue
             href={link.short_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-['JetBrains_Mono',ui-monospace,monospace] font-extrabold text-[#071936]"
+            as="a"
+            className="block font-extrabold text-ink [overflow-wrap:anywhere]"
           >
             {link.short_url}
-          </a>
-          <p className="mt-2 mb-0 [overflow-wrap:anywhere] text-[#38516f]">{link.url}</p>
+          </MonoValue>
+          <p className="mt-2 mb-0 [overflow-wrap:anywhere] text-ink-muted">
+            {link.url}
+          </p>
         </div>
-        {link.title && (
-          <span className="mt-3 inline-flex w-fit max-w-full rounded-full border border-[rgba(7,25,54,0.14)] [overflow-wrap:anywhere] px-2.5 py-1.5 text-[0.82rem] text-[#38516f]">
-            {link.title}
-          </span>
-        )}
+        {link.title && <TitleBadge>{link.title}</TitleBadge>}
       </div>
 
-      <div className="col-start-1 flex flex-wrap gap-2.5 text-[0.84rem] text-[#38516f] max-[840px]:col-auto max-[840px]:row-auto max-[840px]:justify-start">
+      <div className="col-start-1 flex flex-wrap gap-2.5 text-[0.84rem] text-ink-muted max-[840px]:col-auto max-[840px]:row-auto max-[840px]:justify-start">
         <span>{link.clicks || 0} clicks</span>
         <span>Created {created}</span>
         <span>{link.is_active ? 'Active' : 'Paused'}</span>
       </div>
 
-      <div className="col-start-2 row-span-2 row-start-1 flex flex-wrap content-start justify-end gap-2.5 max-[840px]:col-auto max-[840px]:row-auto max-[840px]:justify-start">
-        <button type="button" className={button.compactSecondary} onClick={copyToClipboard} disabled={copying || Boolean(pending)}>
-          {copying ? 'Copying' : 'Copy'}
-        </button>
-        <button type="button" className={button.compactSecondary} onClick={startEdit} disabled={Boolean(pending) || copying || editing}>Edit</button>
-        <button
+      <RowActions className="col-start-2 row-span-2 row-start-1 max-[840px]:col-auto max-[840px]:row-auto">
+        <Button
           type="button"
-          className={button.compactSecondary}
-          disabled={Boolean(pending) || copying || editing}
-          onClick={() => handleUpdate({ is_active: !link.is_active }, 'activity', link.is_active ? 'Link paused. Redirects are stopped.' : 'Link resumed. Redirects are working.')}
+          variant="secondary"
+          size="sm"
+          onClick={copyToClipboard}
+          disabled={copying || Boolean(pending)}
         >
-          {pending === 'activity' ? (link.is_active ? 'Pausing' : 'Resuming') : (link.is_active ? 'Pause' : 'Resume')}
-        </button>
-        <button type="button" className={button.compactDanger} onClick={handleDelete} disabled={Boolean(pending) || copying || editing}>
+          {copying ? 'Copying' : 'Copy'}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={startEdit}
+          disabled={Boolean(pending) || copying || editing}
+        >
+          Edit
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={Boolean(pending) || copying || editing}
+          onClick={() =>
+            handleUpdate(
+              { is_active: !link.is_active },
+              'activity',
+              link.is_active
+                ? 'Link paused. Redirects are stopped.'
+                : 'Link resumed. Redirects are working.',
+            )
+          }
+        >
+          {pending === 'activity'
+            ? link.is_active
+              ? 'Pausing'
+              : 'Resuming'
+            : link.is_active
+              ? 'Pause'
+              : 'Resume'}
+        </Button>
+        <Button
+          type="button"
+          variant="danger"
+          size="sm"
+          onClick={handleDelete}
+          disabled={Boolean(pending) || copying || editing}
+        >
           {pending === 'deleting' ? 'Deleting' : 'Delete'}
-        </button>
-      </div>
+        </Button>
+      </RowActions>
       {editing && (
-        <form className={`${formStack} col-span-full mt-0`} onSubmit={saveChanges}>
-          <div className={field}>
-            <label className={fieldLabel} htmlFor={`${fieldId}-url`}>Destination URL</label>
-            <input id={`${fieldId}-url`} className={input} type="url" required autoFocus value={form.url} disabled={Boolean(pending)} onChange={event => setForm(current => ({ ...current, url: event.target.value }))} />
-          </div>
-          <div className={field}>
-            <label className={fieldLabel} htmlFor={`${fieldId}-title`}>Title</label>
-            <input id={`${fieldId}-title`} className={input} maxLength={256} value={form.title} disabled={Boolean(pending)} onChange={event => setForm(current => ({ ...current, title: event.target.value }))} />
-          </div>
-          <p className="m-0 text-sm text-[#38516f]">Your short URL stays the same.</p>
-          <div className="flex flex-wrap gap-2.5">
-            <button className={button.primary} type="submit" disabled={Boolean(pending)}>{pending === 'saving' ? 'Saving' : 'Save changes'}</button>
-            <button className={button.secondary} type="button" disabled={Boolean(pending)} onClick={() => setEditing(false)}>Cancel</button>
-          </div>
-        </form>
+        <FormStack className={`col-span-full mt-0`} onSubmit={saveChanges}>
+          <FieldInput
+            label="Destination URL"
+            id={`${fieldId}-url`}
+            type="url"
+            required
+            autoFocus
+            value={form.url}
+            disabled={Boolean(pending)}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, url: event.target.value }))
+            }
+          />
+          <FieldInput
+            label="Title"
+            id={`${fieldId}-title`}
+            maxLength={256}
+            value={form.title}
+            disabled={Boolean(pending)}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, title: event.target.value }))
+            }
+          />
+          <Note >
+            Your short URL stays the same.
+          </Note>
+          <RowActions align="start">
+            <Button variant="primary" type="submit" disabled={Boolean(pending)}>
+              {pending === 'saving' ? 'Saving' : 'Save changes'}
+            </Button>
+            <Button
+              variant="secondary"
+              type="button"
+              disabled={Boolean(pending)}
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </Button>
+          </RowActions>
+        </FormStack>
       )}
-      {error && <div className={`${alert} col-span-full`} role="alert">{error}</div>}
-      {message && <p className={`${status.good} col-span-full m-0 whitespace-normal`} role="status">{message}</p>}
-    </article>
+      {error && (
+        <Alert className={`col-span-full`} role="alert">
+          {error}
+        </Alert>
+      )}
+      {message && (
+        <StatusBadge
+          className={`col-span-full m-0 whitespace-normal`}
+          tone="success"
+          as="p"
+          role="status"
+        >
+          {message}
+        </StatusBadge>
+      )}
+    </DataRow>
   );
 }

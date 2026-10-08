@@ -1,7 +1,21 @@
+import {
+  Alert,
+  AuthCard,
+  AuthFooter,
+  AuthPage,
+  Brand,
+  BrandLogo,
+  Button,
+  Eyebrow,
+  Field,
+  FormStack,
+  Input,
+  Label,
+  Muted,
+} from '../components/ui';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../api/client';
-import { alert, brand, button, eyebrow, field, fieldLabel, formStack, input, muted, serif } from '../styles/ui';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -37,78 +51,84 @@ export default function Register() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center p-6">
-      <section className="w-[min(100%,440px)] rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.58)] p-[34px] shadow-[0_28px_90px_rgba(7,25,54,0.16)]">
-        <a href="/" className={`${brand} mb-[34px]`} aria-label="Brev home">
-          <img className="size-11 shrink-0 object-contain" src="/brev_logo.webp" alt="" />
+    <AuthPage>
+      <AuthCard>
+        <Brand href="/" className={`mb-[34px]`} aria-label="Brev home">
+          <BrandLogo src={`${import.meta.env.BASE_URL}brev_logo.webp`} alt="" />
           <span>Brev</span>
-        </a>
-        <p className={eyebrow}>Account</p>
-        <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}>
+        </Brand>
+        <Eyebrow>Account</Eyebrow>
+        <h1
+          className={`font-display m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}
+        >
           {success ? 'Created.' : 'Create account.'}
         </h1>
-        <p className={muted}>
-          {success ? 'Redirecting to sign in.' : 'Start with the OSS dashboard or Brev Cloud.'}
-        </p>
+        <Muted>
+          {success
+            ? 'Redirecting to sign in.'
+            : 'Start with the OSS dashboard or Brev Cloud.'}
+        </Muted>
 
         {!success && (
-          <form onSubmit={handleSubmit} className={formStack}>
-            {error && <div className={alert}>{error}</div>}
+          <FormStack onSubmit={handleSubmit}>
+            {error && <Alert>{error}</Alert>}
 
-            <div className={field}>
-              <label className={fieldLabel} htmlFor="register-email">Email</label>
-              <input
-                className={input}
+            <Field>
+              <Label htmlFor="register-email">Email</Label>
+              <Input
                 id="register-email"
                 type="email"
                 value={email}
-                onChange={event => setEmail(event.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
                 required
               />
-            </div>
+            </Field>
 
-            <div className={field}>
-              <label className={fieldLabel} htmlFor="register-password">Password</label>
-              <input
-                className={input}
+            <Field>
+              <Label htmlFor="register-password">Password</Label>
+              <Input
                 id="register-password"
                 type="password"
                 aria-describedby="register-password-hint"
                 value={password}
-                onChange={event => setPassword(event.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="At least 12 characters"
                 required
               />
               {/* Keep guidance visible while typing; the server enforces the password policy. */}
-              <p id="register-password-hint" className={`${muted} m-0 text-sm`}>
+              <Muted id="register-password-hint" className={`m-0 text-sm`}>
                 Use at least 12 characters. Very common passwords are refused.
-              </p>
-            </div>
+              </Muted>
+            </Field>
 
-            <div className={field}>
-              <label className={fieldLabel} htmlFor="confirm-password">Confirm password</label>
-              <input
-                className={input}
+            <Field>
+              <Label htmlFor="confirm-password">Confirm password</Label>
+              <Input
                 id="confirm-password"
                 type="password"
                 value={confirm}
-                onChange={event => setConfirm(event.target.value)}
+                onChange={(event) => setConfirm(event.target.value)}
                 placeholder="Repeat password"
                 required
               />
-            </div>
+            </Field>
 
-            <button type="submit" className={button.fullPrimary} disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              variant="primary"
+              disabled={loading}
+            >
               {loading ? 'Creating account' : 'Create account'}
-            </button>
-          </form>
+            </Button>
+          </FormStack>
         )}
 
-        <p className="mt-[22px] text-center text-[#38516f] [&_a]:font-extrabold [&_a]:text-[#071936]">
+        <AuthFooter>
           Already registered? <Link to="/login">Sign in</Link>
-        </p>
-      </section>
-    </main>
+        </AuthFooter>
+      </AuthCard>
+    </AuthPage>
   );
 }

@@ -1,1 +1,64 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/* Brand values are owned here; components refer to their purpose. */
+@theme {
+  --color-surface: #f8f1e6;
+  --color-surface-raised: rgba(255, 250, 241, 0.38);
+  --color-surface-solid: #fffaf1;
+  --color-ink: #071936;
+  --color-ink-muted: #38516f;
+  --color-line: rgba(7, 25, 54, 0.14);
+  --color-accent: #e8e0d2;
+  --color-danger: #b42318;
+  --color-success: #17683a;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --radius-panel: 28px;
+  --radius-row: 18px;
+  --radius-control: 16px;
+  --radius-pill: 9999px;
+  --shadow-panel: 0 12px 36px rgba(7, 25, 54, 0.06);
+  --shadow-action: 0 8px 20px rgba(7, 25, 54, 0.14);
+  --shadow-dialog: 0 28px 90px rgba(7, 25, 54, 0.28);
+  --shadow-popover: 0 18px 46px rgba(7, 25, 54, 0.18);
+  --default-transition-duration: 160ms;
+}
+
+:root {
+  --duration-interaction: 160ms;
+  --duration-navigation: 200ms;
+}
+
+@layer base {
+  body {
+    margin: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+  dialog :focus-visible {
+    scroll-margin-block: 1rem;
+  }
+}
+
+@layer components {
+  .app-surface {
+    background:
+      radial-gradient(
+        ellipse at top left,
+        color-mix(in srgb, var(--color-accent) 38%, transparent),
+        transparent 40rem
+      ),
+      var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
