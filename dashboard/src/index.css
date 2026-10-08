@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../../design/palette.css';
 
 /* Self-hosted latin and latin-ext subsets; provenance and licenses: docs/fonts.md. */
 /* inter-latin-ext-wght-normal */
@@ -59,32 +60,6 @@
   font-weight: 400;
   src: url('./assets/fonts/instrument-serif/instrument-serif-latin-400-italic.woff2') format('woff2');
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
-}
-
-/* Brand values are owned here; components refer to their purpose. */
-@theme {
-  --color-surface: #f8f1e6;
-  --color-surface-raised: rgba(255, 250, 241, 0.38);
-  --color-surface-solid: #fffaf1;
-  --color-ink: #071936;
-  --color-ink-muted: #38516f;
-  /* Decorative structure and interactive control borders have separate roles. */
-  --color-line: rgba(7, 25, 54, 0.14);
-  --color-control: rgba(7, 25, 54, 0.5);
-  --color-accent: #e8e0d2;
-  --color-danger: #b42318;
-  --color-success: #17683a;
-  --font-display: 'Instrument Serif', Georgia, serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --radius-panel: 28px;
-  --radius-row: 18px;
-  --radius-control: 16px;
-  --radius-pill: 9999px;
-  --shadow-panel: 0 12px 36px rgba(7, 25, 54, 0.06);
-  --shadow-action: 0 8px 20px rgba(7, 25, 54, 0.14);
-  --shadow-dialog: 0 28px 90px rgba(7, 25, 54, 0.28);
-  --shadow-popover: 0 18px 46px rgba(7, 25, 54, 0.18);
-  --default-transition-duration: 160ms;
 }
 
 :root {
