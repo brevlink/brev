@@ -3,7 +3,8 @@ import { getApiKeys, getBillingStatus } from '../api/client';
 import ApiKeyPanel from '../components/ApiKeyPanel';
 import BillingPanel from '../components/BillingPanel';
 import RequestState from '../components/RequestState';
-import { Muted, PageHeader, Panel, PanelTitle } from '../components/ui';
+import { Muted, PageHeader, Panel } from '../components/ui';
+import AccountSettings from '../components/AccountSettings';
 import useResource from '../hooks/useResource';
 
 export default function AccountPage() {
@@ -40,12 +41,7 @@ export default function AccountPage() {
             onChange={(items) => keys.update({ items })}
           />
         </RequestState>
-        <Panel aria-label="Future account settings">
-          <PanelTitle>Account settings.</PanelTitle>
-          <Muted className="m-0">
-            Account settings will be available here in a future update.
-          </Muted>
-        </Panel>
+        {account.status === 'ready' && <AccountSettings user={user} />}
       </div>
     </>
   );
