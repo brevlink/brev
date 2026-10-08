@@ -1,6 +1,18 @@
+import {
+  Alert,
+  Brand,
+  Button,
+  Eyebrow,
+  Field,
+  FormStack,
+  Input,
+  Label,
+  Muted,
+  Panel,
+  PanelTitle,
+} from '../components/ui';
 import { useState } from 'react';
 import { submitReport } from '../api/client';
-import { alert, brand, button, eyebrow, field, fieldLabel, formStack, input, muted, panel, panelTitle } from '../styles/ui';
 
 export default function Report() {
   const [shortUrl, setShortUrl] = useState('');
@@ -15,7 +27,11 @@ export default function Report() {
     setBusy(true);
     setError('');
     try {
-      await submitReport({ short_url: shortUrl.trim(), reason: reason.trim(), reporter_email: email.trim() || null });
+      await submitReport({
+        short_url: shortUrl.trim(),
+        reason: reason.trim(),
+        reporter_email: email.trim() || null,
+      });
       setSubmitted(true);
     } catch (err) {
       setError(err.message);
@@ -26,35 +42,73 @@ export default function Report() {
 
   return (
     <main className="mx-auto grid min-h-screen w-[min(100%-32px,560px)] content-center py-10">
-      <section className={panel}>
-        <a href="/" className={brand}>Brev</a>
-        <p className={eyebrow}>Abuse and support</p>
-        <h1 className={panelTitle}>Report a link.</h1>
+      <Panel>
+        <Brand href="/">Brev</Brand>
+        <Eyebrow>Abuse and support</Eyebrow>
+        <PanelTitle as="h1">Report a link.</PanelTitle>
         {submitted ? (
-          <p role="status" className={muted}>Thank you. Your report has been submitted for review.</p>
+          <Muted role="status">
+            Thank you. Your report has been submitted for review.
+          </Muted>
         ) : (
           <>
-            <p className={muted}>Tell us about a harmful link or a problem you encountered. No account is needed. You can report a link even if it no longer works.</p>
-            <form className={formStack} onSubmit={handleSubmit}>
-              {error && <p role="alert" className={alert}>{error}</p>}
-              <div className={field}>
-                <label className={fieldLabel} htmlFor="short-url">Short URL or slug</label>
-                <input id="short-url" className={input} required maxLength={2048} value={shortUrl} onChange={event => setShortUrl(event.target.value)} placeholder="https://brevl.ink/example" />
-                <span className={muted}>For a custom domain, paste the full short URL.</span>
-              </div>
-              <div className={field}>
-                <label className={fieldLabel} htmlFor="reason">What happened?</label>
-                <textarea id="reason" className={`${input} py-3`} required maxLength={2000} rows={4} value={reason} onChange={event => setReason(event.target.value)} />
-              </div>
-              <div className={field}>
-                <label className={fieldLabel} htmlFor="reporter-email">Email for a reply (optional)</label>
-                <input id="reporter-email" className={input} type="email" maxLength={320} value={email} onChange={event => setEmail(event.target.value)} />
-              </div>
-              <button className={button.primary} disabled={busy}>{busy ? 'Submitting…' : 'Submit report'}</button>
-            </form>
+            <Muted>
+              Tell us about a harmful link or a problem you encountered. No
+              account is needed. You can report a link even if it no longer
+              works.
+            </Muted>
+            <FormStack onSubmit={handleSubmit}>
+              {error && (
+                <Alert role="alert" as="p">
+                  {error}
+                </Alert>
+              )}
+              <Field>
+                <Label htmlFor="short-url">Short URL or slug</Label>
+                <Input
+                  id="short-url"
+                  required
+                  maxLength={2048}
+                  value={shortUrl}
+                  onChange={(event) => setShortUrl(event.target.value)}
+                  placeholder="https://brevl.ink/example"
+                />
+                <Muted as="span">
+                  For a custom domain, paste the full short URL.
+                </Muted>
+              </Field>
+              <Field>
+                <Label htmlFor="reason">What happened?</Label>
+                <Input
+                  id="reason"
+                  className={`py-3`}
+                  as="textarea"
+                  required
+                  maxLength={2000}
+                  rows={4}
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="reporter-email">
+                  Email for a reply (optional)
+                </Label>
+                <Input
+                  id="reporter-email"
+                  type="email"
+                  maxLength={320}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </Field>
+              <Button variant="primary" disabled={busy}>
+                {busy ? 'Submitting…' : 'Submit report'}
+              </Button>
+            </FormStack>
           </>
         )}
-      </section>
+      </Panel>
     </main>
   );
 }

@@ -2,6 +2,10 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
 import Dashboard from './pages/Dashboard';
+import DashboardRedirect from './pages/DashboardRedirect';
+import LinksPage from './pages/LinksPage';
+import DomainsPage from './pages/DomainsPage';
+import AccountPage from './pages/AccountPage';
 import InviteAccept from './pages/InviteAccept';
 import Login from './pages/Login';
 import Report from './pages/Report';
@@ -16,7 +20,7 @@ function routerBaseName() {
 export default function App() {
   return (
     <BrowserRouter basename={routerBaseName()}>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(217,197,165,0.7),transparent_34rem),linear-gradient(135deg,#f8f1e6_0%,#efe6d4_54%,#e3d2b7_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-[#071936] antialiased">
+      <div className="app-surface min-h-screen font-sans text-ink antialiased">
         <Routes>
           <Route path="/report" element={<Report />} />
           <Route path="/login" element={<Login />} />
@@ -36,7 +40,13 @@ export default function App() {
                 <Dashboard />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<DashboardRedirect />} />
+            <Route path="links" element={<LinksPage />} />
+            <Route path="domains" element={<DomainsPage />} />
+            <Route path="account" element={<AccountPage />} />
+            <Route path="*" element={<DashboardRedirect />} />
+          </Route>
           <Route
             path="/admin"
             element={

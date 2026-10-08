@@ -1,3 +1,25 @@
+import {
+  Alert,
+  Button,
+  DataList,
+  DataRow,
+  DataText,
+  DetailPanel,
+  DnsEntry,
+  DnsRecord,
+  DnsTitle,
+  DnsValue,
+  Eyebrow,
+  InlineForm,
+  Input,
+  Label,
+  Muted,
+  Panel,
+  PanelHead,
+  PanelTitle,
+  RowActions,
+  StatusBadge,
+} from './ui';
 import { useState } from 'react';
 import {
   createDomain,
@@ -8,36 +30,8 @@ import {
   removeDomainMember,
   verifyDomain,
 } from '../api/client';
-import {
-  alert,
-  button,
-  dataList,
-  dataText,
-  eyebrow,
-  inlineForm,
-  input,
-  muted,
-  panel,
-  panelTitle,
-  srOnly,
-  status,
-} from '../styles/ui';
-import { domainPublishingIssue } from '../utils/domains';
 
-const domainItem =
-  'grid min-w-0 gap-4 rounded-[18px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.38)] p-4';
-const domainHeader =
-  'grid min-w-0 items-start gap-4 [grid-template-columns:minmax(0,1fr)_auto] max-[720px]:grid-cols-1';
-const domainActions =
-  'flex min-w-max flex-wrap content-start justify-start gap-2 max-[720px]:min-w-0 max-[720px]:w-full';
-const dnsRecord =
-  'grid min-w-0 gap-2.5 rounded-xl border border-[rgba(7,25,54,0.12)] bg-[rgba(248,241,230,0.68)] p-3';
-const dnsLabel = 'text-[0.78rem] font-extrabold text-[#38516f]';
-const dnsValue =
-  'm-0 max-w-full min-w-0 overflow-x-auto whitespace-nowrap rounded-[10px] border border-[rgba(7,25,54,0.1)] bg-[rgba(255,250,241,0.62)] px-2.5 py-2 font-["JetBrains_Mono",ui-monospace,monospace] text-[0.82rem] text-[#071936] [overflow-wrap:normal]';
-const shareForm = 'grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 max-[720px]:grid-cols-1';
-const memberRow =
-  'flex min-w-0 flex-wrap items-center justify-between gap-2.5 rounded-xl border border-[rgba(7,25,54,0.12)] bg-[rgba(255,250,241,0.62)] px-3 py-2.5';
+import { domainPublishingIssue } from '../utils/domains';
 
 function memberStatus(member) {
   if (member.status === 'active') return 'Can use it';
@@ -59,12 +53,24 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
 
   async function loadMembers(domainId) {
     // Unknown sharing is different from a successfully loaded empty member list.
-    setMembers(current => ({ ...current, [domainId]: { status: 'loading' } }));
+    setMembers((current) => ({
+      ...current,
+      [domainId]: { status: 'loading' },
+    }));
     try {
       const data = await getDomainMembers(domainId);
-      setMembers(current => ({ ...current, [domainId]: { status: 'ready', items: data.items || [] } }));
+      setMembers((current) => ({
+        ...current,
+        [domainId]: { status: 'ready', items: data.items || [] },
+      }));
     } catch (err) {
-      setMembers(current => ({ ...current, [domainId]: { status: 'error', error: err.message || 'Please try again.' } }));
+      setMembers((current) => ({
+        ...current,
+        [domainId]: {
+          status: 'error',
+          error: err.message || 'Please try again.',
+        },
+      }));
     }
   }
 
@@ -99,7 +105,11 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
     setCheckingDomainId(item.id);
     try {
       const verified = await verifyDomain(item.id);
-      onChange(domains.map(domainItem => (domainItem.id === item.id ? verified : domainItem)));
+      onChange(
+        domains.map((domainItem) =>
+          domainItem.id === item.id ? verified : domainItem,
+        ),
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -114,13 +124,16 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
     try {
       // Fetch at confirmation time: the browser cannot count members' links.
       const impact = await getDomainDeletionImpact(item.id);
-      if (!window.confirm(
-        `Remove ${item.domain}? This will permanently delete ${impact.total_links} links, ` +
-        `including ${impact.other_users_links} links belonging to other people. ` +
-        'These links will stop working and will not move to the default domain. This cannot be undone.',
-      )) return;
+      if (
+        !window.confirm(
+          `Remove ${item.domain}? This will permanently delete ${impact.total_links} links, ` +
+            `including ${impact.other_users_links} links belonging to other people. ` +
+            'These links will stop working and will not move to the default domain. This cannot be undone.',
+        )
+      )
+        return;
       await deleteDomain(item.id);
-      onChange(domains.filter(domainItem => domainItem.id !== item.id));
+      onChange(domains.filter((domainItem) => domainItem.id !== item.id));
       await onDeleted?.(item.id);
     } catch (err) {
       setError(err.message);
@@ -145,7 +158,8 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
   }
 
   async function handleRemoveMember(item, member) {
-    if (!window.confirm(`Stop sharing ${item.domain} with ${member.email}?`)) return;
+    if (!window.confirm(`Stop sharing ${item.domain} with ${member.email}?`))
+      return;
     setInviteError('');
     try {
       await removeDomainMember(item.id, member.id);
@@ -156,196 +170,257 @@ export default function DomainPanel({ domains, onChange, onDeleted }) {
   }
 
   return (
-    <section className={panel}>
+    <Panel>
       <div>
-        <p className={eyebrow}>Domains</p>
-        <h2 className={panelTitle}>Custom domains.</h2>
+        <Eyebrow>Domains</Eyebrow>
+        <PanelTitle>Your domains.</PanelTitle>
       </div>
 
-      <form className={inlineForm} onSubmit={handleCreate}>
-        <label htmlFor="custom-domain" className={srOnly}>Custom domain</label>
-        <input
-          className={input}
+      <InlineForm onSubmit={handleCreate}>
+        <Label htmlFor="custom-domain" className="col-span-full">
+          Custom domain
+        </Label>
+        <Input
           id="custom-domain"
           type="text"
           value={domain}
-          onChange={event => setDomain(event.target.value)}
+          onChange={(event) => setDomain(event.target.value)}
           placeholder="go.example.com"
           required
         />
-        <button type="submit" className={button.primary} disabled={loading}>
+        <Button type="submit" variant="primary" disabled={loading}>
           Add
-        </button>
-      </form>
+        </Button>
+      </InlineForm>
 
-      {error && <div className={alert}>{error}</div>}
+      {error && <Alert>{error}</Alert>}
 
-      <div className={dataList}>
-        {domains.map(item => {
+      <DataList>
+        {domains.map((item) => {
           const shared = item.role === 'member';
           return (
-            <article key={item.id} className={domainItem}>
-              <div className={domainHeader}>
+            <DataRow key={item.id} stacked>
+              <PanelHead>
                 <div className="min-w-0">
                   <button
                     type="button"
-                    className="block w-full max-w-full cursor-pointer border-0 bg-transparent p-0 text-left [font:inherit] font-extrabold text-[#071936] underline decoration-[rgba(7,25,54,0.28)] decoration-1 underline-offset-4 [overflow-wrap:anywhere]"
+                    className="block w-full max-w-full cursor-pointer border-0 bg-transparent p-0 text-left [font:inherit] font-extrabold text-ink underline decoration-ink/28 decoration-1 underline-offset-4 [overflow-wrap:anywhere]"
                     aria-expanded={openDomainId === item.id}
                     onClick={() => handleToggle(item)}
                   >
                     {item.domain}
                   </button>
-                  <p className={dataText}>
+                  <DataText>
                     {shared
                       ? `Shared with you by ${item.owner_email || 'the owner'}. Click to see what you can do.`
                       : 'Click the domain to view the DNS records to create.'}
-                  </p>
+                  </DataText>
                 </div>
-                <div className={domainActions}>
-                  <span className={item.is_verified ? status.good : status.base}>
+                <RowActions align="start">
+                  <StatusBadge tone={item.is_verified ? 'success' : 'neutral'}>
                     {item.is_verified ? 'TXT verified' : 'TXT pending'}
-                  </span>
+                  </StatusBadge>
                   {item.cloudflare_status != null && (
-                    <span className={item.cloudflare_status === 'active' ? status.good : status.base}>
-                      {item.cloudflare_status === 'active' ? 'Certificate active' : 'Certificate pending'}
-                    </span>
+                    <StatusBadge
+                      tone={
+                        item.cloudflare_status === 'active'
+                          ? 'success'
+                          : 'neutral'
+                      }
+                    >
+                      {item.cloudflare_status === 'active'
+                        ? 'Certificate active'
+                        : 'Certificate pending'}
+                    </StatusBadge>
                   )}
                   {!shared && (
-                    <button type="button" className={button.compactSecondary} disabled={busyDomainId !== null} onClick={() => handleVerify(item)}>
-                      {checkingDomainId === item.id ? 'Checking' : item.is_verified ? 'Check status' : 'Verify'}
-                    </button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={busyDomainId !== null}
+                      onClick={() => handleVerify(item)}
+                    >
+                      {checkingDomainId === item.id
+                        ? 'Checking'
+                        : item.is_verified
+                          ? 'Check status'
+                          : 'Verify'}
+                    </Button>
                   )}
                   {!shared && (
-                    <button type="button" className={button.compactDanger} disabled={busyDomainId !== null} onClick={() => handleDelete(item)}>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      disabled={busyDomainId !== null}
+                      onClick={() => handleDelete(item)}
+                    >
                       Remove
-                    </button>
+                    </Button>
                   )}
-                </div>
-              </div>
+                </RowActions>
+              </PanelHead>
 
               {openDomainId === item.id && shared && (
-                <div className="grid min-w-0 max-w-full gap-3 overflow-hidden rounded-[14px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.5)] p-3.5">
-                  <p className={`${dataText} m-0`}>
+                <DetailPanel>
+                  <DataText className={`m-0`}>
                     {domainPublishingIssue(item)
                       ? `${domainPublishingIssue(item)} Ask the owner to check status before publishing.`
-                      : `You can publish links on ${item.domain}.`}
-                    {' '}The DNS records and certificate are managed by the owner.
-                  </p>
-                  <p className={`${dataText} m-0`}>
-                    Only the owner can remove this domain or decide who else uses it. If you no
-                    longer need it, ask them to take you off.
-                  </p>
-                </div>
+                      : `You can publish links on ${item.domain}.`}{' '}
+                    The DNS records and certificate are managed by the owner.
+                  </DataText>
+                  <DataText className={`m-0`}>
+                    Only the owner can remove this domain or decide who else
+                    uses it. If you no longer need it, ask them to take you off.
+                  </DataText>
+                </DetailPanel>
               )}
 
               {openDomainId === item.id && !shared && (
-                <div className="grid min-w-0 max-w-full gap-3 overflow-hidden rounded-[14px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.5)] p-3.5">
-                  <p className={`${dataText} m-0`}>In your DNS provider, create these records for {item.domain}.</p>
-                  <p className={`${dataText} m-0`}>
-                    Both are needed: the TXT record proves the domain is yours, the CNAME points the
-                    domain at Brev. Changes can take a few minutes to propagate before verification
-                    succeeds.
-                  </p>
+                <DetailPanel>
+                  <DataText className={`m-0`}>
+                    In your DNS provider, create these records for {item.domain}
+                    .
+                  </DataText>
+                  <DataText className={`m-0`}>
+                    Both are needed: the TXT record proves the domain is yours,
+                    the CNAME points the domain at Brev. Changes can take a few
+                    minutes to propagate before verification succeeds.
+                  </DataText>
                   {item.cloudflare_status != null && (
-                    <p className={`${dataText} m-0`}>
-                      TXT verification proves ownership. Publishing also requires an active certificate.
-                      If the certificate is pending, confirm the CNAME target and use Check status again.
-                    </p>
+                    <DataText className={`m-0`}>
+                      TXT verification proves ownership. Publishing also
+                      requires an active certificate. If the certificate is
+                      pending, confirm the CNAME target and use Check status
+                      again.
+                    </DataText>
                   )}
                   <div className="grid min-w-0 gap-2.5">
-                    <section className={dnsRecord}>
-                      <h3 className="m-0 text-[0.82rem] font-black text-[#071936]">TXT verification</h3>
+                    <DnsRecord>
+                      <DnsTitle>TXT verification</DnsTitle>
                       <dl className="m-0 grid gap-2">
-                        <div className="grid min-w-0 items-start gap-1">
-                          <dt className={dnsLabel}>Type</dt>
-                          <dd className={dnsValue}>TXT</dd>
-                        </div>
-                        <div className="grid min-w-0 items-start gap-1">
-                          <dt className={dnsLabel}>Name / Host</dt>
-                          <dd className={dnsValue}>{item.verification_dns_name}</dd>
-                        </div>
-                        <div className="grid min-w-0 items-start gap-1">
-                          <dt className={dnsLabel}>Value</dt>
-                          <dd className={dnsValue}>{item.verification_token}</dd>
-                        </div>
+                        <DnsEntry>
+                          <Label as="dt">Type</Label>
+                          <DnsValue>TXT</DnsValue>
+                        </DnsEntry>
+                        <DnsEntry>
+                          <Label as="dt">Name / Host</Label>
+                          <DnsValue>{item.verification_dns_name}</DnsValue>
+                        </DnsEntry>
+                        <DnsEntry>
+                          <Label as="dt">Value</Label>
+                          <DnsValue>{item.verification_token}</DnsValue>
+                        </DnsEntry>
                       </dl>
-                    </section>
-                    <section className={`${dnsRecord} [border-top-color:rgba(7,25,54,0.24)]`}>
-                      <h3 className="m-0 text-[0.82rem] font-black text-[#071936]">CNAME redirect</h3>
+                    </DnsRecord>
+                    <DnsRecord className="border-t-ink/25">
+                      <DnsTitle>CNAME redirect</DnsTitle>
                       <dl className="m-0 grid gap-2">
-                        <div className="grid min-w-0 items-start gap-1">
-                          <dt className={dnsLabel}>Type</dt>
-                          <dd className={dnsValue}>CNAME</dd>
-                        </div>
-                        <div className="grid min-w-0 items-start gap-1">
-                          <dt className={dnsLabel}>Name / Host</dt>
-                          <dd className={dnsValue}>{item.domain}</dd>
-                        </div>
-                        <div className="grid min-w-0 items-start gap-1">
-                          <dt className={dnsLabel}>Target / Points to</dt>
-                          <dd className={dnsValue}>{item.cname_target}</dd>
-                        </div>
+                        <DnsEntry>
+                          <Label as="dt">Type</Label>
+                          <DnsValue>CNAME</DnsValue>
+                        </DnsEntry>
+                        <DnsEntry>
+                          <Label as="dt">Name / Host</Label>
+                          <DnsValue>{item.domain}</DnsValue>
+                        </DnsEntry>
+                        <DnsEntry>
+                          <Label as="dt">Target / Points to</Label>
+                          <DnsValue>{item.cname_target}</DnsValue>
+                        </DnsEntry>
                       </dl>
-                    </section>
-                    <section className={`${dnsRecord} [border-top-color:rgba(7,25,54,0.24)]`}>
-                      <h3 className="m-0 text-[0.82rem] font-black text-[#071936]">People</h3>
-                      <p className={`${dataText} m-0`}>
-                        Invite someone to publish links on this domain. They can be invited before
-                        they have an account: the invitation is addressed to their email.
-                      </p>
-                      <form className={shareForm} onSubmit={event => handleInvite(event, item)}>
-                        <label htmlFor={`invite-${item.id}`} className={srOnly}>Email to invite</label>
-                        <input
-                          className={input}
+                    </DnsRecord>
+                    <DnsRecord className="border-t-ink/25">
+                      <DnsTitle>People</DnsTitle>
+                      <DataText className={`m-0`}>
+                        Invite someone to publish links on this domain. They can
+                        be invited before they have an account: the invitation
+                        is addressed to their email.
+                      </DataText>
+                      <InlineForm
+                        onSubmit={(event) => handleInvite(event, item)}
+                      >
+                        <Label
+                          htmlFor={`invite-${item.id}`}
+                          className="col-span-full"
+                        >
+                          Email to invite
+                        </Label>
+                        <Input
                           id={`invite-${item.id}`}
                           type="email"
                           value={inviteEmail}
-                          onChange={event => setInviteEmail(event.target.value)}
+                          onChange={(event) =>
+                            setInviteEmail(event.target.value)
+                          }
                           placeholder="brother@example.com"
                           required
                         />
-                        <button type="submit" className={button.compactSecondary} disabled={inviting}>
+                        <Button
+                          type="submit"
+                          variant="secondary"
+                          size="sm"
+                          disabled={inviting}
+                        >
                           {inviting ? 'Sending' : 'Invite'}
-                        </button>
-                      </form>
-                      {inviteError && <div className={alert}>{inviteError}</div>}
-                      {!members[item.id] || members[item.id].status === 'loading' ? (
-                        <p className={`${dataText} m-0`} role="status">Loading people…</p>
+                        </Button>
+                      </InlineForm>
+                      {inviteError && <Alert>{inviteError}</Alert>}
+                      {!members[item.id] ||
+                      members[item.id].status === 'loading' ? (
+                        <DataText className={`m-0`} role="status">
+                          Loading people…
+                        </DataText>
                       ) : members[item.id].status === 'error' ? (
-                        <div className={alert} role="alert">
+                        <Alert role="alert">
                           <p>Could not load people: {members[item.id].error}</p>
-                          <button type="button" className={button.compactSecondary} onClick={() => loadMembers(item.id)}>Retry</button>
-                        </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => loadMembers(item.id)}
+                          >
+                            Retry
+                          </Button>
+                        </Alert>
                       ) : members[item.id].items.length === 0 ? (
-                        <p className={`${dataText} m-0`}>Not shared with anyone yet.</p>
+                        <DataText className={`m-0`}>
+                          Not shared with anyone yet.
+                        </DataText>
                       ) : (
                         <div className="grid gap-2">
-                          {members[item.id].items.map(member => (
-                            <div key={member.id} className={memberRow}>
+                          {members[item.id].items.map((member) => (
+                            <DataRow key={member.id} as="div">
                               <div className="min-w-0">
-                                <span className="block font-extrabold [overflow-wrap:anywhere]">{member.email}</span>
-                                <span className="text-[0.8rem] text-[#38516f]">{memberStatus(member)}</span>
+                                <span className="block font-extrabold [overflow-wrap:anywhere]">
+                                  {member.email}
+                                </span>
+                                <span className="text-[0.8rem] text-ink-muted">
+                                  {memberStatus(member)}
+                                </span>
                               </div>
-                              <button
+                              <Button
                                 type="button"
-                                className={button.compactDanger}
+                                variant="danger"
+                                size="sm"
                                 onClick={() => handleRemoveMember(item, member)}
                               >
                                 Remove
-                              </button>
-                            </div>
+                              </Button>
+                            </DataRow>
                           ))}
                         </div>
                       )}
-                    </section>
+                    </DnsRecord>
                   </div>
-                </div>
+                </DetailPanel>
               )}
-            </article>
+            </DataRow>
           );
         })}
-        {domains.length === 0 && <p className={muted}>No custom domains yet.</p>}
-      </div>
-    </section>
+        {domains.length === 0 && <Muted>No custom domains yet.</Muted>}
+      </DataList>
+    </Panel>
   );
 }

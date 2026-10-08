@@ -1,3 +1,18 @@
+import {
+  Alert,
+  AuthCard,
+  AuthFooter,
+  AuthPage,
+  Brand,
+  BrandLogo,
+  Button,
+  Eyebrow,
+  Field,
+  FormStack,
+  Input,
+  Label,
+  Muted,
+} from '../components/ui';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -5,7 +20,7 @@ import {
   fetchPasswordResetLink,
   requestPasswordReset,
 } from '../api/client';
-import { alert, brand, button, eyebrow, field, fieldLabel, formStack, input, muted, serif } from '../styles/ui';
+
 import { tokenFromFragment } from '../lib/links';
 
 export default function ResetPassword() {
@@ -32,7 +47,9 @@ export default function ResetPassword() {
           setPhase('confirm');
         } else {
           setPhase('expired');
-          setDetail(link.expires_at ? new Date(link.expires_at).toLocaleString() : '');
+          setDetail(
+            link.expires_at ? new Date(link.expires_at).toLocaleString() : '',
+          );
         }
       } catch (err) {
         if (!cancelled) {
@@ -97,95 +114,105 @@ export default function ResetPassword() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center p-6">
-      <section className="w-[min(100%,440px)] rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.58)] p-[34px] shadow-[0_28px_90px_rgba(7,25,54,0.16)]">
-        <a href="/" className={`${brand} mb-[34px]`} aria-label="Brev home">
-          <img className="size-11 shrink-0 object-contain" src="/brev_logo.webp" alt="" />
+    <AuthPage>
+      <AuthCard>
+        <Brand href="/" className={`mb-[34px]`} aria-label="Brev home">
+          <BrandLogo src={`${import.meta.env.BASE_URL}brev_logo.webp`} alt="" />
           <span>Brev</span>
-        </a>
-        <p className={eyebrow}>Account</p>
-        <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}>
+        </Brand>
+        <Eyebrow>Account</Eyebrow>
+        <h1
+          className={`font-display m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}
+        >
           {headings[phase]}
         </h1>
 
-        {phase === 'checking' && <p className={muted}>Checking your reset link.</p>}
+        {phase === 'checking' && <Muted>Checking your reset link.</Muted>}
         {phase === 'requested' && (
-          <p className={muted}>
-            If an account exists for that address, a reset link is on its way. It expires in 30
-            minutes.
-          </p>
+          <Muted>
+            If an account exists for that address, a reset link is on its way.
+            It expires in 30 minutes.
+          </Muted>
         )}
-        {phase === 'changed' && <p className={muted}>Redirecting to sign in.</p>}
+        {phase === 'changed' && <Muted>Redirecting to sign in.</Muted>}
         {phase === 'expired' && (
-          <p className={muted}>
-            {detail || 'This reset link is no longer valid.'} Ask for a new one below.
-          </p>
+          <Muted>
+            {detail || 'This reset link is no longer valid.'} Ask for a new one
+            below.
+          </Muted>
         )}
-        {phase === 'error' && <div className={alert}>{detail}</div>}
+        {phase === 'error' && <Alert>{detail}</Alert>}
 
         {(phase === 'request' || phase === 'expired') && (
-          <form onSubmit={handleRequest} className={formStack}>
-            {error && <div className={alert}>{error}</div>}
-            <div className={field}>
-              <label className={fieldLabel} htmlFor="reset-email">Email</label>
-              <input
-                className={input}
+          <FormStack onSubmit={handleRequest}>
+            {error && <Alert>{error}</Alert>}
+            <Field>
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
                 id="reset-email"
                 type="email"
                 value={email}
-                onChange={event => setEmail(event.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
                 required
               />
-            </div>
-            <button type="submit" className={button.fullPrimary} disabled={loading}>
+            </Field>
+            <Button
+              type="submit"
+              className="w-full"
+              variant="primary"
+              disabled={loading}
+            >
               {loading ? 'Sending' : 'Send reset link'}
-            </button>
-          </form>
+            </Button>
+          </FormStack>
         )}
 
         {phase === 'confirm' && (
-          <form onSubmit={handleConfirm} className={formStack}>
-            {error && <div className={alert}>{error}</div>}
-            <div className={field}>
-              <label className={fieldLabel} htmlFor="reset-password">New password</label>
-              <input
-                className={input}
+          <FormStack onSubmit={handleConfirm}>
+            {error && <Alert>{error}</Alert>}
+            <Field>
+              <Label htmlFor="reset-password">New password</Label>
+              <Input
                 id="reset-password"
                 type="password"
                 aria-describedby="reset-password-hint"
                 value={password}
-                onChange={event => setPassword(event.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="At least 12 characters"
                 required
               />
               {/* Keep guidance visible while typing; the server enforces the password policy. */}
-              <p id="reset-password-hint" className={`${muted} m-0 text-sm`}>
+              <Muted id="reset-password-hint" className={`m-0 text-sm`}>
                 Use at least 12 characters. Very common passwords are refused.
-              </p>
-            </div>
-            <div className={field}>
-              <label className={fieldLabel} htmlFor="reset-confirm">Confirm password</label>
-              <input
-                className={input}
+              </Muted>
+            </Field>
+            <Field>
+              <Label htmlFor="reset-confirm">Confirm password</Label>
+              <Input
                 id="reset-confirm"
                 type="password"
                 value={confirm}
-                onChange={event => setConfirm(event.target.value)}
+                onChange={(event) => setConfirm(event.target.value)}
                 placeholder="Repeat password"
                 required
               />
-            </div>
-            <button type="submit" className={button.fullPrimary} disabled={loading}>
+            </Field>
+            <Button
+              type="submit"
+              className="w-full"
+              variant="primary"
+              disabled={loading}
+            >
               {loading ? 'Saving' : 'Set new password'}
-            </button>
-          </form>
+            </Button>
+          </FormStack>
         )}
 
-        <p className="mt-[22px] text-center text-[#38516f] [&_a]:font-extrabold [&_a]:text-[#071936]">
+        <AuthFooter>
           <Link to="/login">Back to sign in</Link>
-        </p>
-      </section>
-    </main>
+        </AuthFooter>
+      </AuthCard>
+    </AuthPage>
   );
 }

@@ -1,22 +1,25 @@
+import {
+  Alert,
+  Button,
+  DataList,
+  DataRow,
+  DataText,
+  DataTitle,
+  Eyebrow,
+  InlineForm,
+  Input,
+  Label,
+  MonoValue,
+  Muted,
+  Note,
+  Panel,
+  PanelTitle,
+  ResultCard,
+  RowActions,
+  StatusBadge,
+} from './ui';
 import { useRef, useState } from 'react';
 import { createApiKey, revokeApiKey } from '../api/client';
-import {
-  alert,
-  button,
-  dataList,
-  dataRow,
-  dataText,
-  dataTitle,
-  eyebrow,
-  inlineForm,
-  input,
-  muted,
-  panel,
-  panelTitle,
-  rowActions,
-  srOnly,
-  status,
-} from '../styles/ui';
 
 export default function ApiKeyPanel({ apiKeys, onChange }) {
   const [name, setName] = useState('CLI');
@@ -40,7 +43,9 @@ export default function ApiKeyPanel({ apiKeys, onChange }) {
       setCreatedToken(created.token);
       onChange([created, ...apiKeys]);
     } catch (err) {
-      setError(err.message || 'Could not create the API key. Please try again.');
+      setError(
+        err.message || 'Could not create the API key. Please try again.',
+      );
     } finally {
       actionRef.current = false;
       setPending('');
@@ -57,10 +62,16 @@ export default function ApiKeyPanel({ apiKeys, onChange }) {
     setMessage('');
     try {
       await revokeApiKey(item.id);
-      onChange(apiKeys.map(key => (key.id === item.id ? { ...key, is_active: false } : key)));
+      onChange(
+        apiKeys.map((key) =>
+          key.id === item.id ? { ...key, is_active: false } : key,
+        ),
+      );
       setMessage(`${item.name} revoked.`);
     } catch (err) {
-      setError(err.message || 'Could not revoke the API key. Please try again.');
+      setError(
+        err.message || 'Could not revoke the API key. Please try again.',
+      );
     } finally {
       actionRef.current = false;
       setPending('');
@@ -77,7 +88,9 @@ export default function ApiKeyPanel({ apiKeys, onChange }) {
       await navigator.clipboard.writeText(createdToken);
       setMessage('API key copied.');
     } catch {
-      setError('Could not copy the API key. Select the token and copy it manually.');
+      setError(
+        'Could not copy the API key. Select the token and copy it manually.',
+      );
     } finally {
       copyRef.current = false;
       setCopying(false);
@@ -85,64 +98,109 @@ export default function ApiKeyPanel({ apiKeys, onChange }) {
   }
 
   return (
-    <section className={panel}>
+    <Panel>
       <div>
         <div>
-          <p className={eyebrow}>CLI</p>
-          <h2 className={panelTitle}>API keys.</h2>
+          <Eyebrow>CLI</Eyebrow>
+          <PanelTitle>API keys.</PanelTitle>
         </div>
       </div>
 
-      <form className={inlineForm} onSubmit={handleCreate}>
-        <label htmlFor="api-key-name" className={srOnly}>API key name</label>
-        <input
-          className={input}
+      <InlineForm onSubmit={handleCreate}>
+        <Label htmlFor="api-key-name" className="col-span-full">
+          API key name
+        </Label>
+        <Input
           id="api-key-name"
           type="text"
           value={name}
-          onChange={event => setName(event.target.value)}
+          onChange={(event) => setName(event.target.value)}
           maxLength={80}
           disabled={Boolean(pending) || Boolean(createdToken)}
           required
         />
-        <button type="submit" className={button.primary} disabled={Boolean(pending) || Boolean(createdToken)}>{pending === 'creating' ? 'Creating' : 'Create'}</button>
-      </form>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={Boolean(pending) || Boolean(createdToken)}
+        >
+          {pending === 'creating' ? 'Creating' : 'Create'}
+        </Button>
+      </InlineForm>
 
-      {error && <div className={alert} role="alert">{error}</div>}
-      {message && <p className={`${status.good} m-0 whitespace-normal`} role="status">{message}</p>}
+      {error && <Alert role="alert">{error}</Alert>}
+      {message && (
+        <StatusBadge
+          className={`m-0 whitespace-normal`}
+          tone="success"
+          as="p"
+          role="status"
+        >
+          {message}
+        </StatusBadge>
+      )}
       {createdToken && (
-        <div className="mt-6 grid gap-2 rounded-[20px] border border-[rgba(7,25,54,0.14)] bg-[rgba(217,197,165,0.2)] p-[18px]">
+        <ResultCard as="div">
           <strong role="status">API key created. Copy it now.</strong>
-          <p className="m-0 text-sm text-[#38516f]">This token is shown only once. You cannot see it again later.</p>
-          <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[#38516f] [overflow-wrap:anywhere]">
-            {createdToken}
-          </span>
-          <div className="flex flex-wrap gap-2.5">
-            <button type="button" className={button.secondary} onClick={copyToken} disabled={copying || Boolean(pending)}>{copying ? 'Copying' : 'Copy'}</button>
-            <button type="button" className={button.secondary} disabled={copying || Boolean(pending)} onClick={() => { setCreatedToken(''); setMessage(''); setError(''); }}>Done</button>
-          </div>
-        </div>
+          <Note>
+            This token is shown only once. You cannot see it again later.
+          </Note>
+          <MonoValue>{createdToken}</MonoValue>
+          <RowActions align="start">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={copyToken}
+              disabled={copying || Boolean(pending)}
+            >
+              {copying ? 'Copying' : 'Copy'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={copying || Boolean(pending)}
+              onClick={() => {
+                setCreatedToken('');
+                setMessage('');
+                setError('');
+              }}
+            >
+              Done
+            </Button>
+          </RowActions>
+        </ResultCard>
       )}
 
-      <div className={dataList}>
-        {apiKeys.map(item => (
-          <article key={item.id} className={dataRow}>
+      <DataList>
+        {apiKeys.map((item) => (
+          <DataRow key={item.id}>
             <div>
-              <strong className={dataTitle}>{item.name}</strong>
-              <p className={dataText}>{item.prefix}... created {new Date(item.created_at).toLocaleDateString()}</p>
+              <DataTitle>{item.name}</DataTitle>
+              <DataText>
+                {item.prefix}... created{' '}
+                {new Date(item.created_at).toLocaleDateString()}
+              </DataText>
             </div>
-            <div className={rowActions}>
-              <span className={item.is_active ? status.good : status.base}>{item.is_active ? 'Active' : 'Revoked'}</span>
+            <RowActions>
+              <StatusBadge tone={item.is_active ? 'success' : 'neutral'}>
+                {item.is_active ? 'Active' : 'Revoked'}
+              </StatusBadge>
               {item.is_active && (
-                <button type="button" className={button.compactDanger} onClick={() => handleRevoke(item)} disabled={Boolean(pending) || copying}>
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleRevoke(item)}
+                  disabled={Boolean(pending) || copying}
+                >
                   {pending === item.id ? 'Revoking' : 'Revoke'}
-                </button>
+                </Button>
               )}
-            </div>
-          </article>
+            </RowActions>
+          </DataRow>
         ))}
-        {apiKeys.length === 0 && <p className={muted}>No API keys yet.</p>}
-      </div>
-    </section>
+        {apiKeys.length === 0 && <Muted>No API keys yet.</Muted>}
+      </DataList>
+    </Panel>
   );
 }

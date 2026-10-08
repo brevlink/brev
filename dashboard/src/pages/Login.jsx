@@ -1,7 +1,21 @@
+import {
+  Alert,
+  AuthCard,
+  AuthFooter,
+  AuthPage,
+  Brand,
+  BrandLogo,
+  Button,
+  Eyebrow,
+  Field,
+  FormStack,
+  Input,
+  Label,
+  Muted,
+} from '../components/ui';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { login } from '../api/client';
-import { alert, brand, button, eyebrow, field, fieldLabel, formStack, input, muted, serif } from '../styles/ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -15,7 +29,10 @@ export default function Login() {
   // through this page. Only a relative path is accepted: a "next" pointing at
   // another site would turn sign-in into an open redirect.
   const richiesto = params.get('next') || '';
-  const next = richiesto.startsWith('/') && !richiesto.startsWith('//') ? richiesto : '/dashboard';
+  const next =
+    richiesto.startsWith('/') && !richiesto.startsWith('//')
+      ? richiesto
+      : '/dashboard';
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -32,54 +49,61 @@ export default function Login() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center p-6">
-      <section className="w-[min(100%,440px)] rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.58)] p-[34px] shadow-[0_28px_90px_rgba(7,25,54,0.16)]">
-        <a href="/" className={`${brand} mb-[34px]`} aria-label="Brev home">
-          <img className="size-11 shrink-0 object-contain" src="/brev_logo.webp" alt="" />
+    <AuthPage>
+      <AuthCard>
+        <Brand href="/" className={`mb-[34px]`} aria-label="Brev home">
+          <BrandLogo src={`${import.meta.env.BASE_URL}brev_logo.webp`} alt="" />
           <span>Brev</span>
-        </a>
-        <p className={eyebrow}>Dashboard</p>
-        <h1 className={`${serif} m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}>Welcome back.</h1>
-        <p className={muted}>Sign in to manage short links, clicks, and domains.</p>
+        </Brand>
+        <Eyebrow>Dashboard</Eyebrow>
+        <h1
+          className={`font-display m-0 text-[clamp(2.6rem,8vw,5.2rem)] leading-[0.88] tracking-normal`}
+        >
+          Welcome back.
+        </h1>
+        <Muted>Sign in to manage short links, clicks, and domains.</Muted>
 
-        <form onSubmit={handleSubmit} className={formStack}>
-          {error && <div className={alert}>{error}</div>}
+        <FormStack onSubmit={handleSubmit}>
+          {error && <Alert>{error}</Alert>}
 
-          <div className={field}>
-            <label className={fieldLabel} htmlFor="email">Email</label>
-            <input
-              className={input}
+          <Field>
+            <Label htmlFor="email">Email</Label>
+            <Input
               id="email"
               type="email"
               value={email}
-              onChange={event => setEmail(event.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
               required
             />
-          </div>
+          </Field>
 
-          <div className={field}>
-            <label className={fieldLabel} htmlFor="password">Password</label>
-            <input
-              className={input}
+          <Field>
+            <Label htmlFor="password">Password</Label>
+            <Input
               id="password"
               type="password"
               value={password}
-              onChange={event => setPassword(event.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               placeholder="At least 12 characters"
               required
             />
-          </div>
+          </Field>
 
-          <button type="submit" className={button.fullPrimary} disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full"
+            variant="primary"
+            disabled={loading}
+          >
             {loading ? 'Signing in' : 'Sign in'}
-          </button>
-        </form>
+          </Button>
+        </FormStack>
 
-        <p className="mt-[22px] text-center text-[#38516f] [&_a]:font-extrabold [&_a]:text-[#071936]">
+        <AuthFooter>
           No account yet? <Link to="/register">Create one</Link>
-        </p>
-      </section>
-    </main>
+        </AuthFooter>
+      </AuthCard>
+    </AuthPage>
   );
 }
