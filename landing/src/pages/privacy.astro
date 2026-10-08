@@ -8,7 +8,7 @@ import LegalLayout from '../components/LegalLayout.astro';
   <h2>1. Ambito</h2>
   <p>Questa bozza distingue tre contesti diversi. Prima del lancio di Brev Cloud, chi gestisce il sito deve verificare il testo, completare i placeholder e farlo revisionare da un professionista legale.</p>
   <ul>
-    <li><strong>Sito pubblico:</strong> landing page statica e documenti pubblici di Brev. Nella configurazione corrente non sono presenti analytics, advertising tracker o moduli pubblici di raccolta dati.</li>
+    <li><strong>Sito pubblico:</strong> la landing page statica e i documenti pubblici di Brev utilizzano statistiche sulle visite senza cookie tramite Plausible self-hosted sulla nostra infrastruttura. Non sono presenti tracker pubblicitari o moduli pubblici di raccolta dati.</li>
     <li><strong>Brev self-hosted:</strong> il gestore della singola installazione controlla infrastruttura, configurazione, database, log e servizi collegati. Di norma è il soggetto che determina finalità e mezzi del trattamento dei dati della propria installazione e deve pubblicare una propria informativa, configurare i servizi e rispondere alle richieste degli interessati.</li>
     <li><strong>Futuro Brev Cloud:</strong> servizio gestito separato, non da descrivere come già operativo. Le categorie e i dettagli sotto riportati sono da confermare prima dell’attivazione.</li>
   </ul>
@@ -18,7 +18,8 @@ import LegalLayout from '../components/LegalLayout.astro';
   <p>Indirizzo: <strong>[DA COMPLETARE]</strong>. Contatto generale: <strong>[DA COMPLETARE]</strong>. Contatto privacy/DPO, se applicabile: <strong>[DA COMPLETARE]</strong>. Matt deve confermare questi dati e un professionista legale deve verificare l’identificazione del titolare e l’eventuale necessità di un DPO o di un rappresentante.</p>
 
   <h2>3. Dati del sito pubblico</h2>
-  <p>Il codice della landing non implementa account, form, newsletter, analytics o advertising. Il provider di hosting/deployment potrebbe produrre log tecnici necessari al funzionamento e alla sicurezza del sito: provider, categorie precise, finalità, base giuridica e conservazione sono <strong>[DA COMPLETARE]</strong>. Non vengono qui dichiarati indirizzi IP o altri dati come raccolti direttamente da Brev senza verifica del provider.</p>
+  <p>La landing non implementa account, moduli, newsletter o pubblicità. Le statistiche sulle visite sono attive tramite Plausible, self-hosted sulla nostra infrastruttura gestita da Matt (novezero.it), sotto lo stesso titolare del trattamento. Questo utilizzo delle statistiche non imposta cookie, non effettua profilazione, non conserva dati personali e non trasferisce dati delle statistiche a terzi. L’indirizzo IP viene usato solo per ricavare il paese del visitatore e non viene conservato.</p>
+  <p>Il provider di hosting/deployment potrebbe produrre log tecnici necessari al funzionamento e alla sicurezza del sito: provider, categorie precise, finalità, base giuridica e conservazione sono <strong>[DA COMPLETARE]</strong>. Non vengono qui formulate dichiarazioni sugli indirizzi IP o su altri dati raccolti direttamente da Brev tramite i log di hosting senza una verifica del provider.</p>
 
   <h2>4. Futuro Brev Cloud: categorie e finalità</h2>
   <p>La tabella seguente riflette le entità e i flussi presenti nel codice Cloud/self-hosted, ma non sostituisce una verifica del servizio effettivamente messo online:</p>

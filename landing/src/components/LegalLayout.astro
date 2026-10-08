@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Analytics from './Analytics.astro';
 
 interface Props {
   title: string;
@@ -23,6 +24,7 @@ const serif = "font-['Instrument_Serif',Georgia,serif]";
 <!doctype html>
 <html lang="it">
   <head>
+    <Analytics />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
