@@ -265,3 +265,22 @@ export async function reviewAdminReport(id) {
 export async function submitReport(body) {
   return request('/reports', { method: 'POST', credentials: 'omit', body: JSON.stringify(body) });
 }
+
+export function requestEmailChange(email, currentPassword) {
+  return request('/users/me/email', { method: 'POST', body: JSON.stringify({ email, current_password: currentPassword }) });
+}
+export function confirmEmailChange(token) {
+  return request('/users/me/email/confirm', { method: 'POST', body: JSON.stringify({ token }) });
+}
+export function getAccountDeletionImpact() { return request('/users/me/deletion-impact'); }
+export function deleteAccount(currentPassword, confirmation) {
+  return request('/users/me', { method: 'DELETE', body: JSON.stringify({ current_password: currentPassword, confirmation }) });
+}
+export async function downloadAccountData() {
+  const data = await request('/users/me/export');
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  const anchor = document.createElement('a');
+  anchor.href = url; anchor.download = 'brev-account-data.json';
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

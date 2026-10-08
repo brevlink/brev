@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     # in the URL fragment so browser/proxy request logs do not receive them.
     frontend_verification_url: str | None = None
     frontend_password_reset_url: str | None = None
+    frontend_email_change_url: str | None = None
     # Optional: the page that accepts a domain invitation. A deployment that
     # never shares a domain leaves it empty and the invite falls back to
     # app_base_url; if that is unset too, sending an invite fails loudly rather
@@ -113,6 +114,7 @@ class Settings(BaseSettings):
             for name, value in (
                 ("FRONTEND_VERIFICATION_URL", self.frontend_verification_url),
                 ("FRONTEND_PASSWORD_RESET_URL", self.frontend_password_reset_url),
+                ("FRONTEND_EMAIL_CHANGE_URL", self.frontend_email_change_url),
             ):
                 if not value or not value.startswith(("http://", "https://")):
                     raise ValueError(f"{name} must be an absolute http(s) URL when email is enabled")

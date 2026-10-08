@@ -63,6 +63,11 @@ export default function Login() {
         </h1>
         <Muted>Sign in to manage short links, clicks, and domains.</Muted>
 
+        {params.get('account') === 'deleted' && (
+          <Muted role="status">
+            Your account, links, owned domains, memberships, API keys, sessions and tokens have been deleted. Billing records remain anonymized for accounting obligations.
+          </Muted>
+        )}
         <FormStack onSubmit={handleSubmit}>
           {error && <Alert>{error}</Alert>}
 

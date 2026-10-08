@@ -1,0 +1,9 @@
+# Account settings
+
+Run Alembic through `0010_account_settings` before deploying. It adds the proposed email to existing AuthToken records and makes accounting ownership nullable. The downgrade deletes detached accounting records; preserve a backup before downgrading.
+
+Set `FRONTEND_EMAIL_CHANGE_URL=https://brevl.ink/app/confirm-email-change` (or the matching local dashboard URL). This absolute HTTP(S) URL is required when EMAIL_PROVIDER is smtp or api, and optional when email is disabled. Do not include a fragment. Links carry the token in `#token=...`; the frontend submits it in the POST body to `/api/v1/users/me/email/confirm`. Opening the page requires an explicit confirmation button so mail scanners cannot consume it.
+
+Authenticated endpoints: POST `/users/me/email` with email/current_password; GET `/users/me/export` downloads JSON; GET `/users/me/deletion-impact` lists owned domains; DELETE `/users/me` requires current_password and confirmation `DELETE`. All paths have the `/api/v1` prefix. Unverified users can manage their account. Confirmation uses the token as its credential, without requiring an existing login.
+
+Deletion refuses paid subscriptions in active, trialing, past_due, unpaid, incomplete or paused states. It never calls Stripe. Historical purchases and canceled subscriptions remain with user/customer/payment/subscription references removed; checkout references are replaced by random anonymous identifiers. Prices, status and dates remain. The current schema does not store invoice amounts or invoice documents. Stripe event deduplication records contain no customer payload and remain. Linked reports and operator snapshots involving the account are deleted. Daily click aggregates are exported if an installed table has a link_id and day/date column; main currently has no such table.
