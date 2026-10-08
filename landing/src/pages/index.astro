@@ -42,16 +42,16 @@ const shell = 'mx-auto w-[min(1120px,calc(100%_-_40px))] max-[620px]:w-[min(calc
 const serif = "font-['Instrument_Serif',Georgia,serif]";
 const mono = "font-['JetBrains_Mono',ui-monospace,SFMono-Regular,monospace]";
 const buttonBase =
-  'inline-flex min-h-[46px] items-center justify-center rounded-full border border-[#071936] px-[22px] font-bold transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5';
-const buttonPrimary = `${buttonBase} bg-[#071936] text-[#f8f1e6] shadow-[0_18px_36px_rgba(7,25,54,0.2)]`;
-const buttonSecondary = `${buttonBase} bg-[rgba(255,250,241,0.4)] text-[#071936]`;
+  'inline-flex min-h-[46px] items-center justify-center rounded-full border border-ink px-[22px] font-bold transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5';
+const buttonPrimary = `${buttonBase} bg-ink text-surface shadow-[0_18px_36px_rgba(7,25,54,0.2)]`;
+const buttonSecondary = `${buttonBase} bg-surface-solid/40 text-ink`;
 const eyebrow =
-  'mb-[22px] inline-flex items-center gap-2.5 text-[0.82rem] font-extrabold uppercase tracking-[0.18em] text-[#38516f] before:h-px before:w-[42px] before:bg-[#071936] before:content-[""]';
-const sectionKicker = 'text-[0.78rem] font-extrabold uppercase tracking-[0.18em] text-[#38516f]';
+  'mb-[22px] inline-flex items-center gap-2.5 text-[0.82rem] font-extrabold uppercase tracking-[0.18em] text-ink-muted before:h-px before:w-[42px] before:bg-ink before:content-[""]';
+const sectionKicker = 'text-[0.78rem] font-extrabold uppercase tracking-[0.18em] text-ink-muted';
 const sectionHead =
   'mb-[30px] grid grid-cols-[0.8fr_1.2fr] items-end gap-11 max-[900px]:grid-cols-1';
 const h2 = `${serif} mt-2.5 mb-0 text-[clamp(2.4rem,5vw,5rem)] leading-[0.9] tracking-[-0.01em]`;
-const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`;
+const buttonLight = `${buttonBase} border-surface bg-surface text-ink`;
 ---
 
 <!doctype html>
@@ -77,15 +77,15 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
     <link rel="apple-touch-icon" href="/brev_icona.webp" />
     <title>Brev - Open-source link infrastructure</title>
   </head>
-  <body class="min-h-screen scroll-smooth bg-[radial-gradient(circle_at_top_left,rgba(255,250,241,0.85),transparent_34rem),linear-gradient(135deg,#f8f1e6_0%,#efe6d4_54%,#e8e0d2_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-[#071936] antialiased">
-    <nav class="sticky top-0 z-20 border-b border-[rgba(7,25,54,0.14)] bg-[rgba(248,241,230,0.78)] backdrop-blur-[18px]">
+  <body class="min-h-screen scroll-smooth bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-surface-solid)_85%,transparent),transparent_34rem),linear-gradient(135deg,var(--color-surface)_0%,var(--color-surface-mid)_54%,var(--color-accent)_100%)] font-['Inter',ui-sans-serif,system-ui,sans-serif] text-ink antialiased">
+    <nav class="sticky top-0 z-20 border-b border-line bg-surface/78 backdrop-blur-[18px]">
       <div class={`${shell} flex h-[72px] items-center justify-between gap-6`}>
         <a href="/" class="flex items-center gap-3 font-extrabold tracking-[0.02em]" aria-label="Brev home">
           <img class="size-[34px]" src="/brev_icona.webp" alt="Brev" />
           <span>Brev</span>
         </a>
 
-        <div class="flex items-center gap-7 text-[0.9rem] text-[#38516f] max-[900px]:hidden [&_a:hover]:text-[#071936]" aria-label="Primary navigation">
+        <div class="flex items-center gap-7 text-[0.9rem] text-ink-muted max-[900px]:hidden [&_a:hover]:text-ink" aria-label="Primary navigation">
           <a href="#features">Features</a>
           <a href="#workflow">Workflow</a>
           <a href="#pricing">Pricing</a>
@@ -107,7 +107,7 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
           <h1 class={`${serif} m-0 text-[clamp(4.4rem,10.6vw,9.75rem)] leading-[0.77] tracking-[-0.02em] text-balance max-[620px]:text-[clamp(3.7rem,20vw,6.2rem)]`}>
             Short links,<br />long control.
           </h1>
-          <p class="mt-[30px] max-w-[560px] text-[clamp(1.05rem,2vw,1.3rem)] leading-[1.7] text-[#38516f]">
+          <p class="mt-[30px] max-w-[560px] text-[clamp(1.05rem,2vw,1.3rem)] leading-[1.7] text-ink-muted">
             Brev gives you a self-hosted backend and dashboard for links, custom domains, click tracking,
             and a CLI that connects to your own server.
           </p>
@@ -119,36 +119,36 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
             </a>
           </div>
 
-          <div class="mt-11 flex flex-wrap gap-[18px] text-[0.9rem] text-[#38516f] [&_span]:border-l [&_span]:border-[rgba(7,25,54,0.14)] [&_span]:pl-4" aria-label="Brev highlights">
+          <div class="mt-11 flex flex-wrap gap-[18px] text-[0.9rem] text-ink-muted [&_span]:border-l [&_span]:border-line [&_span]:pl-4" aria-label="Brev highlights">
             <span>MIT licensed</span>
             <span>Self-hosted first</span>
             <span>CLI connects to your server</span>
           </div>
         </div>
 
-        <aside class="relative z-[1] overflow-hidden rounded-[34px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.54)] p-7 shadow-[0_28px_90px_rgba(7,25,54,0.16)]" aria-label="Brev product preview">
+        <aside class="relative z-[1] overflow-hidden rounded-[34px] border border-line bg-surface-solid/54 p-7 shadow-[0_28px_90px_rgba(7,25,54,0.16)]" aria-label="Brev product preview">
           <div class="mb-[42px] flex items-center justify-between">
-            <span class={`${mono} rounded-full border border-[rgba(7,25,54,0.14)] px-3 py-2 text-[0.78rem] text-[#38516f]`}>brevl.ink/go</span>
-            <span class="rounded-full border border-[rgba(7,25,54,0.14)] px-3 py-2 text-[0.78rem] text-[#38516f]">42 clicks</span>
+            <span class={`${mono} rounded-full border border-line px-3 py-2 text-[0.78rem] text-ink-muted`}>brevl.ink/go</span>
+            <span class="rounded-full border border-line px-3 py-2 text-[0.78rem] text-ink-muted">42 clicks</span>
           </div>
 
-          <div class="grid grid-cols-[42px_1fr] items-start gap-4 border-t border-[rgba(7,25,54,0.14)] py-5">
-            <span class="font-extrabold text-[#38516f]">01</span>
+          <div class="grid grid-cols-[42px_1fr] items-start gap-4 border-t border-line py-5">
+            <span class="font-extrabold text-ink-muted">01</span>
             <div>
               <strong class="mb-2 block text-[1.05rem]">Your domain</strong>
-              <p class="m-0 leading-[1.55] text-[#38516f]">Point a custom domain at Brev and keep every shared URL on-brand.</p>
+              <p class="m-0 leading-[1.55] text-ink-muted">Point a custom domain at Brev and keep every shared URL on-brand.</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-[42px_1fr] items-start gap-4 border-y border-[rgba(7,25,54,0.14)] py-5">
-            <span class="font-extrabold text-[#38516f]">02</span>
+          <div class="grid grid-cols-[42px_1fr] items-start gap-4 border-y border-line py-5">
+            <span class="font-extrabold text-ink-muted">02</span>
             <div>
               <strong class="mb-2 block text-[1.05rem]">Your stack</strong>
-              <p class="m-0 leading-[1.55] text-[#38516f]">PostgreSQL auth, FastAPI, Caddy routing, and no vendor lock-in.</p>
+              <p class="m-0 leading-[1.55] text-ink-muted">PostgreSQL auth, FastAPI, Caddy routing, and no vendor lock-in.</p>
             </div>
           </div>
 
-          <div class={`${mono} mt-[26px] rounded-[20px] bg-[#071936] p-[18px] text-[0.84rem] leading-[1.85] text-[#f8f1e6] [&_span]:text-[#e8e0d2]`}>
+          <div class={`${mono} mt-[26px] rounded-[20px] bg-ink p-[18px] text-[0.84rem] leading-[1.85] text-surface [&_span]:text-accent`}>
             <span>$</span> brev create https://example.com --slug go<br />
             <span>→</span> https://brevl.ink/go
           </div>
@@ -161,26 +161,26 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
             <span class={sectionKicker}>Features</span>
             <h2 class={h2}>Minimal by design.</h2>
           </div>
-          <p class="m-0 text-[1.06rem] leading-[1.75] text-[#38516f]">
+          <p class="m-0 text-[1.06rem] leading-[1.75] text-ink-muted">
             Everything is focused on one product promise: own the link layer, run the web stack yourself,
             and connect lightweight clients to it.
           </p>
         </div>
 
-        <div class="grid grid-cols-4 overflow-hidden rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.3)] max-[900px]:grid-cols-2 max-[620px]:grid-cols-1">
+        <div class="grid grid-cols-4 overflow-hidden rounded-[30px] border border-line bg-surface-solid/30 max-[900px]:grid-cols-2 max-[620px]:grid-cols-1">
           {
             features.map((feature, index) => (
               <article
-                class={`flex min-h-[252px] flex-col justify-between border-[rgba(7,25,54,0.14)] p-7 ${
+                class={`flex min-h-[252px] flex-col justify-between border-line p-7 ${
                   index < features.length - 1 ? 'border-r max-[620px]:border-r-0 max-[620px]:border-b' : ''
                 } ${index === 1 ? 'max-[900px]:border-r-0 max-[900px]:border-b' : ''} ${
                   index === 0 ? 'max-[900px]:border-b' : ''
                 } ${index === 2 ? 'max-[900px]:border-r' : ''}`}
               >
-                <div class="grid size-[38px] place-items-center rounded-full border border-[#071936]">/</div>
+                <div class="grid size-[38px] place-items-center rounded-full border border-ink">/</div>
                 <div>
                   <h3 class="m-0 text-xl tracking-[-0.03em]">{feature.title}</h3>
-                  <p class="mt-[22px] mb-0 leading-[1.65] text-[#38516f]">{feature.description}</p>
+                  <p class="mt-[22px] mb-0 leading-[1.65] text-ink-muted">{feature.description}</p>
                 </div>
               </article>
             ))
@@ -194,7 +194,7 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
             <span class={sectionKicker}>Workflow</span>
             <h2 class={h2}>Three clear moves.</h2>
           </div>
-          <p class="m-0 text-[1.06rem] leading-[1.75] text-[#38516f]">
+          <p class="m-0 text-[1.06rem] leading-[1.75] text-ink-muted">
             From local deploys to CLI workflows, Brev keeps the path from long URL to trackable short link
             intentionally simple.
           </p>
@@ -203,10 +203,10 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
         <div class="grid gap-4">
           {
             steps.map((step) => (
-              <article class="grid grid-cols-[120px_1fr_1.1fr] items-center gap-7 rounded-[26px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.36)] p-7 max-[900px]:grid-cols-1 max-[900px]:gap-3">
-                <span class={`${mono} text-[2.2rem] font-extrabold text-[#38516f]`}>{step.code}</span>
+              <article class="grid grid-cols-[120px_1fr_1.1fr] items-center gap-7 rounded-[26px] border border-line bg-surface-solid/36 p-7 max-[900px]:grid-cols-1 max-[900px]:gap-3">
+                <span class={`${mono} text-[2.2rem] font-extrabold text-ink-muted`}>{step.code}</span>
                 <h3 class="m-0 text-[1.55rem] tracking-[-0.04em]">{step.title}</h3>
-                <p class="m-0 leading-[1.65] text-[#38516f]">{step.description}</p>
+                <p class="m-0 leading-[1.65] text-ink-muted">{step.description}</p>
               </article>
             ))
           }
@@ -219,41 +219,41 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
             <span class={sectionKicker}>Pricing</span>
             <h2 class={h2}>Open source first.</h2>
           </div>
-          <p class="m-0 text-[1.06rem] leading-[1.75] text-[#38516f]">
+          <p class="m-0 text-[1.06rem] leading-[1.75] text-ink-muted">
             Use the MIT-licensed stack forever. Brev Cloud can come later for people who want managed
             infrastructure instead of operating their own server.
           </p>
         </div>
 
         <div class="grid grid-cols-2 gap-[18px] max-[900px]:grid-cols-1">
-          <article class="rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[rgba(255,250,241,0.42)] p-[34px]">
+          <article class="rounded-[30px] border border-line bg-surface-solid/42 p-[34px]">
             <h3 class="mt-0 mb-[22px] text-xl">Self-hosted</h3>
             <div class="text-[clamp(3rem,6vw,5.8rem)] font-extrabold leading-[0.85] tracking-[-0.07em]">$0</div>
-            <p class="mt-4 mb-7 text-[#38516f]">Forever. Docker compose, PostgreSQL, FastAPI, dashboard, and CLI.</p>
+            <p class="mt-4 mb-7 text-ink-muted">Forever. Docker compose, PostgreSQL, FastAPI, dashboard, and CLI.</p>
             <ul class="m-0 list-none p-0">
-              <li class="border-t border-[rgba(7,25,54,0.14)] py-2.5 text-[#38516f]">Unlimited links on your own infrastructure</li>
-              <li class="border-t border-[rgba(7,25,54,0.14)] py-2.5 text-[#38516f]">Custom domains behind your reverse proxy</li>
-              <li class="border-t border-[rgba(7,25,54,0.14)] py-2.5 text-[#38516f]">OpenAPI docs and CLI access</li>
+              <li class="border-t border-line py-2.5 text-ink-muted">Unlimited links on your own infrastructure</li>
+              <li class="border-t border-line py-2.5 text-ink-muted">Custom domains behind your reverse proxy</li>
+              <li class="border-t border-line py-2.5 text-ink-muted">OpenAPI docs and CLI access</li>
             </ul>
           </article>
 
-          <article class="rounded-[30px] border border-[rgba(7,25,54,0.14)] bg-[#071936] p-[34px] text-[#f8f1e6]">
+          <article class="rounded-[30px] border border-line bg-ink p-[34px] text-surface">
             <h3 class="mt-0 mb-[22px] text-xl">Brev Cloud · coming soon</h3>
             <div class="text-[clamp(3rem,6vw,5.8rem)] font-extrabold leading-[0.85] tracking-[-0.07em]">$5</div>
-            <p class="mt-4 mb-7 text-[rgba(248,241,230,0.72)]">One-time per domain. Managed DNS, SSL, deploys, backups, and scaling.</p>
+            <p class="mt-4 mb-7 text-surface/72">One-time per domain. Managed DNS, SSL, deploys, backups, and scaling.</p>
             <ul class="m-0 list-none p-0">
-              <li class="border-t border-[rgba(248,241,230,0.16)] py-2.5 text-[rgba(248,241,230,0.72)]">No infrastructure to maintain</li>
-              <li class="border-t border-[rgba(248,241,230,0.16)] py-2.5 text-[rgba(248,241,230,0.72)]">Bring your domain to brevl.ink</li>
-              <li class="border-t border-[rgba(248,241,230,0.16)] py-2.5 text-[rgba(248,241,230,0.72)]">Hosted updates and operational support</li>
+              <li class="border-t border-surface/16 py-2.5 text-surface/72">No infrastructure to maintain</li>
+              <li class="border-t border-surface/16 py-2.5 text-surface/72">Bring your domain to brevl.ink</li>
+              <li class="border-t border-surface/16 py-2.5 text-surface/72">Hosted updates and operational support</li>
             </ul>
           </article>
         </div>
       </section>
 
       <section class={`${shell} py-[74px] pb-[104px] text-center`}>
-        <div class="relative overflow-hidden rounded-[36px] bg-[#071936] px-7 py-[58px] text-[#f8f1e6] before:pointer-events-none before:absolute before:inset-[18px] before:rounded-[28px] before:border before:border-[rgba(248,241,230,0.18)] before:content-['']">
+        <div class="relative overflow-hidden rounded-[36px] bg-ink px-7 py-[58px] text-surface before:pointer-events-none before:absolute before:inset-[18px] before:rounded-[28px] before:border before:border-surface/18 before:content-['']">
           <h2 class={`${h2} relative mb-[22px]`}>Make every link feel intentional.</h2>
-          <p class="relative mx-auto mt-0 mb-[30px] max-w-[560px] leading-[1.7] text-[rgba(248,241,230,0.72)]">
+          <p class="relative mx-auto mt-0 mb-[30px] max-w-[560px] leading-[1.7] text-surface/72">
             Install the CLI, self-host the stack, or join Brev Cloud when it opens. Your domain, your links, your way.
           </p>
           <a class={`${buttonLight} relative`} href="/app/login">Get started</a>
@@ -261,7 +261,7 @@ const buttonLight = `${buttonBase} border-[#f8f1e6] bg-[#f8f1e6] text-[#071936]`
       </section>
     </main>
 
-    <footer class="border-t border-[rgba(7,25,54,0.14)] py-[34px] text-[#38516f]">
+    <footer class="border-t border-line py-[34px] text-ink-muted">
       <div class={`${shell} flex items-center justify-between gap-6 text-[0.92rem] max-[620px]:flex-col max-[620px]:items-start`}>
         <span>© 2026 Brev. MIT licensed.</span>
         <div class="flex flex-wrap justify-end gap-x-[22px] gap-y-2">
