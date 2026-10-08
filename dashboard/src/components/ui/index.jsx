@@ -12,10 +12,10 @@ export function Button({
   ...props
 }) {
   const variants = {
-    primary: 'border-ink bg-ink text-surface shadow-action hover:bg-ink-muted',
+    primary: 'border-control bg-ink text-surface shadow-action hover:bg-ink-muted',
     secondary:
-      'border-line bg-surface-raised text-ink hover:bg-surface-solid hover:border-ink-muted',
-    danger: 'border-danger/40 bg-surface-raised text-danger hover:bg-danger/10',
+      'border-control bg-surface-raised text-ink hover:bg-surface-solid hover:border-ink-muted',
+    danger: 'border-danger bg-surface-raised text-danger hover:bg-danger/10',
     ghost:
       'border-transparent bg-transparent text-ink-muted hover:bg-accent/30 hover:text-ink',
   };
@@ -46,7 +46,7 @@ export function Input({ as: Tag = 'input', autoFocus, className, ...props }) {
       autoFocus={autoFocus}
       data-autofocus={autoFocus ? true : undefined}
       className={cn(
-        'min-h-12 w-full min-w-0 rounded-control border border-line bg-surface-solid/65 px-4 text-ink transition-colors focus:border-ink disabled:opacity-60 aria-invalid:border-danger',
+        'min-h-12 w-full min-w-0 rounded-control border border-control bg-surface-solid/65 px-4 text-ink transition-colors focus:border-ink disabled:opacity-60 aria-invalid:border-danger',
         className,
       )}
       {...props}
@@ -230,7 +230,7 @@ export function TitleBadge({ children, className, ...props }) {
     >
       <summary
         aria-label={`Show full title: ${children}`}
-        className="w-fit max-w-full cursor-pointer rounded-pill border border-line px-3 py-2 text-sm text-ink-muted"
+        className="w-fit max-w-full cursor-pointer rounded-pill border border-control px-3 py-2 text-sm text-ink-muted"
       >
         <span className="inline-block max-w-[min(60vw,28rem)] align-middle truncate">
           {children}
@@ -376,8 +376,8 @@ export function NavTabs({
             cn(
               'flex min-h-11 items-center rounded-pill border px-4 text-sm font-extrabold transition-colors duration-(--duration-navigation)',
               isActive
-                ? 'border-ink bg-ink text-surface'
-                : 'border-transparent text-ink-muted hover:border-line hover:bg-surface-solid',
+                ? 'border-control bg-ink text-surface'
+                : 'border-transparent text-ink-muted hover:border-control hover:bg-surface-solid',
             )
           }
         >
