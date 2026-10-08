@@ -171,6 +171,34 @@ async def get_link_by_id(db: AsyncSession, link_id: str, user_id: str) -> Link |
     return result.scalar_one_or_none()
 
 
+async def get_qr_link_by_slug(db: AsyncSession, slug: str, user_id: str) -> Link | None:
+    """Resolve only links owned by the account or on a domain it can use.
+
+    Slugs are unique per domain, so never choose an arbitrary hostname when
+    more than one accessible link matches this slug-only endpoint.
+    """
+    uid = uuid.UUID(user_id)
+    membership = select(DomainMember.id).where(
+        DomainMember.domain_id == Link.domain_id,
+        DomainMember.user_id == uid,
+        DomainMember.accepted_at.is_not(None),
+    ).exists()
+    result = await db.execute(
+        select(Link)
+        .outerjoin(Domain)
+        .options(selectinload(Link.domain))
+        .where(Link.slug == slug, or_(Link.user_id == uid, Domain.user_id == uid, membership))
+        .limit(2)
+    )
+    matches = result.scalars().all()
+    if len(matches) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Multiple accessible links have this slug on different domains",
+        )
+    return matches[0] if matches else None
+
+
 async def get_redirect_link(db: AsyncSession, host: str, slug: str) -> Link | None:
     normalized_host = host.lower().split(":", 1)[0]
     # Resolution must respect moderation even if an owner re-enables the link.

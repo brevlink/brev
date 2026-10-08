@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_feature_user
@@ -11,6 +12,7 @@ from app.core.rate_limit import rate_limit
 from app.models.user import User
 from app.schemas.link import LinkCreate, LinkList, LinkOut, LinkUpdate
 from app.services import links as links_service
+from app.services.qr import generate_qr_svg
 
 router = APIRouter(prefix="/links", tags=["links"])
 
@@ -57,6 +59,24 @@ async def get_link(
             detail="Link not found",
         )
     return links_service._link_to_out(link)
+
+
+@router.get("/{slug}/qr.svg")
+async def get_link_qr(
+    slug: str,
+    scale: int = Query(12, ge=1, le=40),
+    db: AsyncSession = db_session,
+    user: User = Depends(get_current_feature_user),
+):
+    link = await links_service.get_qr_link_by_slug(db, slug, str(user.id))
+    if link is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+    short_url = links_service._link_to_out(link).short_url
+    return Response(
+        content=generate_qr_svg(short_url, scale),
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "private, no-store"},
+    )
 
 
 # Preserve PATCH for existing clients while supporting the dashboard update action.

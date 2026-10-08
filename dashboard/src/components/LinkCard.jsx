@@ -1,4 +1,4 @@
-import { Alert, Button, DataRow, FieldInput, FormStack, MonoValue, Note, RowActions, StatusBadge, TitleBadge } from './ui';
+import { Alert, Button, DataRow, Dialog, FieldInput, FormStack, MonoValue, Note, RowActions, StatusBadge, TitleBadge } from './ui';
 import { useId, useRef, useState } from 'react';
 import { deleteLink, updateLink } from '../api/client';
 
@@ -7,6 +7,8 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
   // Keep standalone cards usable while allowing the parent to supply fresh data.
   const link = saved?.source === sourceLink ? saved.value : sourceLink;
   const [editing, setEditing] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrStatus, setQrStatus] = useState('loading');
   const [form, setForm] = useState({ url: '', title: '' });
   const [pending, setPending] = useState('');
   const [copying, setCopying] = useState(false);
@@ -17,6 +19,7 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
   const actionRef = useRef(false);
   const copyRef = useRef(false);
   const fieldId = useId();
+  const qrUrl = `/api/v1/links/${encodeURIComponent(link.slug)}/qr.svg`;
 
   function startEdit() {
     setForm({ url: link.url, title: link.title || '' });
@@ -137,6 +140,20 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
           type="button"
           variant="secondary"
           size="sm"
+          aria-haspopup="dialog"
+          aria-label={`Show QR code for ${link.short_url}`}
+          onClick={() => {
+            setQrStatus('loading');
+            setQrOpen(true);
+          }}
+          disabled={Boolean(pending) || copying || editing}
+        >
+          QR code
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
           onClick={copyToClipboard}
           disabled={copying || Boolean(pending)}
         >
@@ -184,6 +201,49 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
           {pending === 'deleting' ? 'Deleting' : 'Delete'}
         </Button>
       </RowActions>
+      <Dialog
+        open={qrOpen}
+        onDismiss={() => setQrOpen(false)}
+        aria-labelledby={`${fieldId}-qr-title`}
+        aria-describedby={`${fieldId}-qr-description`}
+      >
+        <div className="grid gap-5">
+          <h2 id={`${fieldId}-qr-title`} className="m-0 font-display text-3xl">
+            QR code
+          </h2>
+          <Note id={`${fieldId}-qr-description`}>
+            Scan to open {link.short_url}. Download the SVG for sharp prints at any size.
+          </Note>
+          {qrOpen && (
+            <div className="grid justify-items-center gap-3">
+              {qrStatus === 'loading' && <Note role="status">Loading QR code…</Note>}
+              {qrStatus === 'error' ? (
+                <Alert>Could not load the QR code. Close this dialog and try again. If this slug is used on multiple domains, a QR code cannot be selected safely.</Alert>
+              ) : (
+                <img
+                  src={qrUrl}
+                  alt={`QR code for ${link.short_url}`}
+                  width="256"
+                  height="256"
+                  className="aspect-square w-64 max-w-full bg-white"
+                  onLoad={() => setQrStatus('ready')}
+                  onError={() => setQrStatus('error')}
+                />
+              )}
+            </div>
+          )}
+          <RowActions align="start">
+            {qrStatus === 'ready' && (
+              <Button as="a" variant="primary" href={qrUrl} download={`${link.slug}-qr.svg`}>
+                Download SVG
+              </Button>
+            )}
+            <Button variant="secondary" data-autofocus onClick={() => setQrOpen(false)}>
+              Close
+            </Button>
+          </RowActions>
+        </div>
+      </Dialog>
       {editing && (
         <FormStack className={`col-span-full mt-0`} onSubmit={saveChanges}>
           <FieldInput
