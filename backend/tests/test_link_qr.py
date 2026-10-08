@@ -3,6 +3,7 @@
 from xml.etree import ElementTree
 
 import pytest
+import segno
 
 
 def _login(client, email="qr-owner@example.com"):
@@ -35,14 +36,14 @@ def _domain(client, headers, monkeypatch):
     return domain_id
 
 
-@pytest.mark.parametrize("size", [None, 64, 512, 4096])
-def test_own_link_returns_svg_using_session_cookie(client, size):
+@pytest.mark.parametrize("scale", [None, 1, 12, 40])
+def test_own_link_returns_svg_using_session_cookie(client, scale):
     headers = _login(client)
     link = _create(client, headers)
     # Login sets the same cookie used by the dashboard's img and download link.
     response = client.get(
         f"/api/v1/links/{link['slug']}/qr.svg",
-        params={} if size is None else {"size": size},
+        params={} if scale is None else {"scale": scale},
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/svg+xml"
@@ -50,12 +51,15 @@ def test_own_link_returns_svg_using_session_cookie(client, size):
     assert response.content.startswith(b"<?xml")
     root = ElementTree.fromstring(response.content)
     assert root.tag == "{http://www.w3.org/2000/svg}svg"
-    assert "viewBox" in root.attrib
-    assert root.attrib["width"] == root.attrib["height"] == str(size or 256)
-    assert root.find("{http://www.w3.org/2000/svg}path") is not None
+    dimension, _ = segno.make_qr(link["short_url"], error="h").symbol_size(
+        scale=scale or 12, border=4,
+    )
+    assert root.attrib["viewBox"] == f"0 0 {dimension} {dimension}"
+    assert root.attrib["width"] == root.attrib["height"] == f"{dimension}px"
+    assert root.find(".//{http://www.w3.org/2000/svg}path") is not None
     from app.services.qr import generate_qr_svg
 
-    assert response.content == generate_qr_svg(link["short_url"], size or 256)
+    assert response.content == generate_qr_svg(link["short_url"], scale or 12)
 
 
 def test_other_users_link_and_missing_slug_have_the_same_error(client):
@@ -76,13 +80,13 @@ def test_qr_requires_authentication(client):
     assert client.get(f"/api/v1/links/{link['slug']}/qr.svg").status_code == 401
 
 
-@pytest.mark.parametrize("size", [0, 63, 4097, "not-a-number", "256.5"])
-def test_invalid_sizes_are_rejected(client, size):
+@pytest.mark.parametrize("scale", [0, -1, 41, "not-a-number", "12.5"])
+def test_invalid_scales_are_rejected(client, scale):
     owner = _login(client)
     link = _create(client, owner)
-    response = client.get(f"/api/v1/links/{link['slug']}/qr.svg", params={"size": size})
+    response = client.get(f"/api/v1/links/{link['slug']}/qr.svg", params={"scale": scale})
     assert response.status_code == 422
-    assert response.json()["detail"][0]["loc"] == ["query", "size"]
+    assert response.json()["detail"][0]["loc"] == ["query", "scale"]
 
 
 def test_custom_domain_qr_encodes_the_canonical_short_url(client, monkeypatch):

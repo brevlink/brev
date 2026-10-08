@@ -64,7 +64,7 @@ async def get_link(
 @router.get("/{slug}/qr.svg")
 async def get_link_qr(
     slug: str,
-    size: int = Query(256, ge=64, le=4096),
+    scale: int = Query(12, ge=1, le=40),
     db: AsyncSession = db_session,
     user: User = Depends(get_current_feature_user),
 ):
@@ -73,7 +73,7 @@ async def get_link_qr(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
     short_url = links_service._link_to_out(link).short_url
     return Response(
-        content=generate_qr_svg(short_url, size),
+        content=generate_qr_svg(short_url, scale),
         media_type="image/svg+xml",
         headers={"Cache-Control": "private, no-store"},
     )
