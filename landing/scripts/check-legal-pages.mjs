@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = process.cwd();
+const root = fileURLToPath(new URL('../', import.meta.url));
 const pages = ['privacy', 'terms', 'cookies', 'legal', 'subprocessors'];
 const requiredPlaceholder = '[DA COMPLETARE]';
 
