@@ -7,7 +7,7 @@
   --color-surface-solid: #fffaf1;
   --color-ink: #071936;
   --color-ink-muted: #38516f;
-  --color-line: rgba(7, 25, 54, 0.14);
+  --color-line: rgba(7, 25, 54, 0.5);
   --color-accent: #e8e0d2;
   --color-danger: #b42318;
   --color-success: #17683a;
@@ -32,6 +32,10 @@
 @layer base {
   body {
     margin: 0;
+  }
+  ::placeholder {
+    color: var(--color-ink-muted);
+    opacity: 1;
   }
   :focus-visible {
     outline: 2px solid var(--color-ink);

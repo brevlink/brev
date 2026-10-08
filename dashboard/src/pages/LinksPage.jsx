@@ -103,7 +103,6 @@ export default function LinksPage() {
       <Field as="section" className="mb-5" aria-label="Link actions">
         <Label htmlFor="search-links">Search links</Label>
         <Input
-          className={`max-w-[520px]`}
           id="search-links"
           type="search"
           value={filter}

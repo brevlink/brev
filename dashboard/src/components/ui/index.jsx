@@ -410,6 +410,7 @@ export function Dialog({
   const dialogRef = ref || localRef;
   useEffect(() => {
     const dialog = dialogRef.current;
+    const opener = open ? document.activeElement : null;
     if (open && !dialog.open) {
       dialog.showModal();
       dialog.querySelector('[data-autofocus]')?.focus();
@@ -417,6 +418,7 @@ export function Dialog({
     if (!open && dialog.open) dialog.close();
     return () => {
       if (dialog.open) dialog.close();
+      if (opener?.isConnected) opener.focus();
     };
   }, [open, dialogRef]);
   return (
