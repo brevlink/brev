@@ -84,8 +84,10 @@ services:
     image: ${LANDING_IMAGE:-brev-landing:local}
     labels: *brev-labels
     build:
-      context: ./landing
-      dockerfile: Dockerfile
+      # Stesso Dockerfile della CI: il contesto e' la radice perche' le due app
+      # condividono design/palette.css, che sta fuori dalla loro cartella.
+      context: .
+      dockerfile: Dockerfile.landing
     restart: unless-stopped
     networks:
       - brev_net
@@ -94,8 +96,8 @@ services:
     image: ${DASHBOARD_IMAGE:-brev-dashboard:local}
     labels: *brev-labels
     build:
-      context: ./dashboard
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.dashboard
     restart: unless-stopped
     networks:
       - brev_net

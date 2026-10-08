@@ -13,3 +13,10 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+# Con il contesto alla radice i percorsi qui sopra valgono solo per la radice:
+# senza queste righe finirebbero nell'immagine i node_modules e le dist delle
+# due app, e Tailwind scandaglierebbe una dist vecchia generando regole spurie.
+**/node_modules/
+**/dist/
+**/.astro/
+**/__pycache__/
