@@ -1,12 +1,8 @@
 name: Deploy Caddy
 
+# Chiamato da CI solo dopo il successo dei test e se cambiano i percorsi interessati.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'Caddyfile'
-      - 'Dockerfile.caddy'
-      - '.github/workflows/deploy-caddy.yml'
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io

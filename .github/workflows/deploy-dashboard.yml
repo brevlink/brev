@@ -1,12 +1,8 @@
 name: Deploy Dashboard
 
+# Chiamato da CI solo dopo il successo dei test e se cambiano i percorsi interessati.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'dashboard/**'
-      - 'Dockerfile.dashboard'
-      - '.github/workflows/deploy-dashboard.yml'
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io
