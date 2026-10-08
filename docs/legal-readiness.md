@@ -7,9 +7,13 @@ any Brev Cloud launch or payment flow.
 
 ## Separate operating contexts
 
-- **Public site:** the current Astro landing page is static and does not add
-  analytics, advertising, or a public data-collection form. Hosting/deployment
-  logs still need to be checked with the selected provider.
+- **Public site:** the static Astro landing and legal pages have active,
+  cookie-free visit statistics through Plausible, self-hosted on Matt’s own
+  infrastructure (novezero.it), under the same controller. No profiling,
+  personal-data retention or transfer of analytics data to third parties;
+  IP addresses are used to derive country and are not retained. No advertising
+  or public data-collection form is added. Hosting/deployment logs still need
+  to be checked with the selected provider.
 - **Brev self-hosted:** the operator of each installation normally determines
   the purposes and means of processing its users’ data. The operator must
   publish and configure its own privacy/cookie notices, providers, backups,
@@ -34,8 +38,11 @@ Matt must provide or approve the following, with legal review where relevant:
   sessions/tokens, security/support logs and billing records;
 - data-subject request workflow, identity checks, breach response and update
   notice for new subprocessors;
-- whether and when Stripe Checkout, transactional email, analytics or other
-  non-essential services are enabled in production.
+- whether and when Stripe Checkout, transactional email or other non-essential
+  services are enabled in production. Public-site analytics is active:
+  Plausible is self-hosted on Matt’s own infrastructure (novezero.it) and
+  cookie-free; this use requires no cookie consent. It covers the landing and
+  legal pages only, with no analytics added to the authenticated dashboard.
 
 The current backend uses a browser session cookie named `brev_session`,
 password hashes, account fields, links/domains, API keys, sessions and

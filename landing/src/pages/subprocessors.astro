@@ -3,13 +3,14 @@ import LegalLayout from '../components/LegalLayout.astro';
 ---
 
 <LegalLayout title="Subprocessors & Data Retention" description="Bozza di registro delle categorie di fornitori e dei tempi di conservazione per il futuro Brev Cloud.">
-  <p><strong>Registro preliminare:</strong> la tabella non conferma che i provider siano attivi. I nomi, i paesi, i ruoli contrattuali, le garanzie di trasferimento e le date di entrata in vigore sono da completare e verificare prima del lancio.</p>
+  <p><strong>Registro preliminare:</strong> le statistiche del sito pubblico sono attive come descritto sotto. La tabella non conferma che gli altri provider siano attivi. I loro nomi, i paesi, i ruoli contrattuali, le garanzie di trasferimento e le date di entrata in vigore sono ancora da completare e verificare prima del lancio Cloud.</p>
 
   <h2>1. Categorie di subprocessors</h2>
   <div class="overflow-x-auto">
     <table>
       <thead><tr><th>Categoria / servizio</th><th>Stato nel repository</th><th>Dati/finalità possibili</th><th>Provider, paese, garanzie</th></tr></thead>
       <tbody>
+        <tr><td>Statistiche del sito pubblico con Plausible</td><td>Attive; self-hosted sull’infrastruttura di Matt (novezero.it)</td><td>Statistiche sulle visite senza cookie; nessuna profilazione, nessun dato personale conservato; indirizzo IP usato solo per ricavare il paese e non conservato</td><td>Stesso titolare del trattamento; non è un provider terzo né un sub-responsabile; nessun dato delle statistiche trasferito a terzi</td></tr>
         <tr><td>Stripe</td><td>Non configurato ora; predisposizione per Checkout one-time Cloud</td><td>Billing, identificativi Checkout e stato pagamento</td><td>[DA COMPLETARE - entità Stripe, paesi, DPA, trasferimenti e contatto]</td></tr>
         <tr><td>Provider email futuro</td><td>Non configurato ora; adapter SMTP/API generico, configurazione predefinita <code>none</code></td><td>Email di verifica e reset password, se attivati</td><td>[DA COMPLETARE - provider, paese, DPA e garanzie]</td></tr>
         <tr><td>Hosting / deployment</td><td>Categoria da confermare; self-hosted può essere gestito dall’operatore</td><td>Calcolo, database, backup, rete e log tecnici</td><td>[DA COMPLETARE - provider, regioni, subprocessor e contatto]</td></tr>
