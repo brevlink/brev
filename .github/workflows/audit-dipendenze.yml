@@ -3,7 +3,7 @@ name: Audit dipendenze
 # Il gate delle PR copre le sole dipendenze di produzione e si ferma a "high":
 # le advisory della toolchain di build non devono bloccare ogni PR, perché quel
 # codice non viene spedito (Dockerfile multi-stadio). Qui, una volta a settimana,
-# si guarda tutto — sviluppo incluso — così quelle advisory non spariscono.
+# si guarda tutto - sviluppo incluso - così quelle advisory non spariscono.
 on:
   schedule:
     - cron: '0 6 * * 1'

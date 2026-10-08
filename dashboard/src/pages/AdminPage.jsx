@@ -9,7 +9,7 @@ const PAGE_SIZE = 20;
 function Pagination({ total, page, onChange, label }) {
   return (
     <div className="my-4 flex flex-wrap items-center gap-3" aria-label={`${label} pagination`}>
-      <span className={muted}>{total} {label} · {total ? page * PAGE_SIZE + 1 : 0}–{Math.min((page + 1) * PAGE_SIZE, total)}</span>
+      <span className={muted}>{total} {label} · {total ? page * PAGE_SIZE + 1 : 0}-{Math.min((page + 1) * PAGE_SIZE, total)}</span>
       <button className={button.compactSecondary} disabled={page === 0} onClick={() => onChange(page - 1)}>Previous</button>
       <button className={button.compactSecondary} disabled={(page + 1) * PAGE_SIZE >= total} onClick={() => onChange(page + 1)}>Next</button>
     </div>

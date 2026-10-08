@@ -1,4 +1,4 @@
-"""Redirect router — the core {slug} → URL redirect."""
+"""Redirect router - the core {slug} → URL redirect."""
 
 from __future__ import annotations
 

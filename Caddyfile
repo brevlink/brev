@@ -66,8 +66,8 @@
 # origin, and Host = the customer hostname. The two values differ, on purpose:
 # the backend resolves the tenant from the Host.
 #
-# nginx treats that combination as an error — 421 over HTTP/2, a dropped
-# connection over HTTP/1.1 — while Caddy routes by Host and does not care, which
+# nginx treats that combination as an error - 421 over HTTP/2, a dropped
+# connection over HTTP/1.1 - while Caddy routes by Host and does not care, which
 # is the whole reason this leg does not go through nginx-proxy-manager.
 #
 # The certificate is issued on demand by Caddy's own CA, for whatever name

@@ -1,4 +1,4 @@
-"""Domains router — manage custom domains."""
+"""Domains router - manage custom domains."""
 
 from __future__ import annotations
 

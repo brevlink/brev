@@ -1,4 +1,4 @@
-"""Brev CLI — manage short links from the terminal.
+"""Brev CLI - manage short links from the terminal.
 
 Usage:
   brev login [server]

@@ -1,4 +1,4 @@
-"""Link model — each short URL."""
+"""Link model - each short URL."""
 
 from __future__ import annotations
 

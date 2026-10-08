@@ -72,7 +72,7 @@ def _invite_url(token: str) -> str:
 def _expired(member: DomainMember) -> bool:
     """Compare in UTC, tolerating a naive value.
 
-    SQLite — the database the tests run on — has no timezone support and hands
+    SQLite - the database the tests run on - has no timezone support and hands
     datetimes back naive; PostgreSQL returns them aware. Normalizing here keeps
     the check from depending on which one is underneath.
     """

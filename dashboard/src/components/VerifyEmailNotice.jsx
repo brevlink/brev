@@ -35,7 +35,7 @@ export default function VerifyEmailNotice({ email, canUseFeatures }) {
             : 'Please confirm your email using the confirmation link.'}
       </p>
       {state === 'sent' && (
-        <p className={muted}>Sent. Check that inbox — and the spam folder, just in case.</p>
+        <p className={muted}>Sent. Check that inbox - and the spam folder, just in case.</p>
       )}
       {error && <div className={alert}>{error}</div>}
       <button

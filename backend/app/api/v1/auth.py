@@ -1,4 +1,4 @@
-"""Auth router — register, login, me."""
+"""Auth router - register, login, me."""
 
 from __future__ import annotations
 

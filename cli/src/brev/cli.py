@@ -1,4 +1,4 @@
-"""CLI entry point — argparse commands for `brev`."""
+"""CLI entry point - argparse commands for `brev`."""
 
 from __future__ import annotations
 
@@ -196,7 +196,7 @@ def cmd_token_create(args: argparse.Namespace) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="brev",
-        description="Brev — URL shortener CLI.",
+        description="Brev - URL shortener CLI.",
     )
     parser.set_defaults(func=lambda _: parser.print_help())
 
