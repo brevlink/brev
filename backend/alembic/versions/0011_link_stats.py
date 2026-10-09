@@ -2,8 +2,8 @@
 from alembic import op
 import sqlalchemy as sa
 
-revision = "0010_link_stats"
-down_revision = "0009_admin_ops"
+revision = "0011_link_stats"
+down_revision = "0010_account_settings"
 branch_labels = None
 depends_on = None
 

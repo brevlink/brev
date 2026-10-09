@@ -78,11 +78,12 @@ are retained long term without automatic expiry so totals survive event pruning.
 Deleting a link cascades deletion of its events and aggregates. No specific
 expiry for retained daily aggregates is being invented here.
 
-The callable `app.services.link_stats.prune_click_events(db)` removes events
-older than the configured rolling window; the caller must commit and arrange
-regular execution. No scheduler is installed in this change. Operators must run
-it regularly for the retention policy to take effect, including separately
-checking backup and infrastructure-log retention. The compose configuration is
+The operator command `python -m scripts.prune_click_events`, run from `/app`
+inside the backend container, removes events older than the configured rolling
+window and commits the deletion. Operators must schedule it in cron; no
+scheduler is installed in this change. See [Click statistics](click-statistics.md).
+Regular execution is required for the retention policy to take effect. Backup
+and infrastructure-log retention must be checked separately. The compose configuration is
 unchanged; configure retention directly in the backend environment or a local
 compose override.
 
@@ -105,8 +106,6 @@ contacts, providers and retention schedules remain subject to the existing
 confirmations and legal review. The public privacy notice must describe these
 fields and the 90-day raw-event / long-term aggregate policy in English.
 
-An English privacy-notice amendment is prepared in
-`docs/privacy-click-statistics.patch`. It updates the click data and retention
-sections, preserves the unrelated legal confirmations, and translates the
-existing notice. It has not been applied to `landing/src/pages/privacy.astro`
-pending clarification of the simultaneous instruction not to modify `landing/`.
+Public legal-page text is maintained separately by the project owners. No
+privacy-notice patch is kept in this repository, and this change does not
+modify `landing/src/pages/privacy.astro`.
