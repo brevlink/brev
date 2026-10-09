@@ -7,6 +7,7 @@ import LegalLayout from '../components/LegalLayout.astro';
 
   <h2>1. Cookie tecnici necessari</h2>
   <p>Il backend Brev può impostare il cookie di sessione browser <code>brev_session</code> per autenticare il dashboard. Il codice lo configura come HttpOnly, SameSite Lax e con durata legata alla sessione configurata; l’attributo Secure dipende da <code>SECURE_COOKIES</code>. Questi cookie sono destinati a sessione/autenticazione e sicurezza CSRF e non a misurazione pubblicitaria.</p>
+  <p>La cancellazione dell'account invalida tutte le sessioni e cancella il cookie di sessione del browser corrente.</p>
   <p>Nome, durata effettiva in produzione, dominio, eventuali cookie aggiuntivi introdotti dal deployment e base giuridica: <strong>[DA COMPLETARE E VERIFICARE SULL’AMBIENTE PUBBLICATO]</strong>.</p>
 
   <h2>2. Statistiche senza cookie e assenza di pubblicità</h2>
