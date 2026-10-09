@@ -10,6 +10,6 @@ bcrypt>=4.2,<5
 pyjwt>=2.13.0,<3
 dnspython>=2.8.0,<3
 httpx>=0.28.1,<1
-stripe>=15.3.0,<16
+stripe>=16.0.0,<17
 alembic>=1.18.5,<2
 segno>=1.6.6,<2
