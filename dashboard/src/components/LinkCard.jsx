@@ -1,4 +1,5 @@
 import { Alert, Button, DataRow, Dialog, FieldInput, FormStack, MonoValue, Note, RowActions, StatusBadge, TitleBadge } from './ui';
+import { Link } from 'react-router-dom';
 import { useId, useRef, useState } from 'react';
 import { deleteLink, updateLink } from '../api/client';
 
@@ -19,7 +20,7 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
   const actionRef = useRef(false);
   const copyRef = useRef(false);
   const fieldId = useId();
-  const qrUrl = `/api/v1/links/${encodeURIComponent(link.slug)}/qr.svg`;
+  const qrUrl = `/api/v1/links/${encodeURIComponent(link.slug)}/qr.svg?host=${encodeURIComponent(new URL(link.short_url).hostname)}`;
 
   function startEdit() {
     setForm({ url: link.url, title: link.title || '' });
@@ -136,6 +137,7 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
       </div>
 
       <RowActions className="col-start-2 row-span-2 row-start-1 max-[840px]:col-auto max-[840px]:row-auto">
+        <Button as={Link} size="sm" to={`/dashboard/stats/${encodeURIComponent(link.slug)}?host=${encodeURIComponent(new URL(link.short_url).hostname)}`} aria-label={`Statistics for ${link.short_url}`}>Statistics</Button>
         <Button
           type="button"
           variant="secondary"
@@ -218,7 +220,7 @@ export default function LinkCard({ link: sourceLink, onDeleted, onUpdated }) {
             <div className="grid justify-items-center gap-3">
               {qrStatus === 'loading' && <Note role="status">Loading QR code…</Note>}
               {qrStatus === 'error' ? (
-                <Alert>Could not load the QR code. Close this dialog and try again. If this slug is used on multiple domains, a QR code cannot be selected safely.</Alert>
+                <Alert>Could not load the QR code. Close this dialog and try again.</Alert>
               ) : (
                 <img
                   src={qrUrl}

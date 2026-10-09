@@ -53,6 +53,6 @@ db_session = Depends(get_db, scope="function")
 async def init_db() -> None:
     """Create all tables for development/test bootstrap only."""
     async with engine.begin() as conn:
-        from app.models import api_key, auth, billing, domain, link, report, subscription, user  # noqa: F401
+        from app.models import api_key, auth, billing, domain, link, link_stats, report, subscription, user  # noqa: F401
 
         await conn.run_sync(Base.metadata.create_all)

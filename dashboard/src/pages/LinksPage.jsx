@@ -146,8 +146,8 @@ export default function LinksPage() {
           <summary className="cursor-pointer">How clicks are counted</summary>
           <p>
             Clicks count every successful GET redirect across all your current
-            links, including your own visits and repeat visits. Visitors are not
-            deduplicated. Deleting a link removes its clicks from this total.
+            links, including your own visits and repeat visits, excluding known bots and
+            prefetch requests. Statistics show daily distinct visitors. Deleting a link removes its clicks from this total.
           </p>
         </details>
       </Panel>

@@ -28,11 +28,15 @@ import LegalLayout from '../components/LegalLayout.astro';
     <tbody>
       <tr><td>Account: email, password hash, display name, stato/verifica e date tecniche</td><td>Registrazione, autenticazione, recupero account, gestione dell’accesso</td><td>[DA COMPLETARE - confermare contratto, obbligo, legittimo interesse o altra base]</td></tr>
       <tr><td>Link e domini: URL di destinazione, slug, titolo facoltativo, dominio e dati di verifica</td><td>Creazione, gestione, risoluzione e sicurezza dei link</td><td>[DA COMPLETARE]</td></tr>
-      <tr><td>Click e sicurezza: contatori di click e, se attivati, telemetria operativa/rate limiting e log di sicurezza</td><td>Fornire statistiche richieste, prevenire abuso e proteggere il servizio</td><td>[DA COMPLETARE - il codice attuale persiste un contatore di click; log dettagliati/IP e relativa conservazione non sono definiti]</td></tr>
+      <tr><td>Statistiche dei clic: conteggio, giorno (UTC), ora della prima visita, paese se disponibile, host di provenienza, categoria del dispositivo e impronta del visitatore quando calcolabile</td><td>Fornire le statistiche sulle visite ai link brevi</td><td>[DA COMPLETARE - confermare la base giuridica applicabile]</td></tr>
+      <tr><td>Sicurezza: telemetria operativa, limitazione della frequenza e log di sicurezza, se attivati</td><td>Prevenire abusi e proteggere il servizio</td><td>[DA COMPLETARE - dati di log precisi e relativa conservazione da confermare]</td></tr>
       <tr><td>Supporto: contenuti e dati inviati dall’utente quando contatta il supporto</td><td>Rispondere, gestire richieste e abuso</td><td>[DA COMPLETARE - canale e base da confermare]</td></tr>
       <tr><td>Billing: dati necessari al pagamento e identificativi della transazione gestiti tramite Stripe, se il Checkout sarà attivato</td><td>Verificare il pagamento one-time e attribuire l’eventuale entitlement Cloud</td><td>[DA COMPLETARE - contratto, obbligo contabile e/o altra base da confermare]</td></tr>
     </tbody>
   </table>
+  <p>Per le statistiche dei clic Brev conserva soltanto l'host di provenienza, senza percorso, parametri di ricerca, credenziali o frammento. Nessun indirizzo IP e nessuno user agent grezzo vengono conservati nei record dei clic. Lo user agent viene ridotto a una categoria (desktop, mobile, tablet o altro). Il paese proviene dall'intestazione di Cloudflare quando è disponibile.</p>
+  <p>Indirizzo IP e user agent vengono usati solo in memoria per calcolare un'impronta troncata di tipo HMAC-SHA256. Il sale giornaliero deriva da un segreto del server e dalla data UTC e non viene conservato. L'impronta non è reversibile e non collega giorni diversi. Le visite ripetute sullo stesso link nello stesso giorno aumentano il conteggio. Paese, host di provenienza e dispositivo si riferiscono alla prima visita di quel visitatore nella giornata. Robot e richieste di prefetch noti sono esclusi.</p>
+  <p>I totali dei visitatori sommano i visitatori distinti per giorno e per link: non identificano persone tra giorni o link diversi. Le visite per cui l'impronta non è calcolabile sono contate a parte.</p>
   <p>Il prodotto non dovrebbe richiedere categorie particolari di dati per le funzioni descritte; gli utenti non devono inserire dati sensibili nei link o nelle richieste di supporto. Questa frase e le istruzioni operative sono da verificare legalmente.</p>
 
   <h2>5. Destinatari, responsabili e trasferimenti</h2>
@@ -40,7 +44,8 @@ import LegalLayout from '../components/LegalLayout.astro';
   <p>Prima del lancio devono essere verificati paesi di trattamento, sub-responsabili, SCC/altre garanzie quando necessarie, meccanismo informativo per le modifiche e procedura di notifica.</p>
 
   <h2>6. Conservazione</h2>
-  <p>Non sono indicati termini definitivi in questa bozza. Tempi per account, link, domini, contatori di click, sessioni/token, log di sicurezza, supporto e billing: <strong>[DA COMPLETARE - Matt e professionista legale devono definire tempi, criteri di cancellazione e possibili obblighi contabili/difensivi]</strong>.</p>
+  <p>Gli eventi grezzi dei clic hanno una conservazione predefinita di <strong>90 giorni</strong>, configurabile da chi gestisce un'installazione self-hosted, e chi la gestisce deve applicarla con una potatura periodica. Gli aggregati giornalieri (numero di clic e di visitatori distinti al giorno) sono conservati senza scadenza automatica, così i totali storici sopravvivono alla potatura degli eventi grezzi. Cancellare un link cancella i suoi eventi e i suoi aggregati. Le ripartizioni per paese, provenienza e dispositivo dipendono dagli eventi grezzi ancora conservati.</p>
+  <p>Non sono indicati termini definitivi in questa bozza. Tempi per account, link, domini, sessioni/token, log di sicurezza, supporto e billing: <strong>[DA COMPLETARE - Matt e professionista legale devono definire tempi, criteri di cancellazione e possibili obblighi contabili/difensivi]</strong>.</p>
 
   <h2>7. Diritti degli interessati</h2>
   <p>Secondo il contesto e la normativa applicabile, gli interessati possono avere diritti di accesso, rettifica, cancellazione, limitazione, opposizione, portabilità e revoca del consenso quando il trattamento si basa sul consenso. Modalità di verifica dell’identità, tempi di risposta e limiti devono essere <strong>[DA COMPLETARE]</strong>.</p>

@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import settings
 from app.core.database import Base
-from app.models import api_key, auth, billing, domain, link, report, subscription, user  # noqa: F401
+from app.models import api_key, auth, billing, domain, link, link_stats, report, subscription, user  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

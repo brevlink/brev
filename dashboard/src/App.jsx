@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
 import Dashboard from './pages/Dashboard';
 import DashboardRedirect from './pages/DashboardRedirect';
+import StatsPage from './pages/StatsPage';
 import LinksPage from './pages/LinksPage';
 import DomainsPage from './pages/DomainsPage';
 import AccountPage from './pages/AccountPage';
@@ -43,6 +44,8 @@ export default function App() {
           >
             <Route index element={<DashboardRedirect />} />
             <Route path="links" element={<LinksPage />} />
+            <Route path="stats" element={<StatsPage />} />
+            <Route path="stats/:slug" element={<StatsPage />} />
             <Route path="domains" element={<DomainsPage />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="*" element={<DashboardRedirect />} />
