@@ -19,11 +19,11 @@ class Subscription(Base):
         primary_key=True,
         default=uuid.uuid4,
     )
-    user_id: Mapped[uuid.UUID] = mapped_column(
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="SET NULL"),
         unique=True,
-        nullable=False,
+        nullable=True,
         index=True,
     )
     stripe_customer_id: Mapped[str | None] = mapped_column(String(128), unique=True, default=None)

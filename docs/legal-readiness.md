@@ -109,3 +109,10 @@ fields and the 90-day raw-event / long-term aggregate policy in Italian.
 Public legal-page text is maintained separately by the project owners. No
 privacy-notice patch is kept in this repository, and this change does not
 modify `landing/src/pages/privacy.astro`.
+
+## Account settings (implemented)
+
+- Email change requires the current password and confirmation through a single-use link sent to the new address and valid for 24 hours; the previous address is notified. The address changes only when the link is opened, and the confirmation page requires an explicit click so mail scanners cannot consume the token.
+- Profile export returns JSON (profile, links, domains and members, API key metadata, daily click aggregates). API key secrets are excluded, and raw click events are not exported because they carry the visitor fingerprint.
+- Account deletion removes the profile, links, owned domains, memberships, API keys, sessions and tokens, removes click events and daily aggregates for those links, invalidates sessions immediately, and refuses to proceed while a paid subscription is active. Billing records kept for accounting obligations are anonymized by removing the account and customer references while prices, status and dates remain. The confirmation states what is removed and what is retained in anonymized form.
+- The public privacy notice describes these features in Italian; placeholders for the controller's identity, address and contacts remain open.
