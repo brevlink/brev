@@ -104,7 +104,7 @@ or visitor information and are not backfilled into the new statistics.
 The click-related data/retention decisions above are settled. Other legal bases,
 contacts, providers and retention schedules remain subject to the existing
 confirmations and legal review. The public privacy notice must describe these
-fields and the 90-day raw-event / long-term aggregate policy in English.
+fields and the 90-day raw-event / long-term aggregate policy in Italian.
 
 Public legal-page text is maintained separately by the project owners. No
 privacy-notice patch is kept in this repository, and this change does not
