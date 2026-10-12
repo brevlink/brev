@@ -1,4 +1,5 @@
 """Behavioral coverage for minimized click analytics and authorization."""
+import contextlib
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -170,16 +171,35 @@ def test_recording_failure_never_blocks_redirect_and_rolls_back(client, monkeypa
             raise RuntimeError("analytics failure")
         monkeypatch.setattr(redirect, "record_click", fail)
     else:
+        from app.api.v1 import redirect as redirect_module
         from sqlalchemy.ext.asyncio import AsyncSession
+
         original = AsyncSession.commit
         calls = 0
+
         async def fail_once(db):
             nonlocal calls
             calls += 1
             if calls == 1:
                 raise RuntimeError("commit failed")
             await original(db)
+
         monkeypatch.setattr(AsyncSession, "commit", fail_once)
+
+        # The analytics path is time-bounded (app/api/v1/redirect.py) and the bound is
+        # real: under load it can fire before the analytics commit, and then the first
+        # commit the patch sees belongs to the request teardown (app/core/database.py),
+        # whose exception escapes the request. The test would then fail on a machine
+        # that is merely busy, which proves nothing. Lift the bound for this request
+        # so the commit under test is always the analytics one: only this module's
+        # reference is replaced, and only for the duration of the test.
+        from types import SimpleNamespace
+
+        @contextlib.asynccontextmanager
+        async def no_bound(_seconds):
+            yield
+
+        monkeypatch.setattr(redirect_module, "asyncio", SimpleNamespace(timeout=no_bound))
     response = _redirect(client)
     assert response.status_code == 307
     assert response.headers["location"] == "https://example.com/destination"
