@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brev</title>
+  <link rel="stylesheet" href="palette.css">
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js"></script>
+</head>
+<body class="popup">
+  <header><h1>Brev</h1><button id="settings" type="button">Settings</button></header>
+  <p id="account" class="muted"></p>
+  <section id="setup" hidden><p>Add your API key to create short links.</p><button id="setup-settings" class="primary" type="button">Open settings</button></section>
+  <p id="error" role="alert" hidden></p>
+  <p id="status" role="status"></p>
+  <form id="create-form" hidden>
+    <label for="url">Destination URL</label><input id="url" type="url" required autocomplete="off">
+    <p id="page-note" class="muted" hidden>This page cannot be shortened. Enter an HTTP or HTTPS URL.</p>
+    <label for="slug">Custom slug <span class="muted">(optional)</span></label><input id="slug" minlength="3" maxlength="64" pattern="[A-Za-z0-9_\-]{3,64}" autocomplete="off" aria-describedby="slug-note">
+    <p id="slug-note" class="muted">Leave empty for a random slug.</p>
+    <label for="title">Title <span class="muted">(optional)</span></label><input id="title" maxlength="256">
+    <div id="domain-field" hidden><label for="domain">Domain</label><select id="domain"></select></div>
+    <button id="create" class="primary" type="submit" disabled>Create link</button>
+  </form>
+  <section id="result" class="card" hidden aria-label="Created link">
+    <strong id="result-heading" tabindex="-1">Link created</strong>
+    <a id="short-url" target="_blank" rel="noopener noreferrer"></a>
+    <div class="actions"><button id="copy" type="button">Copy</button><a id="open" class="button" target="_blank" rel="noopener noreferrer">Open</a><button id="qr-toggle" type="button" aria-expanded="false" aria-controls="qr">QR code</button></div>
+    <img id="qr" alt="QR code for the created short link" hidden>
+  </section>
+  <section id="recent-section" hidden><h2>Recent</h2><p id="recent-note" class="muted" role="status">Loading recent links...</p><ul id="recent"></ul></section>
+</body>
+</html>

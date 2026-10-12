@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brev settings</title>
+  <link rel="stylesheet" href="palette.css">
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="options.js"></script>
+</head>
+<body class="options">
+  <header><h1>Brev settings</h1></header>
+  <p>Create a key in your dashboard, Account, API keys. The token is shown only once. <a id="dashboard" target="_blank" rel="noopener noreferrer">Open API keys</a></p>
+  <p class="notice">Your API key is stored unencrypted in this browser profile. Anyone with access to this profile can read it.</p>
+  <p id="error" role="alert" hidden></p>
+  <p id="status" role="status"></p>
+  <p id="account" class="muted"></p>
+  <p id="stored-row" hidden>Stored key: <span id="stored-key"></span> <button id="remove" type="button">Remove key</button></p>
+  <form id="settings-form">
+    <label for="server">Server base URL</label><input id="server" type="url" required autocomplete="off" aria-describedby="server-note">
+    <p id="server-note" class="muted">Custom servers require permission for the origin you enter.</p>
+    <label for="key">API key</label><input id="key" type="password" autocomplete="off" spellcheck="false" aria-describedby="key-note">
+    <p id="key-note" class="muted">Paste the token here. Leave empty to keep the stored key on the same server.</p>
+    <label for="default-domain">Default domain for the popup</label><select id="default-domain"></select>
+    <label for="auto-copy"><input id="auto-copy" type="checkbox"> Copy automatically after creation in the popup</label>
+    <p class="muted">The keyboard shortcut and context menus always use the server default domain and copy the link.</p>
+    <button id="save" class="primary" type="submit">Save settings</button>
+  </form>
+</body>
+</html>
