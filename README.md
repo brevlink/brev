@@ -68,7 +68,7 @@ docs/           Self-hosting and project notes
 Planned areas:
 
 ```text
-chrome-extension/   Browser extension, once the product shape is clearer
+chrome-extension/   Chromium extension for creating and copying Brev short links
 android/            Android app, once the API and workflows settle
 ```
 
