@@ -36,6 +36,24 @@ def test_saas_leg_serves_any_host_on_its_own_port():
     assert "proxy.brevl.ink:443 {" not in caddyfile
 
 
+def test_deployment_overrides_are_optional_globs():
+    """Deployment-local hardening must be injectable without editing this file,
+    and a clone that ships no override files must stay valid as it is."""
+    caddyfile = (Path(__file__).resolve().parents[2] / "Caddyfile").read_text(encoding="utf-8")
+    assert "import /data/caddy/overrides/global/*.caddyfile" in caddyfile
+    assert "import /data/caddy/overrides/tls/*.caddyfile" in caddyfile
+
+
+def test_client_authentication_is_not_baked_into_the_default_config():
+    """Enforcement must never ship in the image: it would break every self-hosted
+    deployment without Cloudflare - and, because the production host pulls this
+    image automatically, it would also arm itself on the live origin the moment it
+    is pushed, before Authenticated Origin Pulls is switched on at Cloudflare."""
+    caddyfile = (Path(__file__).resolve().parents[2] / "Caddyfile").read_text(encoding="utf-8")
+    assert "client_auth" not in caddyfile
+    assert "trust_pool" not in caddyfile
+
+
 def test_routing_is_shared_not_duplicated():
     caddyfile = (Path(__file__).resolve().parents[2] / "Caddyfile").read_text(encoding="utf-8")
     assert caddyfile.count("import routing") >= 2
