@@ -58,5 +58,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "$GITHUB_REF_NAME" dist/brev-extension-*.zip \
-            --title "Brev extension $GITHUB_REF_NAME" \
+            --title "Brev extension ${GITHUB_REF_NAME#extension-v}" \
             --notes-file notes.md
