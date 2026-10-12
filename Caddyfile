@@ -8,6 +8,12 @@
 	# No automatic redirects: TLS is terminated by nginx-proxy-manager on the
 	# normal path and by Cloudflare on the SaaS leg. Caddy here is a router.
 	auto_https disable_redirects
+
+	# Deployment-local global options, e.g. `servers { strict_sni_host
+	# insecure_off }` for Authenticated Origin Pulls. A glob that matches
+	# nothing is a no-op, so a plain clone needs no file here and keeps
+	# working unchanged. See docs/cloudflare-for-saas.md.
+	import /data/caddy/overrides/global/*.caddyfile
 }
 
 (routing) {
@@ -85,6 +91,10 @@
 	tls {
 		on_demand
 		issuer internal
+		# Deployment-local TLS options, for example requiring the client
+		# certificate Cloudflare presents at the origin. Empty by default:
+		# this leg answers without client authentication.
+		import /data/caddy/overrides/tls/*.caddyfile
 	}
 	import routing
 }

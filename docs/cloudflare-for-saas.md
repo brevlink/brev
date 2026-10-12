@@ -94,6 +94,74 @@ Two behaviours worth knowing:
   occupy one of the zone's custom hostnames, but a customer who is already
   leaving must not be blocked by a Cloudflare hiccup.
 
+## Hardening: who may talk to the origin
+
+By default this leg answers **any** client that reaches the origin port, not only
+Cloudflare. Anyone who knows the origin address can open a TLS connection with an
+arbitrary `Host` and bypass everything Cloudflare applies to a customer domain:
+WAF, rate limiting, bot management. Two independent layers close it.
+
+**1. Authenticated Origin Pulls (mTLS).** Enable Authenticated Origin Pulls for the
+zone (SSL/TLS -> Origin Server -> Authenticated Origin Pulls -> Global -> On) and
+require the client certificate at the origin:
+
+```caddyfile
+# /data/caddy/overrides/tls/aop.caddyfile
+client_auth {
+	mode require_and_verify
+	trust_pool file /data/caddy/overrides/authenticated_origin_pull_ca.pem
+}
+```
+
+**`strict_sni_host` must be turned off in the same deployment, or every customer
+domain breaks.** Caddy switches strict SNI-Host enforcement on by itself as soon as
+TLS client authentication is configured - the log says `enabling strict SNI-Host
+enforcement because TLS client auth is configured` - and that answers `421
+Misdirected Request` when the SNI (the fallback origin) differs from the Host (the
+customer hostname): exactly the mismatch this leg exists to serve.
+
+```caddyfile
+# /data/caddy/overrides/global/strict_sni_host.caddyfile
+servers {
+	strict_sni_host insecure_off
+}
+```
+
+`insecure_off` is named that way because it disables the domain-fronting
+protection that matters when client authentication is configured **per name**. Here
+the `:443` site is one catch-all policy that requires the certificate for every
+name, so no unprotected hostname exists to front through. If a second site is ever
+added on `:443`, revisit this.
+
+**2. Cloudflare address ranges at the origin** (optional, independent): allow
+`cloudflare.com/ips-v4` and `cloudflare.com/ips-v6` on the origin port. It does not
+touch TLS, it needs maintenance when Cloudflare adds ranges, and it does not stop
+another Cloudflare customer, whose traffic also arrives from Cloudflare addresses.
+
+### Failure mode and rollback
+
+This layer is **fail-closed**: switching Authenticated Origin Pulls off in the
+dashboard, or a certificate rotation, stops **every customer domain**. Rollback is
+deleting one file and restarting the container:
+
+```bash
+docker exec brev-caddy-1 rm /data/caddy/overrides/tls/aop.caddyfile
+docker restart brev-caddy-1
+```
+
+The certificate is downloaded from
+<https://developers.cloudflare.com/ssl/static/authenticated_origin_pull_ca.pem>.
+Both overrides live in deployment-local files, never in the image, so a clone with
+no override files behaves exactly as before and self-hosted deployments that do not
+use Cloudflare are unaffected.
+
+### Verifying by hand once this is on
+
+The direct `curl --resolve proxy.<zone>:8443` check no longer answers without a
+client certificate - that is the point of it. To reuse it, remove the `tls`
+override, restart, run the check, and put the file back. The positive direction is
+verified through Cloudflare, on a real custom hostname.
+
 ## Pitfalls
 
 - **`tls internal` alone is not enough for this site.** It covers only hostnames
