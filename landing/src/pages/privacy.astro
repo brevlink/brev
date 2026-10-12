@@ -2,62 +2,86 @@
 import LegalLayout from '../components/LegalLayout.astro';
 ---
 
-<LegalLayout title="Privacy Notice" description="Bozza di informativa sul trattamento dei dati per il sito pubblico, Brev self-hosted e il futuro Brev Cloud.">
-  <p><strong>Stato del documento:</strong> bozza. Titolare, contatti, basi giuridiche, destinatari, trasferimenti, tempi di conservazione e autorità competente sono ancora da confermare.</p>
+<LegalLayout title="Privacy Notice" description="How Brev Cloud and the public Brev website process data and how to exercise your rights.">
+<h2>1. Scope</h2>
+  <p>Brev Cloud is the live managed service at <a href="https://brevl.ink">brevl.ink</a>. This notice covers that service and the public landing and legal pages.</p>
+  <p>Brev self-hosted is software distributed under the MIT licence. Each operator is an independent controller for their installation and is responsible for its infrastructure, users, data, logs, updates and compliance.</p>
 
-  <h2>1. Ambito</h2>
-  <p>Questa bozza distingue tre contesti diversi. Prima del lancio di Brev Cloud, chi gestisce il sito deve verificare il testo, completare i placeholder e farlo revisionare da un professionista legale.</p>
-  <ul>
-    <li><strong>Sito pubblico:</strong> la landing page statica e i documenti pubblici di Brev utilizzano statistiche sulle visite senza cookie tramite Plausible self-hosted sulla nostra infrastruttura. Non sono presenti tracker pubblicitari o moduli pubblici di raccolta dati.</li>
-    <li><strong>Brev self-hosted:</strong> il gestore della singola installazione controlla infrastruttura, configurazione, database, log e servizi collegati. Di norma è il soggetto che determina finalità e mezzi del trattamento dei dati della propria installazione e deve pubblicare una propria informativa, configurare i servizi e rispondere alle richieste degli interessati.</li>
-    <li><strong>Futuro Brev Cloud:</strong> servizio gestito separato, non da descrivere come già operativo. Le categorie e i dettagli sotto riportati sono da confermare prima dell’attivazione.</li>
-  </ul>
+  <h2>2. Who is responsible</h2>
+  <p>The controller is <strong>Matteo Genovese, an individual based in Italy</strong>. For privacy requests, contact <a href="mailto:privacy@brevl.ink">privacy@brevl.ink</a>.</p>
+  <p>No data protection officer has been appointed.</p>
+  <p>The competent supervisory authority is the <a href="https://www.garanteprivacy.it">Garante per la protezione dei dati personali</a>, the Italian data protection authority.</p>
 
-  <h2>2. Titolare e contatto privacy</h2>
-  <p>Titolare del futuro Brev Cloud: <strong>[DA COMPLETARE - persona giuridica o persona fisica titolare]</strong>.</p>
-  <p>Indirizzo: <strong>[DA COMPLETARE]</strong>. Contatto generale: <strong>[DA COMPLETARE]</strong>. Contatto privacy/DPO, se applicabile: <strong>[DA COMPLETARE]</strong>. Matt deve confermare questi dati e un professionista legale deve verificare l’identificazione del titolare e l’eventuale necessità di un DPO o di un rappresentante.</p>
-
-  <h2>3. Dati del sito pubblico</h2>
-  <p>La landing non implementa account, moduli, newsletter o pubblicità. Le statistiche sulle visite sono attive tramite Plausible, self-hosted sulla nostra infrastruttura gestita da Matt (novezero.it), sotto lo stesso titolare del trattamento. Questo utilizzo delle statistiche non imposta cookie, non effettua profilazione, non conserva dati personali e non trasferisce dati delle statistiche a terzi. L’indirizzo IP viene usato solo per ricavare il paese del visitatore e non viene conservato.</p>
-  <p>Il provider di hosting/deployment potrebbe produrre log tecnici necessari al funzionamento e alla sicurezza del sito: provider, categorie precise, finalità, base giuridica e conservazione sono <strong>[DA COMPLETARE]</strong>. Non vengono qui formulate dichiarazioni sugli indirizzi IP o su altri dati raccolti direttamente da Brev tramite i log di hosting senza una verifica del provider.</p>
-
-  <h2>4. Futuro Brev Cloud: categorie e finalità</h2>
-  <p>La tabella seguente riflette le entità e i flussi presenti nel codice Cloud/self-hosted, ma non sostituisce una verifica del servizio effettivamente messo online:</p>
+  <h2>3. What we process</h2>
   <table>
-    <thead><tr><th>Categoria</th><th>Possibili finalità</th><th>Base giuridica</th></tr></thead>
+    <thead><tr><th>Category and data</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td>Account: email, password hash, display name, stato/verifica e date tecniche</td><td>Registrazione, autenticazione, recupero account, gestione dell’accesso</td><td>[DA COMPLETARE - confermare contratto, obbligo, legittimo interesse o altra base]</td></tr>
-      <tr><td>Link e domini: URL di destinazione, slug, titolo facoltativo, dominio e dati di verifica</td><td>Creazione, gestione, risoluzione e sicurezza dei link</td><td>[DA COMPLETARE]</td></tr>
-      <tr><td>Statistiche dei clic: conteggio, giorno (UTC), ora della prima visita, paese se disponibile, host di provenienza, categoria del dispositivo e impronta del visitatore quando calcolabile</td><td>Fornire le statistiche sulle visite ai link brevi</td><td>[DA COMPLETARE - confermare la base giuridica applicabile]</td></tr>
-      <tr><td>Sicurezza: telemetria operativa, limitazione della frequenza e log di sicurezza, se attivati</td><td>Prevenire abusi e proteggere il servizio</td><td>[DA COMPLETARE - dati di log precisi e relativa conservazione da confermare]</td></tr>
-      <tr><td>Supporto: contenuti e dati inviati dall’utente quando contatta il supporto</td><td>Rispondere, gestire richieste e abuso</td><td>[DA COMPLETARE - canale e base da confermare]</td></tr>
-      <tr><td>Billing: dati necessari al pagamento e identificativi della transazione gestiti tramite Stripe, se il Checkout sarà attivato</td><td>Verificare il pagamento one-time e attribuire l’eventuale entitlement Cloud</td><td>[DA COMPLETARE - contratto, obbligo contabile e/o altra base da confermare]</td></tr>
+      <tr><td>Accounts: email address, password hash, optional display name, email verification status, technical dates, sessions, API key metadata and hashes.</td><td>Create and manage accounts, authentication and access.</td></tr>
+      <tr><td>Links and domains: destination URLs, slugs, optional titles, custom domains, DNS verification data and shared-domain members invited by email address.</td><td>Create and manage links, redirects, domains and shared access.</td></tr>
+      <tr><td>Click statistics: counts, UTC day, first-visit time, country, referrer hostname, device category and a visitor fingerprint where calculable.</td><td>Provide aggregate link statistics as described below.</td></tr>
+      <tr><td>Security and abuse: information submitted in abuse reports and technical logs held by infrastructure providers.</td><td>Protect the service and prevent abuse, fraud, spam and phishing.</td></tr>
+      <tr><td>Support: content and data you send when asking for help or reporting abuse.</td><td>Handle your request and keep a record of it.</td></tr>
+      <tr><td>Payments: no payment data today. Stripe is not configured.</td><td>No payment processing is active.</td></tr>
     </tbody>
   </table>
-  <p>Per le statistiche dei clic Brev conserva soltanto l'host di provenienza, senza percorso, parametri di ricerca, credenziali o frammento. Nessun indirizzo IP e nessuno user agent grezzo vengono conservati nei record dei clic. Lo user agent viene ridotto a una categoria (desktop, mobile, tablet o altro). Il paese proviene dall'intestazione di Cloudflare quando è disponibile.</p>
-  <p>Indirizzo IP e user agent vengono usati solo in memoria per calcolare un'impronta troncata di tipo HMAC-SHA256. Il sale giornaliero deriva da un segreto del server e dalla data UTC e non viene conservato. L'impronta non è reversibile e non collega giorni diversi. Le visite ripetute sullo stesso link nello stesso giorno aumentano il conteggio. Paese, host di provenienza e dispositivo si riferiscono alla prima visita di quel visitatore nella giornata. Robot e richieste di prefetch noti sono esclusi.</p>
-  <p>I totali dei visitatori sommano i visitatori distinti per giorno e per link: non identificano persone tra giorni o link diversi. Le visite per cui l'impronta non è calcolabile sono contate a parte.</p>
-  <p>Il prodotto non dovrebbe richiedere categorie particolari di dati per le funzioni descritte; gli utenti non devono inserire dati sensibili nei link o nelle richieste di supporto. Questa frase e le istruzioni operative sono da verificare legalmente.</p>
+  <p>We do not profile users, advertise or sell data. We do not make automated decisions with effects on users.</p>
 
-  <h2>5. Destinatari, responsabili e trasferimenti</h2>
-  <p>Per il futuro Cloud potranno essere coinvolti provider tecnici e responsabili del trattamento elencati nella pagina <a href="/subprocessors">Subprocessors &amp; Data Retention</a>. Stripe non è configurato nella configurazione corrente del repository; il provider email non è configurato di default. I nomi, i ruoli, i contratti, le garanzie e gli eventuali trasferimenti fuori dallo SEE sono <strong>[DA COMPLETARE]</strong>.</p>
-  <p>Prima del lancio devono essere verificati paesi di trattamento, sub-responsabili, SCC/altre garanzie quando necessarie, meccanismo informativo per le modifiche e procedura di notifica.</p>
+  <h2>4. Why we process it and on what legal basis</h2>
+  <p>Performance of a contract, Article 6(1)(b) GDPR, covers creating and managing accounts, links, domains, API keys and redirects. It also covers related service emails for verification, password resets and email changes.</p>
+  <p>Legitimate interests, Article 6(1)(f) GDPR, cover service security, prevention of abuse, fraud, spam and phishing, rate limiting and the aggregate click measurement described below.</p>
+  <p>Legal obligations, Article 6(1)(c) GDPR, will cover accounting and tax duties if payments are enabled. No payment processing is active today.</p>
+  <p>No current processing is based on consent. There are no non-essential cookies, so there is no cookie consent banner.</p>
 
-  <h2>6. Conservazione</h2>
-  <p>Gli eventi grezzi dei clic hanno una conservazione predefinita di <strong>90 giorni</strong>, configurabile da chi gestisce un'installazione self-hosted, e chi la gestisce deve applicarla con una potatura periodica. Gli aggregati giornalieri (numero di clic e di visitatori distinti al giorno) sono conservati senza scadenza automatica, così i totali storici sopravvivono alla potatura degli eventi grezzi. Cancellare un link cancella i suoi eventi e i suoi aggregati. Le ripartizioni per paese, provenienza e dispositivo dipendono dagli eventi grezzi ancora conservati.</p>
-  <p>Non sono indicati termini definitivi in questa bozza. Tempi per account, link, domini, sessioni/token, log di sicurezza, supporto e billing: <strong>[DA COMPLETARE - Matt e professionista legale devono definire tempi, criteri di cancellazione e possibili obblighi contabili/difensivi]</strong>.</p>
+  <h2>5. Click statistics in detail</h2>
+  <p>A click record contains a count, the UTC day, the time of the first visit, country from Cloudflare's <code>CF-IPCountry</code> header if present, the referrer hostname only, a device category (desktop, mobile, tablet or other) and, where calculable, a non-reversible visitor fingerprint.</p>
+  <p>Raw IP addresses and user agents are not retained in click records. They are used only in memory to calculate the fingerprint and device category. There is no local geolocation service.</p>
+  <p>The fingerprint is a truncated HMAC-SHA256 value. Its daily salt is derived from a server secret and the UTC date. Neither the salt nor the source IP address is retained. Fingerprints cannot be linked across different days.</p>
+  <p>Repeated visits to the same link on the same day increase the count. Country, referrer and device describe the first visit that day. Known bots and prefetch requests are excluded.</p>
+  <p>Visitor totals sum distinct visitors per day and per link. They do not identify people across days or across different links.</p>
+  <p>Raw click events are kept for <strong>90 days</strong>. A self-hosted operator can configure this with <code>CLICK_EVENT_RETENTION_DAYS</code>. Daily aggregates have no automatic expiry. Deleting a link deletes its events and aggregates.</p>
+  <p>Public-site statistics use no cookies. They are separate from link click statistics.</p>
 
-  <h2>7. Diritti degli interessati</h2>
-  <p>Secondo il contesto e la normativa applicabile, gli interessati possono avere diritti di accesso, rettifica, cancellazione, limitazione, opposizione, portabilità e revoca del consenso quando il trattamento si basa sul consenso. Modalità di verifica dell’identità, tempi di risposta e limiti devono essere <strong>[DA COMPLETARE]</strong>.</p>
-  <p>Dal pannello account è possibile richiedere il cambio dell'indirizzo email, scaricare i propri dati in formato JSON e cancellare definitivamente l'account.</p>
-  <p>Il cambio di indirizzo richiede la password attuale e una conferma tramite un link monouso inviato al nuovo indirizzo, valido 24 ore. Il vecchio indirizzo riceve una notifica.</p>
-  <p>La cancellazione dell'account rimuove profilo, link, domini posseduti, appartenenze, chiavi API, sessioni e token. I membri invitati perdono l'accesso ai domini, e i link su quei domini vengono cancellati.</p>
-  <p>Prima di cancellare l'account occorre annullare un eventuale abbonamento a pagamento attivo.</p>
-  <p>I documenti di fatturazione conservati per obblighi contabili vengono anonimizzati, rimuovendo il legame con l'account e gli identificativi del cliente.</p>
-  <p>L'esportazione include i dati del profilo, i link, i domini e i membri, i metadati delle chiavi API e, se disponibili, gli aggregati giornalieri dei clic. I segreti delle chiavi API sono esclusi.</p>
-  <p>Richieste privacy: <strong>[DA COMPLETARE - email o altro canale]</strong>. Reclamo all’autorità di controllo: <strong>[DA COMPLETARE - autorità competente, sito e contatti da confermare in base allo stabilimento e al contesto]</strong>.</p>
+  <h2>6. Who receives data</h2>
+  <ul>
+    <li><strong>Cloudflare, Inc.:</strong> CDN, DNS, TLS termination, WAF and Cloudflare for SaaS for customer domains. Cloudflare sees visitors' IP addresses.</li>
+    <li><strong>IONOS SE:</strong> hosting of the application servers and database on VPS infrastructure in Germany.</li>
+    <li><strong>Contabo GmbH:</strong> hosting of <code>mail.novezero.it</code> in Germany for transactional emails: verification, password resets, email changes and domain invitations. See <a href="https://contabo.com/en/legal/privacy/">Contabo's privacy notice</a>.</li>
+  </ul>
+  <p>Plausible is self-hosted on the controller's infrastructure at novezero.it. It is under the same controller, not a third party or subprocessor. It measures visits to the landing and legal pages only, without cookies or profiling. It retains no personal data. IP addresses are used only to derive country and are not retained. No analytics data is transferred to third parties. It does not measure visits to the authenticated dashboard.</p>
+  <p>GitHub, Inc. hosts the public repository and security reports. It does not process service users' data. Stripe is not enabled. Any future activation will be documented beforehand.</p>
+  <p>We do not sell data. Apart from the infrastructure processing described above, disclosure to third parties occurs only where required by law. See <a href="/subprocessors">Subprocessors and Retention</a>.</p>
 
-  <h2>8. Sicurezza e modifiche</h2>
-  <p>Brev implementa misure tecniche nel codice, tra cui password hash, sessioni revocabili, cookie HttpOnly e protezioni CSRF per richieste basate su cookie; l’assetto effettivo dipende dalla configurazione e dall’operatore. Misure organizzative, gestione incidenti, contatti e tempi di notifica: <strong>[DA COMPLETARE]</strong>.</p>
-  <p>Versione/data di entrata in vigore: <strong>[DA COMPLETARE]</strong>. Il testo dovrà essere aggiornato prima di ogni trattamento Cloud e quando cambiano servizi o provider.</p>
+  <h2>7. Transfers outside the EEA</h2>
+  <p>Cloudflare, Inc. is based in the United States. Its <a href="https://www.cloudflare.com/cloudflare-customer-dpa/">customer DPA</a> includes the European Commission's standard contractual clauses for transfers.</p>
+  <p>IONOS SE and Contabo GmbH process data in the European Union, in Germany.</p>
+
+  <h2>8. How long we keep data</h2>
+  <ul>
+    <li><strong>Account and profile:</strong> for the life of the account. Self-service deletion from the account panel removes them immediately.</li>
+    <li><strong>Links, domains and domain memberships:</strong> for the life of the account. Link deletion removes the link and its related data; account deletion removes owned domains and memberships as well.</li>
+    <li><strong>Raw click events:</strong> 90 days. Daily aggregates have no automatic expiry and are removed with the link or account.</li>
+    <li><strong>Sessions:</strong> until logout, expiry or revocation. Account deletion invalidates sessions.</li>
+    <li><strong>Single-use tokens:</strong> email verification, password reset, email change and domain invitation tokens are stored as hashes, consumed on first use and have a technical expiry. Email change links last 24 hours; domain invitations last 14 days.</li>
+    <li><strong>Support messages:</strong> for the time needed to handle the request and keep a record of it.</li>
+    <li><strong>CDN, hosting and mail logs:</strong> retained under Cloudflare, IONOS and Contabo policies. Their retention periods are not set by Brev.</li>
+    <li><strong>Infrastructure backups, if active:</strong> copies may remain for the backup rotation cycle and are used only for recovery after a failure.</li>
+    <li><strong>Billing data:</strong> none today. If payments are enabled, accounting documents will be kept for the period required by Italian law and this notice will be updated.</li>
+  </ul>
+
+  <h2>9. Your rights</h2>
+  <p>You can exercise rights of access, rectification, erasure, restriction, objection and portability.</p>
+  <ul>
+    <li><strong>Access and export:</strong> download JSON from the account panel. It includes your profile, links, domains and members, API key metadata and daily click aggregates. API key secrets are excluded.</li>
+    <li><strong>Rectification:</strong> change your email address in the account panel using your current password. Confirm through a single-use link sent to the new address, valid for 24 hours. The old address receives a notification.</li>
+    <li><strong>Erasure:</strong> delete your account from the panel. This immediately removes your profile, links, owned domains, memberships, API keys, sessions and tokens, including the click events and aggregates for deleted links. Invited members lose access to shared domains and links on those domains are deleted.</li>
+  </ul>
+  <p>For restriction, objection, portability or other privacy requests, write to <a href="mailto:privacy@brevl.ink">privacy@brevl.ink</a>. We respond without undue delay. To verify your identity, we may ask you to confirm control of your account email address.</p>
+  <p>You may lodge a complaint with the <a href="https://www.garanteprivacy.it">Garante per la protezione dei dati personali</a>.</p>
+
+  <h2>10. Security</h2>
+  <p>Passwords are stored as hashes. Sessions can be revoked. Session cookies are HttpOnly. Cookie-authenticated requests have CSRF protection. Authorisation checks protect links, domains and members.</p>
+  <p>Traffic is encrypted in transit, with TLS terminated by Cloudflare. The effective setup depends on the operator's configuration. No system is completely secure.</p>
+
+  <h2>11. Changes</h2>
+  <p>The document version and last updated date appear above. Changes are published on this page with an updated version and date. For questions, contact <a href="mailto:privacy@brevl.ink">privacy@brevl.ink</a>.</p>
 </LegalLayout>

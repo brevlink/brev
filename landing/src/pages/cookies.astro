@@ -2,21 +2,28 @@
 import LegalLayout from '../components/LegalLayout.astro';
 ---
 
-<LegalLayout title="Cookie Policy" description="Bozza sui cookie e tecnologie simili usati dal sito pubblico e dalle future superfici Brev.">
-  <p><strong>Configurazione corrente:</strong> la landing pubblica e le pagine legali utilizzano statistiche sulle visite senza cookie tramite Plausible self-hosted. Non includono cookie pubblicitari, pixel o tracker di marketing. Plausible non imposta cookie e non richiede consenso per questo utilizzo, quindi non viene aggiunto un banner per il consenso ai cookie.</p>
+<LegalLayout title="Cookie Policy" description="The necessary session cookie and cookieless measurement used by Brev today.">
+<h2>1. What Brev uses today</h2>
+  <p>Brev uses one necessary technical cookie, <code>brev_session</code>, and cookieless statistics on the public website. There are no non-essential cookies, so there is no cookie consent banner.</p>
 
-  <h2>1. Cookie tecnici necessari</h2>
-  <p>Il backend Brev può impostare il cookie di sessione browser <code>brev_session</code> per autenticare il dashboard. Il codice lo configura come HttpOnly, SameSite Lax e con durata legata alla sessione configurata; l’attributo Secure dipende da <code>SECURE_COOKIES</code>. Questi cookie sono destinati a sessione/autenticazione e sicurezza CSRF e non a misurazione pubblicitaria.</p>
-  <p>La cancellazione dell'account invalida tutte le sessioni e cancella il cookie di sessione del browser corrente.</p>
-  <p>Nome, durata effettiva in produzione, dominio, eventuali cookie aggiuntivi introdotti dal deployment e base giuridica: <strong>[DA COMPLETARE E VERIFICARE SULL’AMBIENTE PUBBLICATO]</strong>.</p>
+  <h2>2. The session cookie</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Purpose</th><th>Duration</th><th>Type</th></tr></thead>
+    <tbody><tr><td><code>brev_session</code></td><td>Session and authentication.</td><td>Until logout, session expiry or revocation, according to the configured session duration.</td><td>Necessary technical cookie, first-party.</td></tr></tbody>
+  </table>
+  <p>The cookie is HttpOnly and SameSite=Lax. It is Secure in production, where <code>SECURE_COOKIES=true</code>. It is invalidated and deleted when the account is deleted or the session is revoked. It is not used for measurement or advertising.</p>
 
-  <h2>2. Statistiche senza cookie e assenza di pubblicità</h2>
-  <p>Plausible è self-hosted sulla nostra infrastruttura gestita da Matt (novezero.it), sotto lo stesso titolare del trattamento. Non effettua profilazione, non conserva dati personali e non trasferisce dati delle statistiche a terzi. L’indirizzo IP viene usato solo per ricavare il paese del visitatore e non viene conservato. La landing non carica Google Fonts, script pubblicitari o servizi di tracciamento di terze parti. Non viene dichiarata l’assenza di log tecnici del provider di hosting: provider, log e conservazione sono ancora da verificare come descritto nella pagina <a href="/privacy">Privacy Notice</a>.</p>
+  <h2>3. Cookieless measurement</h2>
+  <p>Plausible is self-hosted on the controller's infrastructure at novezero.it, under the same controller. It measures the landing and legal pages only. It uses no cookies, performs no profiling and retains no personal data.</p>
+  <p>IP addresses are used only to derive country and are not retained. No analytics data is transferred to third parties. There is no website analytics in the authenticated dashboard. Link click statistics are described separately in the <a href="/privacy">Privacy Notice</a>.</p>
 
-  <h2>3. Stripe Checkout e futuri servizi</h2>
-  <p>Stripe non è configurato ora. Se Brev Cloud attiverà Stripe Checkout, il passaggio a Stripe e le tecnologie eventualmente impostate da Stripe dovranno essere documentati separatamente, valutando necessità, categorie, trasferimenti e consenso quando richiesto. Altri servizi non necessari (analytics, supporto, marketing o monitoring lato client) non devono essere attivati senza una valutazione preventiva e, ove necessario, consenso.</p>
+  <h2>4. No browser storage, no tracking</h2>
+  <p>The dashboard uses neither localStorage nor sessionStorage. It persists no browser data beyond the session cookie.</p>
+  <p>The public landing has no advertising pixels or third-party tracking scripts. Its analytics script is hosted on the controller's own infrastructure. Fonts are self-hosted; Google Fonts is not loaded.</p>
 
-  <h2>4. Gestione</h2>
-  <p>L’utente può gestire o cancellare cookie dalle impostazioni del browser, ma la disabilitazione dei cookie tecnici può impedire login e funzioni protette. Per il self-hosted, l’operatore deve verificare proxy, dashboard e servizi aggiunti alla propria installazione.</p>
-  <p>Data/versione e contatto: <strong>[DA COMPLETARE]</strong>. Questa bozza richiede revisione legale prima del lancio Cloud.</p>
+  <h2>5. Managing cookies</h2>
+  <p>You can manage or delete cookies in your browser settings. Disabling the session cookie prevents login and access to protected features.</p>
+
+  <h2>6. Future services</h2>
+  <p>If services that set cookies or use similar technologies are introduced, such as a payment provider, they will be documented before activation. Where required, consent will be obtained before activation.</p>
 </LegalLayout>

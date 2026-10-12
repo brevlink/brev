@@ -5,14 +5,29 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const pages = ['privacy', 'terms', 'cookies', 'legal', 'subprocessors'];
-const requiredPlaceholder = '[DA COMPLETARE]';
+const unfinishedMarkers = ['[DA COMPLETARE]', 'BOZZA', 'DRAFT', 'TODO', 'TBD'];
+
+function checkComplete(source, name) {
+  for (const marker of unfinishedMarkers) {
+    assert(!source.toUpperCase().includes(marker), `${name} must not contain ${marker}`);
+  }
+  assert(!/[\u2013\u2014]/u.test(source), `${name} must not contain en or em dashes`);
+}
 
 for (const page of pages) {
   const file = path.join(root, 'src', 'pages', `${page}.astro`);
   assert(fs.existsSync(file), `Missing legal page: ${file}`);
   const source = fs.readFileSync(file, 'utf8');
   assert(source.includes("import LegalLayout from '../components/LegalLayout.astro';"), `${page} must use LegalLayout`);
-  assert(source.includes(requiredPlaceholder), `${page} must retain explicit placeholders`);
+  checkComplete(source, page);
+  assert(/<h2(?:\s[^>]*)?>/u.test(source), `${page} must have at least one h2 heading`);
+}
+
+const layout = fs.readFileSync(path.join(root, 'src', 'components', 'LegalLayout.astro'), 'utf8');
+checkComplete(layout, 'LegalLayout');
+assert(layout.includes('<html lang="en">'), 'LegalLayout must declare English');
+for (const value of ['privacy@brevl.ink', 'abuse@brevl.ink', '1.0', '12 October 2026']) {
+  assert(layout.includes(value), `LegalLayout is missing ${value}`);
 }
 
 const landing = fs.readFileSync(path.join(root, 'src', 'pages', 'index.astro'), 'utf8');
@@ -41,4 +56,4 @@ for (const sourcePath of sourcesToCheck) {
   assert(!content.includes('fonts.gstatic.com'), `${sourcePath} must not load Google Fonts assets`);
 }
 
-console.log(`Checked ${pages.length} legal pages, landing links, security reporting, and third-party font references.`);
+console.log(`Checked ${pages.length} complete legal pages, English layout, version and contacts, landing links, security reporting, routing, and third-party font references.`);

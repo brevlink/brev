@@ -8,7 +8,9 @@ interface Props {
   eyebrow?: string;
 }
 
-const { title, description, eyebrow = 'Documenti legali' } = Astro.props;
+const { title, description, eyebrow = 'Legal documents' } = Astro.props;
+const documentVersion = '1.0';
+const lastUpdated = '12 October 2026';
 const canonicalURL = new URL(`${Astro.url.pathname.replace(/\/+$/, '')}/`, 'https://brevl.ink/');
 const legalLinks = [
   { href: '/privacy', label: 'Privacy Notice' },
@@ -22,7 +24,7 @@ const serif = "font-['Instrument_Serif',Georgia,serif]";
 ---
 
 <!doctype html>
-<html lang="it">
+<html lang="en">
   <head>
     <Analytics />
     <meta charset="utf-8" />
@@ -62,13 +64,13 @@ const serif = "font-['Instrument_Serif',Georgia,serif]";
         <h1 class={`${serif} m-0 text-[clamp(3.5rem,8vw,7.5rem)] leading-[0.86] tracking-[-0.02em]`}>{title}</h1>
         <p class="mt-7 max-w-[700px] text-[1.08rem] leading-[1.75] text-ink-muted">{description}</p>
         <div class="mt-7 rounded-[20px] border border-control bg-surface-solid/72 p-5 text-[0.95rem] leading-[1.6] text-ink" role="note">
-          <strong>BOZZA DA COMPLETARE.</strong> Questo documento è una base di lavoro e deve essere completato con i dati tra parentesi quadre e sottoposto a revisione professionale prima del lancio di Brev Cloud. Non è consulenza legale e non costituisce una dichiarazione di conformità normativa.
+          Version {documentVersion}, last updated {lastUpdated}. Contact: <a href="mailto:privacy@brevl.ink">privacy@brevl.ink</a>.
         </div>
       </header>
 
       <div class="grid grid-cols-[220px_minmax(0,1fr)] items-start gap-10 max-[900px]:grid-cols-1">
         <nav class="sticky top-[96px] rounded-[22px] border border-line bg-surface-solid/44 p-5 max-[900px]:static" aria-label="Legal documents">
-          <p class="m-0 text-[0.76rem] font-extrabold uppercase tracking-[0.16em] text-ink-muted">In questa sezione</p>
+          <p class="m-0 text-[0.76rem] font-extrabold uppercase tracking-[0.16em] text-ink-muted">In this section</p>
           <ul class="mt-4 mb-0 grid gap-2.5 p-0 text-[0.92rem] list-none">
             {legalLinks.map((link) => <li><a href={link.href} class="text-ink-muted underline decoration-[rgba(56,81,111,0.28)] underline-offset-4 hover:text-ink">{link.label}</a></li>)}
           </ul>
@@ -84,6 +86,7 @@ const serif = "font-['Instrument_Serif',Georgia,serif]";
       <div class={`${shell} grid gap-5 text-[0.92rem]`}>
         <div class="flex flex-wrap gap-x-5 gap-y-2">
           <a href="/app/report">Report a link</a>
+          <a href="mailto:abuse@brevl.ink">abuse@brevl.ink</a>
           {legalLinks.map((link) => <a href={link.href}>{link.label}</a>)}
           <a href="https://github.com/brevlink/brev/security/advisories/new" target="_blank" rel="noreferrer">Security / report</a>
         </div>
