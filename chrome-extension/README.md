@@ -63,6 +63,9 @@ node chrome-extension/scripts/sync-palette.mjs --check
 bash chrome-extension/scripts/build-icons.sh
 bash chrome-extension/scripts/build-icons.sh --check
 node chrome-extension/scripts/validate.mjs
+python3 chrome-extension/scripts/package.py --list
+python3 chrome-extension/scripts/package.py --out dist
+python3 chrome-extension/scripts/package.py --verify dist/brev-extension-*.zip
 find chrome-extension -name '*.js' -exec node --check {} \;
 node --input-type=module -e "import('./chrome-extension/api.js').then(() => console.log('api.js import passed.'))"
 ```
@@ -73,9 +76,15 @@ The icon script requires ImageMagick `magick` and Node on PATH. It composites th
 
 The deterministic validator uses Node's standard library without network access. It checks manifest paths and permissions, local HTML references, inline scripts and handlers, forbidden JavaScript calls and remote HTTP URL literals (only `DEFAULT_SERVER` is allowed), JavaScript syntax, palette synchronization and square PNG headers/dimensions. It reports all detected problems. Its source scans are conservative static checks, not a general JavaScript security parser. Icon byte regeneration is checked separately by the icon script.
 
+## Packaging and releases
+
+`python3 chrome-extension/scripts/package.py --out dist` writes `dist/brev-extension-<version>.zip`, the archive a release attaches: only the files the browser loads, `manifest.json` first, sorted entries and fixed timestamps, so the same revision always produces the same bytes. `--verify <zip>` checks an existing archive (entry set, manifest version, the icons and the popup the manifest names, no development files) and `--list` prints the packaged files. A new runtime file has to be added to the script's list: an unclassified entry in this directory makes packaging fail, instead of shipping something unintended or dropping it silently.
+
+Pushing a tag `extension-v<version>` runs `.github/workflows/release-extension.yml`: it refuses a tag that does not match the manifest version, runs the static validator, builds and verifies the archive, and attaches it to a GitHub release. `README.md`, `package.json` and `scripts/` are development files and are not part of the archive.
+
 ## Not supported yet
 
 - Firefox: its Manifest V3 background uses an event page rather than a service worker, and it has no `chrome.offscreen`.
-- Store publication: this directory is an unpacked extension; no store listing, upload or packaging workflow is included.
+- Store publication: the archive is what a store upload expects, but no listing, developer account or upload step exists.
 
-Browser behavior has not been exercised in the implementation sandbox. Real Chromium testing is still required for runtime origin grants, quick actions, clipboard writes, badge timing, QR rendering and settings persistence.
+Browser behavior is not exercised inside the implementation sandbox. A real Chromium session verified loading without manifest errors, settings persistence, the active-tab URL and title prefill, link creation on the deployment default and on a custom domain, clipboard contents read back from the X selection, the badge and toolbar title after a quick action, QR rendering, and the error paths for a taken slug and a rejected key. Still unverified: the runtime origin grant for a custom server (the harness pre-grants that origin), the native context-menu click (the handler was invoked directly instead), and any browser other than Chromium.

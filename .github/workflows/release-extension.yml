@@ -1,0 +1,62 @@
+name: Release the Chromium extension
+
+on:
+  push:
+    tags:
+      - 'extension-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Check that the tag matches the manifest version
+        run: |
+          version=$(python3 -c "import json; print(json.load(open('chrome-extension/manifest.json'))['version'])")
+          tag="${GITHUB_REF_NAME#extension-v}"
+          if [ "$version" != "$tag" ]; then
+            echo "tag extension-v$tag does not match manifest version $version"
+            exit 1
+          fi
+          echo "releasing extension version $version"
+
+      - name: Run the extension checks
+        run: node chrome-extension/scripts/validate.mjs
+
+      - name: Build the archive
+        run: python3 chrome-extension/scripts/package.py --out dist
+
+      - name: Verify the archive
+        run: python3 chrome-extension/scripts/package.py --verify dist/brev-extension-*.zip
+
+      - name: Write the release notes
+        run: |
+          cat > notes.md <<'NOTES'
+          Unpacked Chromium extension for Brev (Manifest V3). No build step and no dependencies.
+
+          Install:
+          1. Download and unzip the archive.
+          2. Open chrome://extensions and enable Developer mode.
+          3. Choose Load unpacked and select the unzipped folder.
+          4. Open the extension settings and paste an API key created in the dashboard (Account, then API keys).
+
+          Press Ctrl+Shift+Y to create and copy a short link for the current page. The context menu offers the same for a page, a link or a selected URL. Chrome leaves a shortcut unassigned when another extension or the browser already owns it; see chrome://extensions/shortcuts.
+
+          The archive contains only the files the browser loads. Before publishing, the workflow runs the static validator, rebuilds the archive and verifies its entry list, manifest version, icons and popup.
+          NOTES
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/brev-extension-*.zip \
+            --title "Brev extension $GITHUB_REF_NAME" \
+            --notes-file notes.md
