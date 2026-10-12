@@ -2,28 +2,30 @@
 import LegalLayout from '../components/LegalLayout.astro';
 ---
 
-<LegalLayout title="Legal Notice / Imprint" description="Bozza di note legali e dati identificativi da pubblicare per Brev e per l’eventuale Brev Cloud.">
-  <p><strong>Avvertenza:</strong> i dati obbligatori non sono stati inventati. Devono essere forniti da Matt, verificati dal professionista legale e pubblicati prima del lancio del servizio Cloud.</p>
+<LegalLayout title="Legal Notice" description="Who operates Brev, its current service status, infrastructure and reporting contacts.">
+<h2>1. Who runs Brev</h2>
+  <p>Brev is a personal project operated by <strong>Matteo Genovese, an individual based in Italy</strong>, who is also the data controller.</p>
+  <p>Privacy contact: <a href="mailto:privacy@brevl.ink">privacy@brevl.ink</a>. Abuse contact: <a href="mailto:abuse@brevl.ink">abuse@brevl.ink</a>.</p>
+  <p>No data protection officer has been appointed.</p>
 
-  <h2>1. Titolare / gestore del servizio</h2>
-  <dl>
-    <dt><strong>Persona fisica o persona giuridica titolare:</strong></dt><dd>[DA COMPLETARE]</dd>
-    <dt><strong>Forma giuridica e identificativi:</strong></dt><dd>[DA COMPLETARE]</dd>
-    <dt><strong>Indirizzo postale completo:</strong></dt><dd>[DA COMPLETARE]</dd>
-    <dt><strong>P.IVA / codice fiscale / numero di registro, se applicabile:</strong></dt><dd>[DA COMPLETARE]</dd>
-    <dt><strong>Email di contatto generale:</strong></dt><dd>[DA COMPLETARE]</dd>
-    <dt><strong>Contatto privacy e/o DPO, se applicabile:</strong></dt><dd>[DA COMPLETARE]</dd>
-    <dt><strong>Hosting/deployment provider e relativo contatto:</strong></dt><dd>[DA COMPLETARE]</dd>
-  </dl>
-  <p>Matt deve confermare chi è il titolare effettivo, in quale paese è stabilito, quali dati identificativi devono essere pubblicati e quale contatto riceve comunicazioni legali. La verifica dei requisiti di imprint/informazioni al pubblico dipende dal paese e dall’attività effettiva.</p>
+  <h2>2. Service status</h2>
+  <p>Brev Cloud is live at <a href="https://brevl.ink">brevl.ink</a> and is free of charge. There are no active paid plans or payment flows. For this reason, no VAT number is published. It will be published before any paid service is offered.</p>
 
-  <h2>2. Progetto e repository pubblico</h2>
-  <p>Il progetto pubblico è disponibile su <a href="https://github.com/brevlink/brev" target="_blank" rel="noreferrer">https://github.com/brevlink/brev</a>. Il sito mantiene inoltre il riferimento pubblico a <a href="https://matteogenovese.com" target="_blank" rel="noreferrer">https://matteogenovese.com</a> e al nome <strong>Matteo Genovese</strong>.</p>
-  <p>Questi riferimenti sono informativi e non attribuiscono a Matteo Genovese il ruolo di titolare, gestore, rappresentante legale, DPO o fornitore: tali ruoli sono <strong>[DA COMPLETARE E CONFERMARE]</strong>.</p>
+  <h2>3. Infrastructure</h2>
+  <ul>
+    <li><strong>IONOS SE, Germany:</strong> application and database hosting.</li>
+    <li><strong>Cloudflare, Inc.:</strong> CDN, DNS and TLS termination for the website and customer domains, plus WAF and Cloudflare for SaaS.</li>
+    <li><strong>Contabo GmbH, Germany:</strong> hosting of the transactional mail server <code>mail.novezero.it</code>.</li>
+    <li><strong>Plausible self-hosted:</strong> public-site statistics on the controller's infrastructure at novezero.it.</li>
+  </ul>
 
-  <h2>3. Hosting e contatti</h2>
-  <p>Provider di hosting della landing: <strong>[DA COMPLETARE]</strong>. Provider/deployment del futuro Cloud: <strong>[DA COMPLETARE]</strong>. Contatto tecnico e contatto per notifiche legali: <strong>[DA COMPLETARE]</strong>. Non sono dichiarati provider attivi in assenza di conferma.</p>
+  <h2>4. Software and licence</h2>
+  <p>The public repository is <a href="https://github.com/brevlink/brev">brevlink/brev</a>. The software uses the <a href="https://github.com/brevlink/brev/blob/main/LICENSE">MIT licence</a>. Brand use follows <a href="https://github.com/brevlink/brev/blob/main/TRADEMARK.md">TRADEMARK.md</a>.</p>
+  <p>The author link to <a href="https://matteogenovese.com">Matteo Genovese</a> is an attribution. That reference alone does not confer a supplier or representative role. The operator and controller are identified above.</p>
 
-  <h2>4. Documenti collegati</h2>
-  <p>Consulta la <a href="/privacy">Privacy Notice</a>, la <a href="/cookies">Cookie Policy</a>, i <a href="/terms">Terms of Service</a> e la pagina <a href="/subprocessors">Subprocessors &amp; Data Retention</a>. Tutti i documenti restano bozze fino a completamento e revisione.</p>
+  <h2>5. Reporting</h2>
+  <p>Report abuse to <a href="mailto:abuse@brevl.ink">abuse@brevl.ink</a> or through <a href="/app/report">Report a link</a>. Report security issues through <a href="https://github.com/brevlink/brev/security/advisories/new">GitHub Security Advisories</a>. Send privacy requests to <a href="mailto:privacy@brevl.ink">privacy@brevl.ink</a>.</p>
+
+  <h2>6. Related documents</h2>
+  <p>Read the <a href="/privacy">Privacy Notice</a>, <a href="/terms">Terms of Service</a>, <a href="/cookies">Cookie Policy</a> and <a href="/subprocessors">Subprocessors and Retention</a>.</p>
 </LegalLayout>

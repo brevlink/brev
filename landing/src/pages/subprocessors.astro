@@ -2,36 +2,41 @@
 import LegalLayout from '../components/LegalLayout.astro';
 ---
 
-<LegalLayout title="Subprocessors & Data Retention" description="Bozza di registro delle categorie di fornitori e dei tempi di conservazione per il futuro Brev Cloud.">
-  <p><strong>Registro preliminare:</strong> le statistiche del sito pubblico sono attive come descritto sotto. La tabella non conferma che gli altri provider siano attivi. I loro nomi, i paesi, i ruoli contrattuali, le garanzie di trasferimento e le date di entrata in vigore sono ancora da completare e verificare prima del lancio Cloud.</p>
-
-  <h2>1. Categorie di subprocessors</h2>
+<LegalLayout title="Subprocessors and Retention" description="Providers, processing locations and retention periods for the managed Brev Cloud service.">
+<h2>1. Subprocessors</h2>
+  <p>This list distinguishes infrastructure providers from services that are internal, do not process service users' data or are not enabled.</p>
   <div class="overflow-x-auto">
     <table>
-      <thead><tr><th>Categoria / servizio</th><th>Stato nel repository</th><th>Dati/finalità possibili</th><th>Provider, paese, garanzie</th></tr></thead>
+      <thead><tr><th>Entity</th><th>Role</th><th>Data processed</th><th>Location and safeguards</th><th>Reference</th></tr></thead>
       <tbody>
-        <tr><td>Statistiche del sito pubblico con Plausible</td><td>Attive; self-hosted sull’infrastruttura di Matt (novezero.it)</td><td>Statistiche sulle visite senza cookie; nessuna profilazione, nessun dato personale conservato; indirizzo IP usato solo per ricavare il paese e non conservato</td><td>Stesso titolare del trattamento; non è un provider terzo né un sub-responsabile; nessun dato delle statistiche trasferito a terzi</td></tr>
-        <tr><td>Stripe</td><td>Non configurato ora; predisposizione per Checkout one-time Cloud</td><td>Billing, identificativi Checkout e stato pagamento</td><td>[DA COMPLETARE - entità Stripe, paesi, DPA, trasferimenti e contatto]</td></tr>
-        <tr><td>Provider email futuro</td><td>Non configurato ora; adapter SMTP/API generico, configurazione predefinita <code>none</code></td><td>Email di verifica e reset password, se attivati</td><td>[DA COMPLETARE - provider, paese, DPA e garanzie]</td></tr>
-        <tr><td>Hosting / deployment</td><td>Categoria da confermare; self-hosted può essere gestito dall’operatore</td><td>Calcolo, database, backup, rete e log tecnici</td><td>[DA COMPLETARE - provider, regioni, subprocessor e contatto]</td></tr>
-        <tr><td>Logging / monitoring</td><td>Categoria da confermare; nessun provider attivo dichiarato</td><td>Disponibilità, errori, sicurezza e abuso, solo se attivati</td><td>[DA COMPLETARE - provider, dati, configurazione e retention]</td></tr>
+        <tr><td>Cloudflare, Inc.</td><td>CDN, DNS, TLS termination, WAF and Cloudflare for SaaS for customer domains.</td><td>Visitors' IP addresses and traffic for the website and customer domains.</td><td>United States. The customer DPA includes the European Commission's standard contractual clauses for transfers.</td><td><a href="https://www.cloudflare.com/cloudflare-customer-dpa/">Customer DPA</a></td></tr>
+        <tr><td>IONOS SE</td><td>Hosting of application servers and the database on VPS infrastructure.</td><td>Account, link, domain and click data stored by the service.</td><td>Germany. Processing in the European Union.</td><td>Application and database hosting.</td></tr>
+        <tr><td>Contabo GmbH</td><td>Hosting of the transactional mail server <code>mail.novezero.it</code>.</td><td>Recipient email addresses and service emails for verification, password resets, email changes and domain invitations.</td><td>Germany. Processing in the European Union.</td><td><a href="https://contabo.com/en/legal/privacy/">Privacy notice</a></td></tr>
+        <tr><td>Plausible self-hosted</td><td>Cookieless statistics for the landing and legal pages only.</td><td>No personal data retained. IP addresses are used only to derive country and are not retained. No profiling.</td><td>Controller's infrastructure at novezero.it, under the same controller. No analytics data transferred to third parties. Not a subprocessor.</td><td>Self-hosted, not a third-party provider.</td></tr>
+        <tr><td>GitHub, Inc.</td><td>Public repository and security reports.</td><td>Does not process service users' data.</td><td>Not a processor of Brev Cloud user data.</td><td><a href="https://github.com/brevlink/brev">Public repository</a></td></tr>
+        <tr><td>Stripe</td><td>Not enabled.</td><td>No payment data processed today.</td><td>Any activation will be documented beforehand.</td><td>No active payment service.</td></tr>
       </tbody>
     </table>
   </div>
-  <p>Per Brev self-hosted, l’operatore deve compilare il proprio elenco in base a infrastruttura, proxy, database, email, backup e monitoring che sceglie. Questa pagina non trasferisce tali responsabilità a Brev Cloud.</p>
+  <p>For Brev self-hosted, each operator is the controller and must compile their own provider list for their installation.</p>
 
-  <h2>2. Conservazione preliminare</h2>
+  <h2>2. Retention</h2>
   <table>
-    <thead><tr><th>Categoria dati</th><th>Periodo/criterio</th><th>Decisione richiesta</th></tr></thead>
+    <thead><tr><th>Data</th><th>Period and deletion</th></tr></thead>
     <tbody>
-      <tr><td>Account e dati profilo</td><td>[DA COMPLETARE]</td><td>Matt + professionista legale: cancellazione account, obblighi e difesa diritti</td></tr>
-      <tr><td>Link, domini e contatori di click</td><td>[DA COMPLETARE]</td><td>Definire durata del servizio, cancellazione e abuso</td></tr>
-      <tr><td>Sessioni e token di verifica/reset</td><td>Scadenze tecniche nel codice; periodo post-scadenza e cancellazione: [DA COMPLETARE]</td><td>Confermare policy operativa e documentazione</td></tr>
-      <tr><td>Log di sicurezza/supporto</td><td>[DA COMPLETARE]</td><td>Definire dati, accessi, durata e legal hold</td></tr>
-      <tr><td>Billing e record di pagamento</td><td>[DA COMPLETARE]</td><td>Confermare obblighi contabili/fiscali e ruolo di Stripe</td></tr>
+      <tr><td>Account and profile</td><td>For the life of the account. Removed immediately through self-service account deletion.</td></tr>
+      <tr><td>Links, domains and domain memberships</td><td>For the life of the account. Link deletion removes the link and its related data; account deletion removes owned domains and memberships as well.</td></tr>
+      <tr><td>Raw click events</td><td>90 days, configurable by a self-hosted operator with <code>CLICK_EVENT_RETENTION_DAYS</code>. Removed with the link or account.</td></tr>
+      <tr><td>Daily click aggregates</td><td>No automatic expiry. Removed with the link or account.</td></tr>
+      <tr><td>Sessions</td><td>Until logout, expiry or revocation. Invalidated on account deletion.</td></tr>
+      <tr><td>Single-use tokens</td><td>Verification, password reset, email change and domain invitation tokens are stored as hashes, consumed on first use and have a technical expiry. Email change links last 24 hours; domain invitations last 14 days. Removed on account deletion.</td></tr>
+      <tr><td>Support messages</td><td>For the time needed to handle the request and keep a record of it.</td></tr>
+      <tr><td>CDN, hosting and mail logs</td><td>Under Cloudflare, IONOS and Contabo policies. Their retention periods are not set by Brev.</td></tr>
+      <tr><td>Infrastructure backups, if active</td><td>Copies may remain for the backup rotation cycle. Used only for recovery after a failure.</td></tr>
+      <tr><td>Billing data</td><td>None today. If payments are enabled, accounting documents will be retained for the period required by Italian law and this page will be updated.</td></tr>
     </tbody>
   </table>
 
-  <h2>3. Modifiche al registro</h2>
-  <p>Meccanismo di notifica, preavviso per nuovi subprocessors, diritto di opposizione e versione del registro: <strong>[DA COMPLETARE]</strong>. Data dell’ultima verifica: <strong>[DA COMPLETARE]</strong>.</p>
+  <h2>3. Changes to this list</h2>
+  <p>The version and last updated date appear above. New providers will be published on this page with an updated version and date. Self-hosted operators maintain their own lists.</p>
 </LegalLayout>
