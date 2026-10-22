@@ -6,7 +6,7 @@ COPY dashboard/ ./dashboard/
 COPY design/ ./design/
 RUN npm run build --prefix dashboard
 
-FROM nginx:stable-alpine
+FROM nginx:1.30-alpine
 COPY --from=builder /repo/dashboard/dist /usr/share/nginx/html
 COPY dashboard/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
