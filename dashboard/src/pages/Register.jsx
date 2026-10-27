@@ -4,7 +4,6 @@ import {
   AuthFooter,
   AuthPage,
   Brand,
-  BrandLogo,
   Button,
   Eyebrow,
   Field,
@@ -54,7 +53,6 @@ export default function Register() {
     <AuthPage>
       <AuthCard>
         <Brand href="/" className={`mb-[34px]`} aria-label="Brev home">
-          <BrandLogo src={`${import.meta.env.BASE_URL}brev_logo.webp`} alt="" />
           <span>Brev</span>
         </Brand>
         <Eyebrow>Account</Eyebrow>

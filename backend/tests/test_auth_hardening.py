@@ -33,6 +33,26 @@ def _login(client: TestClient, email: str = "hardening@example.com") -> dict:
     return response.json()
 
 
+def test_browser_session_lasts_thirty_days(client):
+    from app.core.config import Settings
+
+    assert Settings(jwt_secret="test-secret-that-is-long-enough-for-dev").jwt_expire_minutes == 43200
+
+    _register(client)
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "hardening@example.com", "password": PASSWORD},
+    )
+    assert response.status_code == 200, response.text
+    cookie = response.headers["set-cookie"]
+    assert "brev_session=" in cookie
+    assert "Max-Age=2592000" in cookie
+    assert "HttpOnly" in cookie
+    assert "Path=/" in cookie
+
+    assert client.get("/api/v1/auth/me").status_code == 200
+
+
 def _mail_token(client: TestClient, purpose: str) -> str:
     message = client.test_mailer.messages[-1]
     assert purpose in message.text or purpose == "verification"

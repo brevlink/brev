@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # ── Auth ──────────────────────────────────────────────────────────
     jwt_secret: str
     jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 60 * 24  # 24 hours; sessions use the same TTL
+    jwt_expire_minutes: int = 60 * 24 * 30  # 30 days; browser sessions and access tokens share this TTL
     session_cookie_name: str = "brev_session"
     secure_cookies: bool = False
 

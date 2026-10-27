@@ -583,15 +583,6 @@ export function AuthFooter({ className, ...props }) {
     />
   );
 }
-export function BrandLogo({ className, ...props }) {
-  return (
-    <img
-      data-slot="brand-logo"
-      className={cn('size-11 shrink-0 object-contain', className)}
-      {...props}
-    />
-  );
-}
 export function Note({ className, ...props }) {
   return (
     <p
