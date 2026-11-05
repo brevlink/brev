@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: brevlink/brev-caddy
+  IMAGE_NAME: matteo-genovese/brev-caddy
 
 permissions:
   contents: read

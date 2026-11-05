@@ -8,7 +8,7 @@ versioned releases exist.
 ## Reporting a Vulnerability
 
 Please report security issues privately through a
-[GitHub security advisory](https://github.com/brevlink/brev/security/advisories/new)
+[GitHub security advisory](https://github.com/matteo-genovese/brevlink/security/advisories/new)
 or the maintainer contact listed in the package metadata. Do not publish
 exploit details before a fix is available.
 

@@ -34,7 +34,7 @@ const landing = fs.readFileSync(path.join(root, 'src', 'pages', 'index.astro'), 
 for (const route of pages.map((page) => `/${page}`)) {
   assert(landing.includes(`href="${route}"`), `Landing footer is missing ${route}`);
 }
-assert(landing.includes('github.com/brevlink/brev/security/advisories/new'), 'Landing footer is missing security reporting');
+assert(landing.includes('github.com/matteo-genovese/brevlink/security/advisories/new'), 'Landing footer is missing security reporting');
 
 const caddyfile = fs.readFileSync(path.join(root, '..', 'Caddyfile'), 'utf8');
 const legalMatcher = caddyfile.match(/@legal path ([^\n]+)/)?.[1] ?? '';

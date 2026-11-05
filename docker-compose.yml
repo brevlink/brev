@@ -4,7 +4,7 @@
 #   docker compose up -d
 
 x-brev-labels: &brev-labels
-  org.opencontainers.image.source: "https://github.com/brevlink/brev"
+  org.opencontainers.image.source: "https://github.com/matteo-genovese/brevlink"
   com.centurylinklabs.watchtower.enable: "false"
 
 services:

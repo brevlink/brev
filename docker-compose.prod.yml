@@ -10,7 +10,7 @@
 #   docker compose up -d
 
 x-brev-labels: &brev-labels
-  org.opencontainers.image.source: "https://github.com/brevlink/brev"
+  org.opencontainers.image.source: "https://github.com/matteo-genovese/brevlink"
   com.centurylinklabs.watchtower.enable: "false"
 
 services:
@@ -33,7 +33,7 @@ services:
       - brev_net
 
   backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/brevlink/brev-backend:latest}
+    image: ${BACKEND_IMAGE:-ghcr.io/matteo-genovese/brev-backend:latest}
     labels: *brev-labels
     restart: unless-stopped
     depends_on:
@@ -85,21 +85,21 @@ services:
       - brev_net
 
   landing:
-    image: ${LANDING_IMAGE:-ghcr.io/brevlink/brev-landing:latest}
+    image: ${LANDING_IMAGE:-ghcr.io/matteo-genovese/brev-landing:latest}
     labels: *brev-labels
     restart: unless-stopped
     networks:
       - brev_net
 
   dashboard:
-    image: ${DASHBOARD_IMAGE:-ghcr.io/brevlink/brev-dashboard:latest}
+    image: ${DASHBOARD_IMAGE:-ghcr.io/matteo-genovese/brev-dashboard:latest}
     labels: *brev-labels
     restart: unless-stopped
     networks:
       - brev_net
 
   caddy:
-    image: ${CADDY_IMAGE:-ghcr.io/brevlink/brev-caddy:latest}
+    image: ${CADDY_IMAGE:-ghcr.io/matteo-genovese/brev-caddy:latest}
     labels: *brev-labels
     restart: unless-stopped
     ports:

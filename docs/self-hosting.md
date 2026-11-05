@@ -30,7 +30,7 @@ Caddy routes:
 ## Install
 
 ```bash
-git clone https://github.com/brevlink/brev.git
+git clone https://github.com/matteo-genovese/brevlink.git
 cd brev
 cp .env.example .env
 ```

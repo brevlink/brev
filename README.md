@@ -52,7 +52,7 @@ See [docs/legal-readiness.md](docs/legal-readiness.md) and
 This repository lives at:
 
 ```text
-https://github.com/brevlink/brev
+https://github.com/matteo-genovese/brevlink
 ```
 
 Current layout:
@@ -107,7 +107,7 @@ dashboard.
 Requirements: Docker and Docker Compose.
 
 ```bash
-git clone https://github.com/brevlink/brev.git
+git clone https://github.com/matteo-genovese/brevlink.git
 cd brev
 cp .env.example .env
 ```

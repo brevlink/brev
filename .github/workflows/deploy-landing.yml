@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: brevlink/brev-landing
+  IMAGE_NAME: matteo-genovese/brev-landing
 
 permissions:
   contents: read

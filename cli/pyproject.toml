@@ -23,9 +23,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/brevlink/brev"
-Source = "https://github.com/brevlink/brev"
-Issues = "https://github.com/brevlink/brev/issues"
+Homepage = "https://github.com/matteo-genovese/brevlink"
+Source = "https://github.com/matteo-genovese/brevlink"
+Issues = "https://github.com/matteo-genovese/brevlink/issues"
 
 [project.scripts]
 brev = "brev.cli:main"
