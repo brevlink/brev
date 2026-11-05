@@ -13,12 +13,43 @@ _BUCKETS: dict[str, deque[float]] = defaultdict(deque)
 _MAX_BUCKETS = 10_000
 
 
-def _client_ip(request: Request) -> str:
+def _peer_is_local(request: Request) -> bool:
+    """True when the immediate peer is a container, loopback or private host.
+
+    Headers are only honoured for a request that already arrives from inside
+    the deployment: a publicly reachable peer could forge them.
+    """
+    import ipaddress
+
+    if not request.client or not request.client.host:
+        return False
+    try:
+        address = ipaddress.ip_address(request.client.host)
+    except ValueError:
+        return False
+    return address.is_private or address.is_loopback
+
+
+def _client_ip(request: Request, *, peer_is_local: bool | None = None) -> str:
+    """Best available identifier for the caller.
+
+    Behind a proxy the peer is always the proxy, so the real address has to come
+    from a header. Cloudflare's header wins because it is the one written by the
+    edge; the forwarded chain is the fallback for every other proxy. Both are
+    read only when trusted proxy headers are enabled and the request arrives
+    from inside the deployment.
+    """
     from app.core.config import settings
 
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded and settings.trusted_proxy_headers:
-        return forwarded.split(",", 1)[0].strip()
+    if settings.trusted_proxy_headers and (
+        _peer_is_local(request) if peer_is_local is None else peer_is_local
+    ):
+        cloudflare = request.headers.get("cf-connecting-ip")
+        if cloudflare:
+            return cloudflare.strip()
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",", 1)[0].strip()
     return request.client.host if request.client else "unknown"
 
 

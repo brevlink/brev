@@ -56,6 +56,9 @@ services:
       FREE_CUSTOM_DOMAINS: ${FREE_CUSTOM_DOMAINS:-0}
       DEBUG: ${BREV_DEBUG:-false}
       CORS_ORIGINS: '${CORS_ORIGINS:-["https://brevl.ink"]}'
+      # Dietro un proxy il peer e' sempre il proxy: senza questo l'IP reale non
+      # arriva e il rate limiter conta tutti gli utenti come un solo client.
+      TRUSTED_PROXY_HEADERS: ${TRUSTED_PROXY_HEADERS:-true}
       APP_BASE_URL: ${APP_BASE_URL:-https://brevl.ink}
       FRONTEND_VERIFICATION_URL: ${FRONTEND_VERIFICATION_URL:-}
       FRONTEND_PASSWORD_RESET_URL: ${FRONTEND_PASSWORD_RESET_URL:-}
