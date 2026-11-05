@@ -31,7 +31,8 @@ for (const value of ['privacy@brevl.ink', 'abuse@brevl.ink', '1.0', '12 October 
 }
 
 const landing = fs.readFileSync(path.join(root, 'src', 'pages', 'index.astro'), 'utf8');
-for (const route of pages.map((page) => `/${page}`)) {
+for (const route of pages.map((page) => `/${page}/`)) {
+  // Con lo slash finale il link non passa da un 301 che, dietro il proxy, nascerebbe in http.
   assert(landing.includes(`href="${route}"`), `Landing footer is missing ${route}`);
 }
 assert(landing.includes('github.com/matteo-genovese/brevlink/security/advisories/new'), 'Landing footer is missing security reporting');
