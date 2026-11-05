@@ -68,7 +68,6 @@ jobs:
         with:
           pattern: audit-*
           path: reports
-          merge-multiple: true
       - name: Segnala il fallimento dell'audit
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,8 +81,8 @@ jobs:
           {
             printf '%s\n\n' "$marker"
             printf 'Audit completo fallito (produzione e sviluppo, soglia moderate).\n\n'
-            if compgen -G "reports/*.md" > /dev/null; then
-              for report in reports/*.md; do
+            if compgen -G "reports/*/report.md" > /dev/null; then
+              for report in reports/*/report.md; do
                 cat "$report"
                 printf '\n'
               done
@@ -94,7 +93,7 @@ jobs:
           } > "$body_file"
           # Usa l'API senza indice di ricerca: una issue appena creata è subito visibile.
           issues=$(gh api --paginate "repos/$GH_REPO/issues?state=all&per_page=100" \
-            --jq '.[] | select(.pull_request == null) | select((.body // "") | contains("<!-- brev-audit-dipendenze -->")) | [.number, .state] | @tsv')
+            --jq '.[] | select(.pull_request == null) | select((.body // "") | startswith("<!-- brev-audit-dipendenze -->")) | [.number, .state] | @tsv')
           existing=$(printf '%s\n' "$issues" | head -n 1)
           if [[ -n "$existing" ]]; then
             read -r number state <<< "$existing"
@@ -127,7 +126,7 @@ jobs:
         run: |
           set -euo pipefail
           issues=$(gh api --paginate "repos/$GH_REPO/issues?state=open&per_page=100" \
-            --jq '.[] | select(.pull_request == null) | select((.body // "") | contains("<!-- brev-audit-dipendenze -->")) | .number')
+            --jq '.[] | select(.pull_request == null) | select((.body // "") | startswith("<!-- brev-audit-dipendenze -->")) | .number')
           for number in $issues; do
             gh issue comment "$number" --body "Audit completo tornato pulito (produzione e sviluppo, soglia moderate): chiudo la segnalazione, la prossima esecuzione la riapre se ricompare qualcosa.
 
