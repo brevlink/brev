@@ -12,17 +12,19 @@ import {
   Label,
   Muted,
 } from '../components/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { login } from '../api/client';
+import { login, me } from '../api/client';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const switchAccount = params.get('switch_account') === '1';
 
   // Where to land after signing in, so an invitation link survives the trip
   // through this page. Only a relative path is accepted: a "next" pointing at
@@ -32,6 +34,27 @@ export default function Login() {
     richiesto.startsWith('/') && !richiesto.startsWith('//')
       ? richiesto
       : '/dashboard';
+
+  useEffect(() => {
+    let cancelled = false;
+    me()
+      .then(() => {
+        if (cancelled) return;
+        // Invitation recipients may need credentials for a different account.
+        if (switchAccount) setCheckingSession(false);
+        else navigate(next, { replace: true });
+      })
+      .catch(() => {
+        if (!cancelled) setCheckingSession(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, next, switchAccount]);
+
+  if (checkingSession) {
+    return <div className="grid min-h-screen place-items-center p-6">Loading</div>;
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
