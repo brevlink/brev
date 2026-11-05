@@ -109,7 +109,11 @@ services:
     labels: *brev-labels
     restart: unless-stopped
     ports:
-      - "${HTTP_PORT:-80}:80"
+      # Plain HTTP is only read from the host itself: Cloudflare reaches it
+      # through the tunnel connector running with host networking. Bind it
+      # to loopback so the port is never reachable from the network, and
+      # set HTTP_BIND=0.0.0.0 for a deployment that terminates TLS itself.
+      - "${HTTP_BIND:-127.0.0.1}:${HTTP_PORT:-80}:80"
       # Cloudflare for SaaS leg: Cloudflare connects here for customer domains
       # (SNI = proxy.brevl.ink, Host = the customer hostname). Port 443 on the
       # host stays with nginx-proxy-manager, which keeps serving everything else.
