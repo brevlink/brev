@@ -121,6 +121,12 @@ files and nothing to configure. Point customer domains at that port if your
 reverse proxy does not terminate TLS for them - the certificate is not publicly
 trusted, which a proxy in Full mode accepts and a browser does not.
 
+If the reverse proxy can reach the service through a tunnel instead, the
+published port is unnecessary: point the tunnel at `HTTP_PORT` on `localhost`,
+set the tunnel hostname as the fallback origin for Cloudflare for SaaS, and keep
+customer onboarding unchanged. TLS then ends at the tunnel provider and Caddy
+only routes by `Host`.
+
 ## CLI Against a Self-Hosted Server
 
 ```bash
