@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import can_use_features, get_current_user, revoke_authenticated_session
 from app.core.database import db_session
-from app.core.rate_limit import enforce_rate_limit
+from app.core.rate_limit import _client_ip, enforce_rate_limit
 from app.core.security import clear_session_cookie, set_session_cookie
 from app.models.user import User
 from app.schemas.auth import (
@@ -36,7 +36,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     status_code=201,
 )
 async def register(request: Request, body: RegisterRequest, db: AsyncSession = db_session):
-    enforce_rate_limit("auth-register", identifiers=[request.client.host if request.client else "unknown", body.email.casefold()], limit=10, window_seconds=3600)
+    enforce_rate_limit("auth-register", identifiers=[_client_ip(request), body.email.casefold()], limit=10, window_seconds=3600)
     return await auth_service.register(db, body)
 
 
@@ -50,7 +50,7 @@ async def login(
     response: Response,
     db: AsyncSession = db_session,
 ):
-    enforce_rate_limit("auth-login", identifiers=[request.client.host if request.client else "unknown", body.email.casefold()], limit=20, window_seconds=900)
+    enforce_rate_limit("auth-login", identifiers=[_client_ip(request), body.email.casefold()], limit=20, window_seconds=900)
     login_response = await auth_service.login(db, body.email, body.password)
     set_session_cookie(response, login_response.access_token)
     return login_response
@@ -104,7 +104,7 @@ async def resend_verification(
     db: AsyncSession = db_session,
     current_user: User = Depends(get_current_user),
 ):
-    enforce_rate_limit("auth-resend", identifiers=[request.client.host if request.client else "unknown", current_user.email], limit=3, window_seconds=3600)
+    enforce_rate_limit("auth-resend", identifiers=[_client_ip(request), current_user.email], limit=3, window_seconds=3600)
     await auth_service.resend_verification(db, current_user)
     return ResendVerificationResponse(message="Verification email sent if the account needs verification")
 
@@ -115,7 +115,7 @@ async def request_password_reset(
     body: PasswordResetRequest,
     db: AsyncSession = db_session,
 ):
-    enforce_rate_limit("auth-reset-request", identifiers=[request.client.host if request.client else "unknown", body.email.casefold()], limit=5, window_seconds=3600)
+    enforce_rate_limit("auth-reset-request", identifiers=[_client_ip(request), body.email.casefold()], limit=5, window_seconds=3600)
     return await auth_service.request_password_reset(db, body.email)
 
 
@@ -139,7 +139,7 @@ async def confirm_password_reset(
     body: PasswordResetConfirm,
     db: AsyncSession = db_session,
 ):
-    enforce_rate_limit("auth-reset-confirm", identifiers=[request.client.host if request.client else "unknown", body.token[:16]], limit=10, window_seconds=3600)
+    enforce_rate_limit("auth-reset-confirm", identifiers=[_client_ip(request), body.token[:16]], limit=10, window_seconds=3600)
     return await auth_service.reset_password(db, body)
 
 
