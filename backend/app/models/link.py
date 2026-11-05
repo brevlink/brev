@@ -5,7 +5,17 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, Uuid
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    Uuid,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -15,6 +25,18 @@ class Link(Base):
     __tablename__ = "links"
     __table_args__ = (
         Index("ix_links_domain_slug", "domain_id", "slug", unique=True),
+        # In Postgres i NULL sono distinti in un indice unico, quindi
+        # (NULL, slug) non protegge i link sul dominio di default.
+        Index(
+            "ux_links_default_domain_slug",
+            "slug",
+            unique=True,
+            postgresql_where=text("domain_id IS NULL"),
+            # Anche su SQLite il vincolo deve valere solo per il dominio di
+            # default: senza la clausola l'indice diventa globale e rompe i
+            # test che riusano lo stesso slug su domini diversi.
+            sqlite_where=text("domain_id IS NULL"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
