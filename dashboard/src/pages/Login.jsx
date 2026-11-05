@@ -24,6 +24,7 @@ export default function Login() {
   const [checkingSession, setCheckingSession] = useState(true);
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const switchAccount = params.get('switch_account') === '1';
 
   // Where to land after signing in, so an invitation link survives the trip
   // through this page. Only a relative path is accepted: a "next" pointing at
@@ -38,7 +39,10 @@ export default function Login() {
     let cancelled = false;
     me()
       .then(() => {
-        if (!cancelled) navigate(next, { replace: true });
+        if (cancelled) return;
+        // Invitation recipients may need credentials for a different account.
+        if (switchAccount) setCheckingSession(false);
+        else navigate(next, { replace: true });
       })
       .catch(() => {
         if (!cancelled) setCheckingSession(false);
@@ -46,7 +50,7 @@ export default function Login() {
     return () => {
       cancelled = true;
     };
-  }, [navigate, next]);
+  }, [navigate, next, switchAccount]);
 
   if (checkingSession) {
     return <div className="grid min-h-screen place-items-center p-6">Loading</div>;

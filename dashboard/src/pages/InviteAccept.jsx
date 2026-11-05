@@ -159,7 +159,7 @@ export default function InviteAccept() {
               className={`w-full  no-underline`}
               variant="primary"
               as={Link}
-              to={loginLink}
+              to={phase === 'wrong-account' ? `${loginLink}&switch_account=1` : loginLink}
             >
               Sign in
             </Button>
