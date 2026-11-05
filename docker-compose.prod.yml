@@ -11,12 +11,19 @@
 
 x-brev-labels: &brev-labels
   org.opencontainers.image.source: "https://github.com/matteo-genovese/brevlink"
+  # Watchtower gira gia' sull'host (intervallo 300s): con questa etichetta
+  # consegna da solo l'immagine pubblicata dalla CI, senza redeploy manuale.
+  com.centurylinklabs.watchtower.enable: "true"
+
+x-brev-pinned-labels: &brev-pinned-labels
+  <<: *brev-labels
+  # Il database non segue il ritmo delle immagini applicative.
   com.centurylinklabs.watchtower.enable: "false"
 
 services:
   db:
     image: ${POSTGRES_IMAGE:-postgres:16-alpine}
-    labels: *brev-labels
+    labels: *brev-pinned-labels
     restart: unless-stopped
     volumes:
       - ${BREV_DATA:-./data}/pgdata:/var/lib/postgresql/data
