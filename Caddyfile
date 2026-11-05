@@ -67,7 +67,14 @@
 
 # Cloudflare for SaaS.
 #
-# Cloudflare connects to this port (published as 8443 on the host so that
+# Two ways to reach this site. A deployment can publish this port and let
+# Cloudflare connect to it directly (the shape described below), or keep the port
+# on loopback and route customer traffic through a Cloudflare Tunnel to the :80
+# site above, which then only has to route by Host. The reference deployment uses
+# the tunnel: no certificate, no published port, and TLS ends at the edge.
+#
+# Direct shape: Cloudflare connects to this port (published as 8443 on the host
+# so that
 # nginx-proxy-manager keeps 443) with SNI = proxy.brevl.ink, the fallback
 # origin, and Host = the customer hostname. The two values differ, on purpose:
 # the backend resolves the tenant from the Host.

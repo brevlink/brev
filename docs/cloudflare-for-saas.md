@@ -3,7 +3,40 @@
 How a customer domain (`go.example.com`) ends up serving Brev links without
 anyone touching nginx-proxy-manager or issuing a certificate by hand.
 
-## How a request travels
+## Two deployment topologies, 2026-11-05
+
+The leg between Cloudflare and this service can be built in two ways. Both keep
+the customer onboarding identical: one CNAME to the fallback origin name, one
+verification TXT record, nothing else.
+
+**Direct origin (variant A).** Cloudflare connects to the published origin port.
+This is what the sections below describe in detail: an Origin Rule rewrites the
+origin port, the origin presents an on-demand certificate, and the published port
+is reachable from the Internet.
+
+**Through a tunnel (variant B, used by the reference deployment).** The fallback
+origin name is a CNAME to the tunnel instead of an address record, and a
+catch-all ingress rule forwards to the service's HTTP listener on loopback. TLS
+ends at the Cloudflare edge, so the service sees plain HTTP and needs no
+certificate of its own on that path. Nothing else changes: the customer CNAME
+still points at the fallback origin name, the backend still resolves the tenant
+from the `Host` header, and no customer record has to be touched.
+
+Two things to know before choosing B:
+
+- The per-custom-hostname origin override (`custom_origin_server`) takes
+  precedence over the fallback origin. Changing the fallback alone has no effect
+  while the hostname carries an override: the hostname keeps using the old
+  origin, and DNS caching makes the change look successful for minutes.
+- A tunnel ingress rule matches the request `Host`, and customer traffic carries
+  the customer hostname, so it never matches a per-hostname rule. The catch-all
+  is what serves this traffic; point it at the listener that routes by `Host`.
+
+With B, the Origin Rule, the published origin port and the origin-side TLS
+hardening below are all unused. Keep them only if a direct path is still needed
+as a fallback.
+
+## How a request travels (variant A, direct origin)
 
 ```
 customer browser
@@ -180,9 +213,10 @@ verified through Cloudflare, on a real custom hostname.
   nginx-proxy-manager serves a certificate whose SANs include `brevl.ink`
   itself.
 - **A new first-party subdomain must be added to the Origin Rule exclusion
-  list**, otherwise its traffic is sent to Caddy on 8443 instead of
-  nginx-proxy-manager. The rule currently excludes `brevl.ink`, `www.brevl.ink`
-  and `proxy.brevl.ink`.
+  list** (variant A only), otherwise its traffic is sent to Caddy on the origin
+  port instead of nginx-proxy-manager. The rule excludes the zone's own names;
+  under variant B the rule does not exist and every request arrives through the
+  tunnel.
 - **Cloudflare's Free plan includes 100 custom hostnames per zone.** The risk is
   not cost, it is exhaustion: a bot creating accounts could consume the whole
   allowance and lock real customers out. The defence is the per-account cap -
@@ -191,7 +225,7 @@ verified through Cloudflare, on a real custom hostname.
 - The Origin CA certificate has no renewal to schedule and no OCSP responder
   (Caddy logs a harmless "no OCSP stapling" warning at startup).
 
-## Verifying the chain by hand
+## Verifying the chain by hand (variant A)
 
 ```bash
 # straight to Caddy, bypassing Cloudflare: expect 307 to the link target
@@ -202,6 +236,10 @@ curl -sk -o /dev/null -w '%{http_code}\n' \
 # through Cloudflare: expect 307 to the link target
 curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://go.example.com/<slug>
 ```
+
+Under variant B the first command has no equivalent: the origin port is not
+published, so the only check is the second one, plus confirming the customer
+hostname still answers with that port closed.
 
 If the first returns `000`, Caddy has no certificate loaded. If it returns `307`
 but the second fails, the problem is on the Cloudflare side: custom hostname

@@ -116,6 +116,8 @@ services:
       # Cloudflare for SaaS leg: Cloudflare connects here for customer domains
       # (SNI = proxy.brevl.ink, Host = the customer hostname). Port 443 on the
       # host stays with nginx-proxy-manager, which keeps serving everything else.
+      # Optional: keep this port on loopback and route customer traffic through a
+      # Cloudflare Tunnel to HTTP_PORT instead; TLS then ends at the edge.
       - "${HTTPS_PORT:-8443}:443"
     volumes:
       - ${BREV_DATA:-./data}/caddy_data:/data
