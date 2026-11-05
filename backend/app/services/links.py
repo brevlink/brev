@@ -8,6 +8,7 @@ import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import case, func, literal, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -93,7 +94,16 @@ async def create_link(
         title=body.title,
     )
     db.add(link)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        # Due richieste concorrenti con lo stesso slug: il controllo fatto
+        # prima dell'insert non e' atomico, l'indice unico e' la verita'.
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That slug is already in use. Choose another one",
+        ) from None
     await db.refresh(link)
 
     return _link_to_out(link)
@@ -217,7 +227,9 @@ async def get_redirect_link(db: AsyncSession, host: str, slug: str) -> Link | No
     )
     query = _for_host(query, normalized_host, require_available=True)
     result = await db.execute(query)
-    return result.scalar_one_or_none()
+    # Data from before the partial unique index may still hold duplicates:
+    # resolving the first one keeps the link working instead of returning 500.
+    return result.scalars().first()
 
 
 async def update_link(

@@ -19,7 +19,15 @@ engine_kwargs = {"echo": settings.debug}
 if settings.database_url.startswith("sqlite"):
     engine_kwargs.update({"poolclass": StaticPool})
 else:
-    engine_kwargs.update({"pool_size": 5, "max_overflow": 10})
+    engine_kwargs.update({
+        "pool_size": 5,
+        "max_overflow": 10,
+        # Dopo un riavvio o un failover del database le connessioni nel pool
+        # sono chiuse: senza il controllo la prima richiesta prende 500.
+        "pool_pre_ping": True,
+        # Ricicla prima che il server chiuda la connessione per inattivita.
+        "pool_recycle": 1800,
+    })
 
 engine = create_async_engine(settings.database_url, **engine_kwargs)
 
